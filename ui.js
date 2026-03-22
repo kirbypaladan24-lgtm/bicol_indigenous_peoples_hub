@@ -538,8 +538,8 @@ export function renderPosts(posts) {
     // reactions row
     const reactions = document.createElement("div");
     reactions.className = "post-reactions";
-    const likes = Number(p.likes || 0);
-    const dislikes = Number(p.dislikes || 0);
+    const likes = Math.max(0, Number(p.likes || 0));
+    const dislikes = Math.max(0, Number(p.dislikes || 0));
     reactions.innerHTML = `
       <button class="react-btn" data-action="like">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -653,12 +653,9 @@ function bindReactions(article, post) {
   if (stored === "like") likeBtn.classList.add("active");
   if (stored === "dislike") dislikeBtn.classList.add("active");
 
-  const adjust = (btn, delta) => {
-    const el = btn.querySelector(".count");
-    const current = Number(el.textContent || 0);
-    const next = current + delta;
-    el.textContent = Math.max(0, next);
-  };
+  const getCount = (el) => Math.max(0, Number(el?.textContent || 0));
+  const setCount = (el, val) => { if (el) el.textContent = Math.max(0, val); };
+  const adjust = (el, delta) => setCount(el, getCount(el) + delta);
 
   const setActive = (likeActive, dislikeActive) => {
     likeBtn.classList.toggle("active", likeActive);
@@ -673,16 +670,18 @@ function bindReactions(article, post) {
     if (current === "like") {
       // remove like
       likeDelta = -1;
-      adjust(likeBtn, -1);
+      adjust(likeCountEl, -1);
       localStorage.removeItem(key);
       setActive(false, false);
     } else {
       // add like, remove dislike if exists
       likeDelta = 1;
-      adjust(likeBtn, 1);
+      adjust(likeCountEl, 1);
       if (current === "dislike") {
-        dislikeDelta = -1;
-        adjust(dislikeBtn, -1);
+        if (getCount(dislikeCountEl) > 0) {
+          dislikeDelta = -1;
+          adjust(dislikeCountEl, -1);
+        }
       }
       localStorage.setItem(key, "like");
       setActive(true, false);
@@ -692,8 +691,8 @@ function bindReactions(article, post) {
       await updatePostReactions(id, { likeDelta, dislikeDelta });
     } catch (e) {
       // revert on failure
-      if (likeDelta) adjust(likeBtn, -likeDelta);
-      if (dislikeDelta) adjust(dislikeBtn, -dislikeDelta);
+      if (likeDelta) adjust(likeCountEl, -likeDelta);
+      if (dislikeDelta) adjust(dislikeCountEl, -dislikeDelta);
     }
   });
 
@@ -703,16 +702,20 @@ function bindReactions(article, post) {
     let likeDelta = 0;
     let dislikeDelta = 0;
     if (current === "dislike") {
-      dislikeDelta = -1;
-      adjust(dislikeBtn, -1);
+      if (getCount(dislikeCountEl) > 0) {
+        dislikeDelta = -1;
+        adjust(dislikeCountEl, -1);
+      }
       localStorage.removeItem(key);
       setActive(false, false);
     } else {
       dislikeDelta = 1;
-      adjust(dislikeBtn, 1);
+      adjust(dislikeCountEl, 1);
       if (current === "like") {
-        likeDelta = -1;
-        adjust(likeBtn, -1);
+        if (getCount(likeCountEl) > 0) {
+          likeDelta = -1;
+          adjust(likeCountEl, -1);
+        }
       }
       localStorage.setItem(key, "dislike");
       setActive(false, true);
@@ -721,8 +724,8 @@ function bindReactions(article, post) {
       const { updatePostReactions } = await import("./auth.js");
       await updatePostReactions(id, { likeDelta, dislikeDelta });
     } catch (e) {
-      if (likeDelta) adjust(likeBtn, -likeDelta);
-      if (dislikeDelta) adjust(dislikeBtn, -dislikeDelta);
+      if (likeDelta) adjust(likeCountEl, -likeDelta);
+      if (dislikeDelta) adjust(dislikeCountEl, -dislikeDelta);
     }
   });
 }
