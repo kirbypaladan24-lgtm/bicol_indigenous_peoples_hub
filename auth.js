@@ -15,6 +15,7 @@ import {
   getDocsFromServer,
   getDoc,
   getDocFromServer,
+  onSnapshot,
   updateDoc,
   increment,
   deleteDoc,
@@ -108,6 +109,20 @@ export async function fetchPosts(forceServer = false) {
   const q = query(postsRef, orderBy("createdAt", "desc"));
   const snapshot = forceServer ? await getDocsFromServer(q) : await getDocs(q);
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export function observePosts(callback) {
+  const q = query(postsRef, orderBy("createdAt", "desc"));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const posts = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      callback(posts);
+    },
+    (error) => {
+      console.error("observePosts error:", error);
+    }
+  );
 }
 
 export async function fetchPost(id, forceServer = false) {
