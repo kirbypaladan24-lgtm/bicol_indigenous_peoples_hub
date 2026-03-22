@@ -5,6 +5,7 @@ import {
   createAccount,
   logout,
   fetchPosts,
+  observePosts,
   isAdmin,
   savePost,
   auth,
@@ -56,6 +57,7 @@ let geoWatchId = null;
 let isTracking = false;
 let userPostSubmitting = false;
 let pollIntervalId = null;
+let postsUnsub = null;
 
 // Settings to tune
 const POSITION_BUFFER_SIZE = 8;
@@ -951,7 +953,15 @@ window.addEventListener("landmarks-updated", () => {
 
 // Initial Execution
 initTheme();
-loadPosts();
+// Real-time posts
+postsUnsub = observePosts((posts) => {
+  renderPosts(posts);
+  setStats({
+    postCount: posts.length || "--",
+    lastUpdated: posts[0]?.updatedAt?.toDate?.().toLocaleDateString?.() || "N/A",
+  });
+});
+
 ensureLeaflet()
   .then(initMap)
   .catch(() => showToast("Map library failed to load.", "error"));
