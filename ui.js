@@ -538,8 +538,8 @@ export function renderPosts(posts) {
     // reactions row
     const reactions = document.createElement("div");
     reactions.className = "post-reactions";
-    const likes = Math.max(0, Number(p.likes || 0));
-    const dislikes = Math.max(0, Number(p.dislikes || 0));
+    const likes = Number(p.likes || 0);
+    const dislikes = Number(p.dislikes || 0);
     reactions.innerHTML = `
       <button class="react-btn" data-action="like">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -655,8 +655,8 @@ function bindReactions(article, post) {
 
   const adjust = (btn, delta) => {
     const el = btn.querySelector(".count");
-    const current = Math.max(0, Number(el.textContent || 0));
-    el.textContent = Math.max(0, current + delta);
+    const current = Number(el.textContent || 0);
+    el.textContent = current + delta;
   };
 
   const setActive = (likeActive, dislikeActive) => {
