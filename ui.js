@@ -665,6 +665,7 @@ function bindReactions(article, post) {
   };
 
   likeBtn.addEventListener("click", async () => {
+    if (!requireLoginOrPrompt()) return;
     const current = localStorage.getItem(key);
     let likeDelta = 0;
     let dislikeDelta = 0;
@@ -696,6 +697,7 @@ function bindReactions(article, post) {
   });
 
   dislikeBtn.addEventListener("click", async () => {
+    if (!requireLoginOrPrompt()) return;
     const current = localStorage.getItem(key);
     let likeDelta = 0;
     let dislikeDelta = 0;
@@ -722,6 +724,21 @@ function bindReactions(article, post) {
       if (dislikeDelta) adjust(dislikeBtn, -dislikeDelta);
     }
   });
+}
+
+function requireLoginOrPrompt() {
+  try {
+    const authDialog = document.getElementById("authDialog");
+    const auth = (window?.auth) || (window?.firebase?.auth?.()) || null;
+    const isAuthed = auth?.currentUser != null;
+    if (isAuthed) return true;
+    if (authDialog?.showModal) authDialog.showModal();
+    return false;
+  } catch (e) {
+    const authDialog = document.getElementById("authDialog");
+    if (authDialog?.showModal) authDialog.showModal();
+    return false;
+  }
 }
 
 function linkifyElement(root) {
