@@ -729,8 +729,7 @@ function bindReactions(article, post) {
 function requireLoginOrPrompt() {
   try {
     const authDialog = document.getElementById("authDialog");
-    const auth = (window?.auth) || (window?.firebase?.auth?.()) || null;
-    const isAuthed = auth?.currentUser != null;
+    const isAuthed = window.__currentUser != null;
     if (isAuthed) return true;
     if (authDialog?.showModal) authDialog.showModal();
     return false;
