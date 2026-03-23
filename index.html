@@ -247,6 +247,29 @@
     </div>
   </dialog>
 
+  <dialog id="policyDialog" class="modal policy-modal">
+    <div class="modal-header">
+      <h3>User Agreement</h3>
+    </div>
+    <div class="policy-body">
+      <p>Please review and accept our community policies to continue:</p>
+      <ul>
+        <li>Respectful communication only. Harassment, hate, or abuse is not allowed.</li>
+        <li>Share accurate information and cite sources when possible.</li>
+        <li>Do not upload content you do not own or have permission to share.</li>
+        <li>Protect privacy. Avoid posting sensitive personal data.</li>
+        <li>Map locations should be shared responsibly and with cultural sensitivity.</li>
+      </ul>
+      <p class="policy-muted">By proceeding, you agree to follow these guidelines while using the Bicol Indigenous Peoples Hub.</p>
+      <div class="policy-choices">
+        <label><input type="radio" name="policyChoice" value="agree" /> I agree to the policy</label>
+        <label><input type="radio" name="policyChoice" value="disagree" /> I do not agree</label>
+      </div>
+      <p id="policyNote" class="policy-note">Select an option to continue.</p>
+      <button id="policyProceed" class="solid full" disabled>Proceed</button>
+    </div>
+  </dialog>
+
   <dialog id="authDialog" class="modal">
     <div class="modal-header">
       <h3>Access the hub</h3>
