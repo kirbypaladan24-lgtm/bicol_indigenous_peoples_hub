@@ -57,6 +57,16 @@ export async function loginWithEmail(email, password) {
   } catch (err) {
     if (err.code === "auth/user-not-found") {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          email,
+          username: email.split("@")[0],
+          createdAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      await bumpUserCount();
       return user;
     }
     throw err;
@@ -101,6 +111,7 @@ export async function createAccountWithProfile({ email, password, username, phon
     email,
     createdAt: serverTimestamp(),
   });
+  await bumpUserCount();
   return user;
 }
 
@@ -112,6 +123,15 @@ export function isAdmin(user) {
 // Firestore helpers
 const postsRef = collection(db, "posts");
 const landmarksRef = collection(db, "landmarks");
+const statsRef = doc(db, "stats", "public");
+
+async function bumpUserCount() {
+  try {
+    await setDoc(statsRef, { userCount: increment(1) }, { merge: true });
+  } catch (e) {
+    console.warn("Failed to bump user count:", e);
+  }
+}
 
 export async function fetchPosts(forceServer = false) {
   const q = query(postsRef, orderBy("createdAt", "desc"));
@@ -120,6 +140,12 @@ export async function fetchPosts(forceServer = false) {
 }
 
 export async function fetchUsersCount() {
+  try {
+    const snap = await getDocFromServer(statsRef);
+    if (snap.exists() && typeof snap.data()?.userCount === "number") {
+      return snap.data().userCount;
+    }
+  } catch (e) {}
   const usersRef = collection(db, "users");
   const snap = await getCountFromServer(usersRef);
   return snap?.data()?.count ?? 0;
