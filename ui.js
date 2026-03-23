@@ -1016,8 +1016,9 @@ export function showToast(message, variant = "info") {
   runNext();
 }
 
-export function setStats({ postCount, groupCount, lastUpdated }) {
+export function setStats({ postCount, groupCount, lastUpdated, userCount }) {
   if (postCount !== undefined) document.getElementById("postCount").textContent = postCount;
   if (groupCount !== undefined) document.getElementById("groupCount").textContent = groupCount;
+  if (userCount !== undefined) document.getElementById("userCount").textContent = userCount;
   if (lastUpdated) document.getElementById("lastUpdated").textContent = lastUpdated;
 }
