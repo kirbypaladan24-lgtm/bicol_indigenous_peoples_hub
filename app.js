@@ -772,6 +772,12 @@ function bindUserToolbar() {
   const buttons = Array.from(userToolbar.querySelectorAll("button"));
   const selects = Array.from(userToolbar.querySelectorAll("select"));
   const stateful = ["bold", "italic", "underline", "insertOrderedList", "insertUnorderedList", "justifyLeft", "justifyCenter", "justifyRight"];
+  const focusEditor = () => userEditor?.focus({ preventScroll: true });
+  const normalizeBlockValue = (value) => {
+    if (!value) return value;
+    if (value.startsWith("<")) return value;
+    return `<${value}>`;
+  };
   function updateStates() {
     buttons.forEach((btn) => {
       const cmd = btn.dataset.cmd;
@@ -786,22 +792,31 @@ function bindUserToolbar() {
     if (!btn) return;
     const cmd = btn.dataset.cmd;
     const value = btn.dataset.value || null;
+    focusEditor();
     if (cmd === "createLink") {
       const url = prompt("Enter URL");
       if (url) document.execCommand(cmd, false, url);
+    } else if (cmd === "formatBlock") {
+      document.execCommand(cmd, false, normalizeBlockValue(value || "p"));
     } else {
       document.execCommand(cmd, false, value);
     }
-    userEditor.focus();
     updateStates();
+  });
+  userToolbar.addEventListener("mousedown", (e) => {
+    if (e.target.closest("button")) e.preventDefault();
   });
   selects.forEach((sel) =>
     sel.addEventListener("change", () => {
       const cmd = sel.dataset.cmd;
       const value = sel.value || "";
       if (!cmd || !value) return;
+      focusEditor();
+      if (cmd === "formatBlock") {
+        document.execCommand(cmd, false, normalizeBlockValue(value));
+        return;
+      }
       document.execCommand(cmd, false, value);
-      userEditor.focus();
     })
   );
   userEditor.addEventListener("paste", (e) => {
@@ -829,6 +844,9 @@ document.getElementById("newPostBtn")?.addEventListener("click", () => {
     return;
   }
   openUserPostDialog();
+});
+closeUserPost?.addEventListener("click", () => {
+  userPostDialog.close();
 });
 
 // show local previews for user dialog and enforce max images
