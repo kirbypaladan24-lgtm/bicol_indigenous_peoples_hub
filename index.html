@@ -34,6 +34,8 @@
         <span class="toggle-icon sun">☀︎</span>
         <span class="toggle-icon moon">☾</span>
       </button>
+      <a id="profileBtn" class="ghost hidden" href="profile.html">Profile</a>
+      <button id="changePassBtn" class="ghost hidden" type="button">Change Password</button>
       <button id="loginBtn" class="ghost">Login</button>
       <button id="logoutBtn" class="solid hidden">Logout</button>
       <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">☰</button>
@@ -54,6 +56,8 @@
         <span class="toggle-icon sun">☀︎</span>
         <span class="toggle-icon moon">☾</span>
       </button>
+      <a id="mobileProfileBtn" class="ghost full hidden" href="profile.html">Profile</a>
+      <button id="mobileChangePassBtn" class="ghost full hidden" type="button">Change Password</button>
       <button id="mobileLoginBtn" class="ghost full">Login</button>
       <button id="mobileLogoutBtn" class="solid full hidden">Logout</button>
     </div>
@@ -276,6 +280,22 @@
       <p id="policyNote" class="policy-note">Select an option to continue.</p>
       <button id="policyProceed" class="solid full" disabled>Proceed</button>
     </div>
+  </dialog>
+
+  <dialog id="changePassDialog" class="modal">
+    <div class="modal-header">
+      <h3>Change Password</h3>
+      <button class="icon-btn" id="closeChangePass">&times;</button>
+    </div>
+    <form id="changePassForm" class="form">
+      <label>Current password</label>
+      <input type="password" id="currentPassword" required />
+      <label>New password</label>
+      <input type="password" id="newPassword" required />
+      <label>Confirm new password</label>
+      <input type="password" id="confirmPassword" required />
+      <button type="submit" class="solid full">Update Password</button>
+    </form>
   </dialog>
 
   <dialog id="authDialog" class="modal">
