@@ -18,6 +18,7 @@ import {
   getDocsFromServer,
   getDoc,
   getDocFromServer,
+  getCountFromServer,
   onSnapshot,
   updateDoc,
   increment,
@@ -116,6 +117,12 @@ export async function fetchPosts(forceServer = false) {
   const q = query(postsRef, orderBy("createdAt", "desc"));
   const snapshot = forceServer ? await getDocsFromServer(q) : await getDocs(q);
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function fetchUsersCount() {
+  const usersRef = collection(db, "users");
+  const snap = await getCountFromServer(usersRef);
+  return snap?.data()?.count ?? 0;
 }
 
 export function observePosts(callback) {
