@@ -139,16 +139,24 @@ export async function fetchPosts(forceServer = false) {
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function fetchUsersCount() {
-  try {
-    const snap = await getDocFromServer(statsRef);
-    if (snap.exists() && typeof snap.data()?.userCount === "number") {
-      return snap.data().userCount;
-    }
-  } catch (e) {}
+export async function fetchUsersCount(options = {}) {
+  const forceUsers = options?.forceUsers === true;
+  if (!forceUsers) {
+    try {
+      const snap = await getDocFromServer(statsRef);
+      if (snap.exists() && typeof snap.data()?.userCount === "number") {
+        return { count: snap.data().userCount, source: "stats" };
+      }
+    } catch (e) {}
+  }
   const usersRef = collection(db, "users");
   const snap = await getCountFromServer(usersRef);
-  return snap?.data()?.count ?? 0;
+  return { count: snap?.data()?.count ?? 0, source: "users" };
+}
+
+export async function setPublicUserCount(count) {
+  if (!Number.isFinite(count)) return;
+  await setDoc(statsRef, { userCount: count }, { merge: true });
 }
 
 export function observePosts(callback) {
