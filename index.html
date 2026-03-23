@@ -127,6 +127,13 @@
         <p class="eyebrow">Community Posts</p>
         <h3>Knowledge and lived experiences</h3>
       </div>
+      <div class="posts-tools">
+        <div class="searchbar">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="postSearch" type="search" placeholder="Search posts..." aria-label="Search posts" />
+          <button id="clearPostSearch" class="icon-btn small" type="button" aria-label="Clear search">×</button>
+        </div>
+      </div>
       <button id="newPostBtn" class="solid small hidden">New Post</button>
     </div>
     <div id="postsGrid" class="posts-feed"></div>
@@ -182,6 +189,7 @@
         <a href="#map">Map</a>
         <a href="#posts">Posts</a>
         <a href="#about">About</a>
+        <a href="policy.html">Privacy & Content Policy</a>
       </div>
       <div>
         <h4>Contact</h4>
@@ -378,7 +386,7 @@
     </div>
   </section>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j7kGStpYkP82afvfAvX8Z64KbjrKMgGZ1Z/7cmo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j7kGStpYkP82afvfAvX8Z64KbjrKMgGZ1Z/7cmo=" crossorigin="" defer></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
