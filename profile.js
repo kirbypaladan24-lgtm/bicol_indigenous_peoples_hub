@@ -14,6 +14,8 @@ const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
 const profileStatus = document.getElementById("profileStatus");
 const profilePosts = document.getElementById("profilePosts");
 const profileEmpty = document.getElementById("profileEmpty");
+const profileUsername = document.getElementById("profileUsername");
+const profileEmail = document.getElementById("profileEmail");
 
 const editDialog = document.getElementById("profileEditDialog");
 const closeEdit = document.getElementById("closeProfileEdit");
@@ -38,6 +40,11 @@ let cachedAuthorName = null;
 let currentEditPost = null;
 let currentMedia = [];
 let saving = false;
+
+function renderProfileIdentity({ username = "--", email = "--" } = {}) {
+  if (profileUsername) profileUsername.textContent = username;
+  if (profileEmail) profileEmail.textContent = email;
+}
 
 function applyTheme(theme) {
   const value = theme === "light" ? "light" : "dark";
@@ -390,9 +397,24 @@ observeAuth(async (user) => {
   currentUser = user || null;
   if (!currentUser) {
     profileStatus.textContent = "Please log in to view your profile.";
+    renderProfileIdentity({ username: "--", email: "--" });
     profileEmpty?.classList.remove("hidden");
     profilePosts.innerHTML = "";
     return;
+  }
+  try {
+    const profile = await getUserProfile(currentUser.uid);
+    const username =
+      profile?.username ||
+      currentUser.displayName ||
+      (currentUser.email ? currentUser.email.split("@")[0] : "Contributor");
+    const email = profile?.email || currentUser.email || "--";
+    cachedAuthorName = username;
+    renderProfileIdentity({ username, email });
+  } catch (e) {
+    const fallbackName = currentUser.email ? currentUser.email.split("@")[0] : "Contributor";
+    cachedAuthorName = fallbackName;
+    renderProfileIdentity({ username: fallbackName, email: currentUser.email || "--" });
   }
   await loadProfilePosts();
 });
