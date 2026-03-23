@@ -22,16 +22,51 @@
     </div>
     <div class="auth-cta">
       <a href="index.html#posts" class="ghost small">View Posts</a>
+      <a href="profile.html" class="ghost">Profile</a>
+      <button id="changePassBtn" class="ghost" type="button">Change Password</button>
       <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
         <span class="toggle-thumb"></span>
         <span class="toggle-icon sun">☀︎</span>
         <span class="toggle-icon moon">☾</span>
       </button>
       <button id="logoutBtn" class="solid">Logout</button>
+      <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">â˜°</button>
     </div>
   </header>
 
+  <div id="mobileMenu" class="mobile-menu">
+    <div class="mobile-links">
+      <a href="index.html#posts">View Posts</a>
+      <a href="profile.html">Profile</a>
+    </div>
+    <div class="mobile-actions">
+      <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-thumb"></span>
+        <span class="toggle-icon sun">â˜€ï¸Ž</span>
+        <span class="toggle-icon moon">â˜¾</span>
+      </button>
+      <button id="mobileChangePassBtn" class="ghost full" type="button">Change Password</button>
+      <button id="mobileLogoutBtn" class="solid full">Logout</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
+
+  <dialog id="changePassDialog" class="modal">
+    <div class="modal-header">
+      <h3>Change Password</h3>
+      <button class="icon-btn" id="closeChangePass">&times;</button>
+    </div>
+    <form id="changePassForm" class="form">
+      <label>Current password</label>
+      <input type="password" id="currentPassword" required />
+      <label>New password</label>
+      <input type="password" id="newPassword" required />
+      <label>Confirm new password</label>
+      <input type="password" id="confirmPassword" required />
+      <button type="submit" class="solid full">Update Password</button>
+    </form>
+  </dialog>
 
   <section id="adminPanel" class="admin">
     <div class="admin-bar">
