@@ -476,6 +476,26 @@ button {
   max-width: 520px;
 }
 
+.profile-identity {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  width: fit-content;
+  min-width: min(420px, 92vw);
+}
+
+.profile-identity p {
+  margin: 4px 0;
+}
+
+[data-theme="light"] .profile-identity {
+  background: rgba(255, 255, 255, 0.76);
+  border-color: #d8dfd2;
+  color: #1b1f1a;
+}
+
 .map {
   height: 420px;
   min-height: 320px;
