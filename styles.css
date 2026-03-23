@@ -710,6 +710,32 @@ button {
   word-break: break-all;
 }
 
+/* size tweaks: smaller previews inside posts on desktop */
+.post-body .link-preview {
+  max-width: 460px;
+}
+
+/* medium previews for landmark summary */
+.landmark-summary .link-preview {
+  max-width: 600px;
+}
+
+/* landmark cover sizing */
+.landmark-cover img {
+  max-width: 620px;
+  width: 100%;
+  margin: 0 auto;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .post-body .link-preview,
+  .landmark-summary .link-preview,
+  .landmark-cover img {
+    max-width: 100%;
+  }
+}
+
 [data-theme="light"] .link-preview {
   background: rgba(255, 255, 255, 0.7);
 }
