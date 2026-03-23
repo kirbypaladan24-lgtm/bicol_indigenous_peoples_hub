@@ -959,11 +959,60 @@ export function showToast(message, variant = "info") {
     console.warn("Toast element missing:", message);
     return;
   }
-  toastEl.classList.remove("warn", "error", "success", "info");
-  toastEl.textContent = message;
-  toastEl.classList.remove("hidden");
-  toastEl.dataset.variant = variant;
-  setTimeout(() => toastEl.classList.add("hidden"), 2600);
+  const payload = {
+    message,
+    variant,
+    duration: 3200,
+  };
+
+  if (!toastEl.__queue) {
+    toastEl.__queue = [];
+    toastEl.__active = false;
+    toastEl.__lastMessage = "";
+    toastEl.__lastAt = 0;
+  }
+
+  const now = Date.now();
+  if (message === toastEl.__lastMessage && now - toastEl.__lastAt < 1800) {
+    return;
+  }
+  toastEl.__lastMessage = message;
+  toastEl.__lastAt = now;
+
+  toastEl.__queue.push(payload);
+  if (toastEl.__active) return;
+
+  const runNext = () => {
+    const next = toastEl.__queue.shift();
+    if (!next) {
+      toastEl.__active = false;
+      return;
+    }
+    toastEl.__active = true;
+    const icon =
+      next.variant === "success"
+        ? "✓"
+        : next.variant === "error"
+          ? "!"
+          : next.variant === "warn"
+            ? "⚠"
+            : "ℹ";
+    toastEl.classList.remove("hidden");
+    toastEl.dataset.variant = next.variant;
+    toastEl.innerHTML = `
+      <span class="toast-inner">
+        <span class="toast-icon" aria-hidden="true">${icon}</span>
+        <span class="toast-message">${next.message}</span>
+      </span>
+    `;
+    clearTimeout(toastEl.__timer);
+    toastEl.__timer = setTimeout(() => {
+      toastEl.classList.add("hidden");
+      setTimeout(runNext, 180);
+    }, next.duration);
+  };
+
+  runNext();
 }
 
 export function setStats({ postCount, groupCount, lastUpdated }) {
