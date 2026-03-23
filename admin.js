@@ -247,7 +247,7 @@ async function handleSave() {
     const media = [...currentMedia, ...uploadedUrls].slice(0, 10);
 
     const authorName = await resolveAuthorName();
-    await savePost({ id: currentId, title, content, media, author: authorName });
+    await savePost({ id: currentId, title, content, media, author: authorName, authorId: currentUser?.uid || null });
 
     showToast(currentId ? "Post updated successfully." : "Post published successfully.", "success");
     await loadAdminPosts();
