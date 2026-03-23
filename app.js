@@ -11,6 +11,7 @@ import {
   savePost,
   auth,
   getUserProfile,
+  fetchUsersCount,
   fetchLandmarks,
   ensureAnonAuth,
 } from "./auth.js";
@@ -1131,6 +1132,16 @@ async function loadPosts() {
   }
 }
 
+async function loadUserCount() {
+  try {
+    await ensureAnonAuth();
+    const count = await fetchUsersCount();
+    setStats({ userCount: count });
+  } catch (e) {
+    console.warn("Failed to load user count:", e);
+  }
+}
+
 observeAuth(async (user) => {
   const authed = !!user;
   loginBtn.classList.toggle("hidden", authed);
@@ -1169,6 +1180,7 @@ window.addEventListener("landmarks-updated", () => {
 // Initial Execution
 initTheme();
 initPolicyGate();
+loadUserCount();
 // Real-time posts
 postsUnsub = observePosts((posts) => {
   allPostsCache = posts;
