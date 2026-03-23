@@ -4,6 +4,7 @@ import {
   loginWithEmail,
   createAccount,
   logout,
+  changePassword,
   fetchPosts,
   observePosts,
   isAdmin,
@@ -20,6 +21,8 @@ import { uploadImages } from "./imgbb.js";
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
+const profileBtn = document.getElementById("profileBtn");
+const changePassBtn = document.getElementById("changePassBtn");
 const themeToggle = document.getElementById("themeToggle");
 const menuToggle = document.getElementById("menuToggle");
 const authDialog = document.getElementById("authDialog");
@@ -35,6 +38,8 @@ const scrollMapBtn = document.getElementById("scrollMapBtn");
 const mobileMenu = document.getElementById("mobileMenu");
 const mobileLoginBtn = document.getElementById("mobileLoginBtn");
 const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+const mobileProfileBtn = document.getElementById("mobileProfileBtn");
+const mobileChangePassBtn = document.getElementById("mobileChangePassBtn");
 const mobileThemeToggle = document.getElementById("mobileThemeToggle");
 const userPostDialog = document.getElementById("userPostDialog");
 const closeUserPost = document.getElementById("closeUserPost");
@@ -52,6 +57,12 @@ const policyProceed = document.getElementById("policyProceed");
 const policyNote = document.getElementById("policyNote");
 const postSearchInput = document.getElementById("postSearch");
 const clearPostSearch = document.getElementById("clearPostSearch");
+const changePassDialog = document.getElementById("changePassDialog");
+const closeChangePass = document.getElementById("closeChangePass");
+const changePassForm = document.getElementById("changePassForm");
+const currentPassword = document.getElementById("currentPassword");
+const newPassword = document.getElementById("newPassword");
+const confirmPassword = document.getElementById("confirmPassword");
 
 // Global Map State
 let userMarker = null;
@@ -885,6 +896,49 @@ logoutBtn?.addEventListener("click", async () => {
   showToast("Logged out successfully.", "success");
 });
 
+async function triggerPasswordReset() {
+  if (!changePassDialog) return;
+  currentPassword.value = "";
+  newPassword.value = "";
+  confirmPassword.value = "";
+  changePassDialog.showModal();
+}
+
+changePassBtn?.addEventListener("click", triggerPasswordReset);
+mobileChangePassBtn?.addEventListener("click", () => {
+  triggerPasswordReset();
+  mobileMenu.classList.remove("open");
+  menuToggle.setAttribute("aria-expanded", "false");
+});
+
+closeChangePass?.addEventListener("click", () => changePassDialog.close());
+
+changePassForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const current = currentPassword.value.trim();
+  const next = newPassword.value.trim();
+  const confirm = confirmPassword.value.trim();
+  if (!current || !next || !confirm) {
+    showToast("Please fill in all password fields.", "warn");
+    return;
+  }
+  if (next.length < 6) {
+    showToast("New password must be at least 6 characters.", "warn");
+    return;
+  }
+  if (next !== confirm) {
+    showToast("New passwords do not match.", "warn");
+    return;
+  }
+  try {
+    await changePassword({ currentPassword: current, newPassword: next });
+    showToast("Password updated successfully.", "success");
+    changePassDialog.close();
+  } catch (err) {
+    showToast("Current password is incorrect.", "error");
+  }
+});
+
 // Password toggle (login)
 toggleLoginPass?.addEventListener("click", () => {
   const isHidden = passwordInput.type === "password";
@@ -1046,7 +1100,7 @@ userSavePostBtn?.addEventListener("click", async () => {
   }
 
   try {
-    await savePost({ title, content, media, author: authorName });
+    await savePost({ title, content, media, author: authorName, authorId: user.uid });
     showToast("Post published successfully.", "success");
     userPostDialog.close();
     await loadPosts();
@@ -1081,8 +1135,12 @@ observeAuth(async (user) => {
   const authed = !!user;
   loginBtn.classList.toggle("hidden", authed);
   logoutBtn.classList.toggle("hidden", !authed);
+  profileBtn?.classList.toggle("hidden", !authed);
+  changePassBtn?.classList.toggle("hidden", !authed);
   mobileLoginBtn?.classList.toggle("hidden", authed);
   mobileLogoutBtn?.classList.toggle("hidden", !authed);
+  mobileProfileBtn?.classList.toggle("hidden", !authed);
+  mobileChangePassBtn?.classList.toggle("hidden", !authed);
   const isAdminUser = isAdmin(user);
   newPostBtn.classList.toggle("hidden", !authed || isAdminUser);
   cachedAuthorName = null;
