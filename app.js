@@ -12,6 +12,7 @@ import {
   auth,
   getUserProfile,
   fetchUsersCount,
+  setPublicUserCount,
   fetchLandmarks,
   ensureAnonAuth,
 } from "./auth.js";
@@ -89,6 +90,7 @@ const THEME_KEY = "bicol-ip-theme";
 const POLICY_KEY = "bicol-ip-policy-v1";
 const LANDMARK_CACHE_KEY = "bicol-ip-landmarks-cache-v1";
 const LANDMARK_CACHE_TTL_MS = 1000 * 60 * 30;
+const USER_COUNT_CACHE_KEY = "bicol-ip-user-count";
 let allPostsCache = [];
 
 // Buffers and state
@@ -1133,12 +1135,40 @@ async function loadPosts() {
 }
 
 async function loadUserCount() {
+  const cachedRaw = localStorage.getItem(USER_COUNT_CACHE_KEY);
+  const cached = cachedRaw === null ? NaN : Number(cachedRaw);
+  const hasCached = Number.isFinite(cached) && cached >= 0;
   try {
     await ensureAnonAuth();
-    const count = await fetchUsersCount();
-    setStats({ userCount: count });
+    let { count, source } = await fetchUsersCount();
+
+    // If public stats are stale at 0, recompute from /users for signed-in non-anonymous sessions.
+    if (
+      source === "stats" &&
+      count === 0 &&
+      auth?.currentUser &&
+      auth.currentUser.isAnonymous !== true
+    ) {
+      const recalculated = await fetchUsersCount({ forceUsers: true });
+      count = recalculated.count;
+      source = recalculated.source;
+    }
+
+    if (Number.isFinite(count) && count >= 0) {
+      if (source === "stats" && count === 0 && hasCached && cached > 0) {
+        setStats({ userCount: cached });
+      } else {
+        setStats({ userCount: count });
+        localStorage.setItem(USER_COUNT_CACHE_KEY, String(count));
+      }
+      if (source === "users" && auth?.currentUser && auth.currentUser.isAnonymous !== true) {
+        try {
+          await setPublicUserCount(count);
+        } catch (e) {}
+      }
+    }
   } catch (e) {
-    console.warn("Failed to load user count:", e);
+    if (hasCached) setStats({ userCount: cached });
   }
 }
 
@@ -1166,6 +1196,9 @@ observeAuth(async (user) => {
   } else {
     adminSection?.classList.add("hidden");
   }
+
+  // Re-evaluate user count when auth state changes so public stats can self-heal.
+  loadUserCount();
 });
 
 // Listen for admin updates to refresh feed immediately
