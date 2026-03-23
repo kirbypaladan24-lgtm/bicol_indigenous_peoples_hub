@@ -134,6 +134,17 @@ function bindToolbar() {
     const text = (e.clipboardData || window.clipboardData).getData("text/plain");
     if (text) document.execCommand("insertText", false, text);
   });
+  editor?.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const key = e.key.toLowerCase();
+    if (!["b", "i", "u"].includes(key)) return;
+    e.preventDefault();
+    focusEditor();
+    if (key === "b") document.execCommand("bold");
+    if (key === "i") document.execCommand("italic");
+    if (key === "u") document.execCommand("underline");
+    updateStates();
+  });
 
   ["keyup", "mouseup", "blur"].forEach((evt) =>
     editor?.addEventListener(evt, () => {
