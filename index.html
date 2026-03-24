@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,57 +17,71 @@
         <img src="https://raw.githubusercontent.com/kirbypaladan24-lgtm/Images-/fe9832e74e7cccd0ef63584c8557593eccbc2de4/0109ed35-4400-46b1-a678-59a51e71b17e.jpg" alt="Bicol Indigenous Peoples Hub Logo" />
       </span>
       <div>
-        <h1>Bicol Indigenous Peoples Hub</h1>
-        <p>Stories, heritage, and living culture</p>
+        <h1 data-i18n="page_title">Bicol Indigenous Peoples Hub</h1>
+        <p data-i18n="brand_tagline">Stories, heritage, and living culture</p>
       </div>
     </div>
     <nav class="nav">
-      <a href="#home">Home</a>
-      <a href="#map">Map</a>
-      <a href="#posts">Posts</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
+      <a href="#home" data-i18n="nav_home">Home</a>
+      <a href="#map" data-i18n="nav_map">Map</a>
+      <a href="#posts" data-i18n="nav_posts">Posts</a>
+      <a href="#about" data-i18n="nav_about">About</a>
+      <a href="#contact" data-i18n="nav_contact">Contact</a>
     </nav>
     <div class="auth-cta">
+      <select
+        id="languageSelect"
+        class="language-select"
+        data-language-selector
+        data-i18n-aria-label="choose_language"
+        aria-label="Choose language"
+      ></select>
       <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
         <span class="toggle-thumb"></span>
         <span class="toggle-icon sun">☀︎</span>
         <span class="toggle-icon moon">☾</span>
       </button>
-      <a id="profileBtn" class="ghost hidden" href="profile.html">Profile</a>
-      <button id="changePassBtn" class="ghost hidden" type="button">Change Password</button>
-      <button id="loginBtn" class="ghost">Login</button>
-      <button id="logoutBtn" class="solid hidden">Logout</button>
+      <a id="profileBtn" class="ghost hidden" href="profile.html" data-i18n="profile">Profile</a>
+      <button id="changePassBtn" class="ghost hidden" type="button" data-i18n="change_password">Change Password</button>
+      <button id="loginBtn" class="ghost" data-i18n="login">Login</button>
+      <button id="logoutBtn" class="solid hidden" data-i18n="logout">Logout</button>
       <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">☰</button>
     </div>
   </header>
 
   <div id="mobileMenu" class="mobile-menu">
     <div class="mobile-links">
-      <a href="#home">Home</a>
-      <a href="#map">Map</a>
-      <a href="#posts">Posts</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
+      <a href="#home" data-i18n="nav_home">Home</a>
+      <a href="#map" data-i18n="nav_map">Map</a>
+      <a href="#posts" data-i18n="nav_posts">Posts</a>
+      <a href="#about" data-i18n="nav_about">About</a>
+      <a href="#contact" data-i18n="nav_contact">Contact</a>
     </div>
     <div class="mobile-actions">
+      <select
+        id="mobileLanguageSelect"
+        class="language-select full"
+        data-language-selector
+        data-i18n-aria-label="choose_language"
+        aria-label="Choose language"
+      ></select>
       <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
         <span class="toggle-thumb"></span>
         <span class="toggle-icon sun">☀︎</span>
         <span class="toggle-icon moon">☾</span>
       </button>
-      <a id="mobileProfileBtn" class="ghost full hidden" href="profile.html">Profile</a>
-      <button id="mobileChangePassBtn" class="ghost full hidden" type="button">Change Password</button>
-      <button id="mobileLoginBtn" class="ghost full">Login</button>
-      <button id="mobileLogoutBtn" class="solid full hidden">Logout</button>
+      <a id="mobileProfileBtn" class="ghost full hidden" href="profile.html" data-i18n="profile">Profile</a>
+      <button id="mobileChangePassBtn" class="ghost full hidden" type="button" data-i18n="change_password">Change Password</button>
+      <button id="mobileLoginBtn" class="ghost full" data-i18n="login">Login</button>
+      <button id="mobileLogoutBtn" class="solid full hidden" data-i18n="logout">Logout</button>
     </div>
   </div>
 
   <main id="home" class="hero">
     <div class="hero-content">
-      <p class="eyebrow">Indigenous Peoples | Bicol Region</p>
-      <h2>Celebrate, learn, and protect the diverse cultures across Bicol.</h2>
-       <p class="lede">
+      <p class="eyebrow" data-i18n="hero_eyebrow">Indigenous Peoples | Bicol Region</p>
+      <h2 data-i18n="hero_title">Celebrate, learn, and protect the diverse cultures across Bicol.</h2>
+       <p class="lede" data-i18n="hero_lede">
        Welcome to the Bicol Indigenous Peoples Hub. 
        This is a community-centered space dedicated to the vibrant heritage of Bicol’s Indigenous peoples — from the Agta and Kabihug to the Isarog and beyond.
        Discover living stories, ancestral knowledge, languages still spoken, and deep connections to land and sea — shared respectfully and with consent.
@@ -75,8 +89,8 @@
       </p>
 
       <div class="hero-actions">
-        <button class="solid" id="exploreBtn">Explore Posts</button>
-        <button class="ghost" id="scrollMapBtn">View Map</button>
+        <button class="solid" id="exploreBtn" data-i18n="btn_explore_posts">Explore Posts</button>
+        <button class="ghost" id="scrollMapBtn" data-i18n="btn_view_map">View Map</button>
       </div>
       <div class="emblems" aria-hidden="true">
         <svg class="emblem" viewBox="0 0 64 64">
@@ -94,34 +108,34 @@
     <div class="hero-card">
       <div class="stat">
         <span id="postCount">--</span>
-        <p>Community posts</p>
+        <p data-i18n="stat_posts">Community posts</p>
       </div>
       <div class="stat">
         <span id="groupCount">--</span>
-        <p>Groups mapped</p>
+        <p data-i18n="stat_groups">Groups mapped</p>
       </div>
       <div class="stat">
         <span id="userCount">--</span>
-        <p>Total users</p>
+        <p data-i18n="stat_users">Total users</p>
       </div>
       <div class="stat">
         <span id="lastUpdated">--</span>
-        <p>Last update</p>
+        <p data-i18n="stat_updated">Last update</p>
       </div>
-      <div class="pill">Culturally respectful • Community-first</div>
+      <div class="pill" data-i18n="pill_text">Culturally respectful • Community-first</div>
     </div>
   </main>
 
   <section id="map" class="section">
     <div class="section-head">
       <div>
-        <p class="eyebrow">Interactive Map</p>
-        <h3>Land, waters, and stories across Bicol.</h3>
-        <p class="section-desc">Explore landmarks and territories associated with Indigenous communities. Click a marker to learn more.</p>
+        <p class="eyebrow" data-i18n="map_eyebrow">Interactive Map</p>
+        <h3 data-i18n="map_title">Land, waters, and stories across Bicol.</h3>
+        <p class="section-desc" data-i18n="map_desc">Explore landmarks and territories associated with Indigenous communities. Click a marker to learn more.</p>
       </div>
       <div class="map-controls">
         <button id="trackLocationBtn" class="ghost small">
-          <span class="icon">⌖</span> My Location
+          <span class="icon">⌖</span> <span data-i18n="btn_my_location">My Location</span>
         </button>
       </div>
     </div>
@@ -132,103 +146,103 @@
   <section id="posts" class="section">
     <div class="section-head">
       <div>
-        <p class="eyebrow">Community Posts</p>
-        <h3>Knowledge and lived experiences</h3>
+        <p class="eyebrow" data-i18n="posts_eyebrow">Community Posts</p>
+        <h3 data-i18n="posts_title">Knowledge and lived experiences</h3>
       </div>
       <div class="posts-tools">
         <div class="searchbar">
           <span class="search-icon" aria-hidden="true">⌕</span>
-          <input id="postSearch" type="search" placeholder="Search posts..." aria-label="Search posts" />
-          <button id="clearPostSearch" class="icon-btn small" type="button" aria-label="Clear search">×</button>
+          <input id="postSearch" type="search" placeholder="Search posts..." aria-label="Search posts" data-i18n-placeholder="posts_search_placeholder" data-i18n-aria-label="posts_search_placeholder" />
+          <button id="clearPostSearch" class="icon-btn small" type="button" aria-label="Clear search" data-i18n-aria-label="clear_search">×</button>
         </div>
       </div>
-      <button id="newPostBtn" class="solid small hidden">New Post</button>
+      <button id="newPostBtn" class="solid small hidden" data-i18n="btn_new_post">New Post</button>
     </div>
     <div id="postsGrid" class="posts-feed"></div>
-    <div class="empty" id="postsEmpty">No posts yet. Sign in to add the first story.</div>
+    <div class="empty" id="postsEmpty" data-i18n="posts_empty">No posts yet. Sign in to add the first story.</div>
   </section>
 
   <section id="about" class="section two-col">
     <div>
-      <p class="eyebrow">About</p>
-      <h3>Indigenous Peoples of Bicol</h3>
-      <p>
+      <p class="eyebrow" data-i18n="about_eyebrow">About</p>
+      <h3 data-i18n="about_title">Indigenous Peoples of Bicol</h3>
+      <p data-i18n="about_p1">
         The Bicol Region is home to diverse Indigenous Peoples, including the Agta of Mt. Isarog and Mt. Malinao and communities around Mt. Bulusan. Their
         histories, oral traditions, weaving, music, and ecological knowledge are vital to the region’s identity.
       </p>
-      <p>
+      <p data-i18n="about_p2">
         This hub gathers verified references, community contributions, and multimedia resources to amplify voices, protect rights, and encourage respectful engagement.
       </p>
     </div>
     <div class="about-card">
-      <h4>Core Principles</h4>
+      <h4 data-i18n="core_principles">Core Principles</h4>
       <ul>
-        <li>Community consent and attribution</li>
-        <li>Cultural sensitivity and accuracy</li>
-        <li>Open knowledge with safeguards</li>
-        <li>Respect for land, waters, and ancestors</li>
+        <li data-i18n="principle_1">Community consent and attribution</li>
+        <li data-i18n="principle_2">Cultural sensitivity and accuracy</li>
+        <li data-i18n="principle_3">Open knowledge with safeguards</li>
+        <li data-i18n="principle_4">Respect for land, waters, and ancestors</li>
       </ul>
     </div>
   </section>
 
   <section id="contact" class="section contact">
     <div>
-      <p class="eyebrow">Contact</p>
-      <h3>Partner with communities</h3>
+      <p class="eyebrow" data-i18n="contact_eyebrow">Contact</p>
+      <h3 data-i18n="contact_title">Partner with communities</h3>
       <p>Email: <a href="mailto:bicolindigenouspeopleshub@gmail.com">bicolindigenouspeopleshub@gmail.com</a></p>
-      <p>For collaboration, capacity building, and data stewardship inquiries.</p>
+      <p data-i18n="contact_text">For collaboration, capacity building, and data stewardship inquiries.</p>
     </div>
     <div class="cta-card">
-      <h4>Want to contribute content?</h4>
-      <p>Sign in and share verified stories, photos, and references. Admins can review and publish.</p>
-      <button class="solid" id="ctaLoginBtn">Login to contribute</button>
+      <h4 data-i18n="cta_title">Want to contribute content?</h4>
+      <p data-i18n="cta_text">Sign in and share verified stories, photos, and references. Admins can review and publish.</p>
+      <button class="solid" id="ctaLoginBtn" data-i18n="cta_btn">Login to contribute</button>
     </div>
   </section>
 
   <footer class="site-footer">
     <div class="footer-inner">
       <div>
-        <h4>Bicol Indigenous Peoples Hub</h4>
-        <p>Community-led stories, cultural preservation, and respectful knowledge sharing.</p>
+        <h4 data-i18n="footer_title">Bicol Indigenous Peoples Hub</h4>
+        <p data-i18n="footer_desc">Community-led stories, cultural preservation, and respectful knowledge sharing.</p>
       </div>
       <div>
-        <h4>Explore</h4>
-        <a href="#home">Home</a>
-        <a href="#map">Map</a>
-        <a href="#posts">Posts</a>
-        <a href="#about">About</a>
-        <a href="policy.html">Privacy & Content Policy</a>
+        <h4 data-i18n="footer_explore">Explore</h4>
+        <a href="#home" data-i18n="nav_home">Home</a>
+        <a href="#map" data-i18n="nav_map">Map</a>
+        <a href="#posts" data-i18n="nav_posts">Posts</a>
+        <a href="#about" data-i18n="nav_about">About</a>
+        <a href="policy.html" data-i18n="footer_policy">Privacy & Content Policy</a>
       </div>
       <div>
-        <h4>Contact</h4>
+        <h4 data-i18n="footer_contact">Contact</h4>
         <a href="mailto:bicolindigenouspeopleshub@gmail.com">bicolindigenouspeopleshub@gmail.com</a>
-        <a href="#contact">Collaboration</a>
+        <a href="#contact" data-i18n="footer_collab">Collaboration</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 Bicol Indigenous Peoples Hub. All rights reserved. Developed by Kirby Paladan</span>
-      <span>Built with community care</span>
+      <span>© 2026 Bicol Indigenous Peoples Hub</span>
+      <span data-i18n="footer_built">Built with community care</span>
     </div>
   </footer>
 
   <div id="toast" class="toast hidden"></div>
 
   <dialog id="mediaLightbox" class="lightbox">
-    <button id="lightboxPrev" class="icon-btn lightbox-nav" aria-label="Previous image">‹</button>
+    <button id="lightboxPrev" class="icon-btn lightbox-nav" aria-label="Previous image" data-i18n-aria-label="previous_image">‹</button>
     <img id="lightboxImg" alt="Post media full size" />
-    <button id="lightboxNext" class="icon-btn lightbox-nav" aria-label="Next image">›</button>
-    <button id="lightboxClose" class="icon-btn lightbox-close" aria-label="Close image">×</button>
+    <button id="lightboxNext" class="icon-btn lightbox-nav" aria-label="Next image" data-i18n-aria-label="next_image">›</button>
+    <button id="lightboxClose" class="icon-btn lightbox-close" aria-label="Close image" data-i18n-aria-label="close_image">×</button>
   </dialog>
 
   <dialog id="userPostDialog" class="modal">
     <div class="modal-header">
-      <h3>Share a post</h3>
+      <h3 data-i18n="share_post">Share a post</h3>
       <button class="icon-btn" id="closeUserPost">&times;</button>
     </div>
     <div class="form">
-      <label>Title</label>
-      <input type="text" id="userPostTitle" placeholder="Post title" />
-      <label>Cover Images (optional, up to 10)</label>
+      <label data-i18n="title">Title</label>
+      <input type="text" id="userPostTitle" placeholder="Post title" data-i18n-placeholder="post_title_placeholder" />
+      <label data-i18n="cover_images_optional">Cover Images (optional, up to 10)</label>
       <input type="file" id="userImageInput" accept="image/*" multiple />
       <div id="imagePreviewUser" class="media-preview"></div>
       <div class="toolbar" id="userToolbar">
@@ -259,65 +273,65 @@
         <button data-cmd="removeFormat" type="button">Clear</button>
       </div>
       <div id="userEditor" class="editor" contenteditable="true"></div>
-      <button id="userSavePostBtn" class="solid full">Publish</button>
+      <button id="userSavePostBtn" class="solid full" data-i18n="publish">Publish</button>
     </div>
   </dialog>
 
   <dialog id="policyDialog" class="modal policy-modal">
     <div class="modal-header">
-      <h3>User Agreement</h3>
+      <h3 data-i18n="user_agreement">User Agreement</h3>
     </div>
     <div class="policy-body">
-      <p>Please review and accept our community policies to continue:</p>
+      <p data-i18n="policy_intro">Please review and accept our community policies to continue:</p>
       <ul>
-        <li>Respectful communication only. Harassment, hate, or abuse is not allowed.</li>
-        <li>Share accurate information and cite sources when possible.</li>
-        <li>Do not upload content you do not own or have permission to share.</li>
-        <li>Protect privacy. Avoid posting sensitive personal data.</li>
-        <li>Map locations should be shared responsibly and with cultural sensitivity.</li>
+        <li data-i18n="policy_1">Respectful communication only. Harassment, hate, or abuse is not allowed.</li>
+        <li data-i18n="policy_2">Share accurate information and cite sources when possible.</li>
+        <li data-i18n="policy_3">Do not upload content you do not own or have permission to share.</li>
+        <li data-i18n="policy_4">Protect privacy. Avoid posting sensitive personal data.</li>
+        <li data-i18n="policy_5">Map locations should be shared responsibly and with cultural sensitivity.</li>
       </ul>
-      <p class="policy-muted">By proceeding, you agree to follow these guidelines while using the Bicol Indigenous Peoples Hub.</p>
+      <p class="policy-muted" data-i18n="policy_outro">By proceeding, you agree to follow these guidelines while using the Bicol Indigenous Peoples Hub.</p>
       <div class="policy-choices">
-        <label><input type="radio" name="policyChoice" value="agree" /> I agree to the policy</label>
-        <label><input type="radio" name="policyChoice" value="disagree" /> I do not agree</label>
+        <label><input type="radio" name="policyChoice" value="agree" /> <span data-i18n="policy_agree">I agree to the policy</span></label>
+        <label><input type="radio" name="policyChoice" value="disagree" /> <span data-i18n="policy_disagree">I do not agree</span></label>
       </div>
-      <p id="policyNote" class="policy-note">Select an option to continue.</p>
-      <button id="policyProceed" class="solid full" disabled>Proceed</button>
+      <p id="policyNote" class="policy-note" data-i18n="policy_note_default">Select an option to continue.</p>
+      <button id="policyProceed" class="solid full" disabled data-i18n="proceed">Proceed</button>
     </div>
   </dialog>
 
   <dialog id="changePassDialog" class="modal">
     <div class="modal-header">
-      <h3>Change Password</h3>
+      <h3 data-i18n="change_password_title">Change Password</h3>
       <button class="icon-btn" id="closeChangePass">&times;</button>
     </div>
     <form id="changePassForm" class="form">
-      <label>Current password</label>
+      <label data-i18n="current_password">Current password</label>
       <input type="password" id="currentPassword" required />
-      <label>New password</label>
+      <label data-i18n="new_password">New password</label>
       <input type="password" id="newPassword" required />
-      <label>Confirm new password</label>
+      <label data-i18n="confirm_new_password">Confirm new password</label>
       <input type="password" id="confirmPassword" required />
-      <button type="submit" class="solid full">Update Password</button>
+      <button type="submit" class="solid full" data-i18n="update_password">Update Password</button>
     </form>
   </dialog>
 
   <dialog id="authDialog" class="modal">
     <div class="modal-header">
-      <h3>Access the hub</h3>
+      <h3 data-i18n="access_hub">Access the hub</h3>
       <button class="icon-btn" id="closeAuth">&times;</button>
     </div>
     <form id="emailForm" class="form">
-      <label>Email</label>
-      <input type="email" id="emailInput" placeholder="you@example.com" required />
-      <label>Password</label>
+      <label data-i18n="email">Email</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" required data-i18n-placeholder="email_placeholder" />
+      <label data-i18n="password">Password</label>
       <div class="password-field">
-        <input type="password" id="passwordInput" placeholder="????????" required />
-        <button type="button" class="toggle-pass" id="toggleLoginPass" aria-label="Show password">Show</button>
+        <input type="password" id="passwordInput" placeholder="********" required data-i18n-placeholder="password_placeholder" />
+        <button type="button" class="toggle-pass" id="toggleLoginPass" aria-label="Show password" data-i18n="show">Show</button>
       </div>
-      <button type="submit" class="solid full">Login</button>
-      <button type="button" id="createAccountBtn" class="ghost full">Create Account</button>
-      <p class="hint">Use your email and password to access across devices.</p>
+      <button type="submit" class="solid full" data-i18n="login">Login</button>
+      <button type="button" id="createAccountBtn" class="ghost full" data-i18n="create_account">Create Account</button>
+      <p class="hint" data-i18n="login_hint">Use your email and password to access across devices.</p>
     </form>
   </dialog>
 
@@ -414,3 +428,5 @@
   <script type="module" src="./app.js"></script>
 </body>
 </html>
+
+
