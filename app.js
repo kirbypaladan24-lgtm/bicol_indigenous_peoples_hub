@@ -19,6 +19,7 @@ import {
 import { initAdmin } from "./admin.js";
 import { renderPosts, showToast, setStats } from "./ui.js";
 import { uploadImages } from "./imgbb.js";
+import { initI18n, t } from "./i18n.js";
 
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
@@ -92,11 +93,24 @@ const LANDMARK_CACHE_KEY = "bicol-ip-landmarks-cache-v1";
 const LANDMARK_CACHE_TTL_MS = 1000 * 60 * 30;
 const USER_COUNT_CACHE_KEY = "bicol-ip-user-count";
 let allPostsCache = [];
+let latestMapInfo = { accuracy: null, precise: false, source: null };
 
 // Buffers and state
 let positionsBuffer = []; // {lat,lng,accuracy,timestamp}
 let bestAccuracySeen = Infinity;
 let lastToastAt = 0;
+
+function setTrackLocationButtonLabel(labelKey = "btn_my_location") {
+  if (!trackLocationBtn) return;
+  trackLocationBtn.innerHTML = `<span class="icon">⌖</span> ${t(labelKey)}`;
+}
+
+function localizeGeoSource(source) {
+  if (source === "gps") return t("map_source_gps");
+  if (source === "wifi/cell") return t("map_source_wifi_cell");
+  if (source === "ip/coarse") return t("map_source_ip_coarse");
+  return t("map_source_unknown");
+}
 
 // --- Kalman filter (simple) for smoothing coordinates ---
 // (unchanged from your original file)
@@ -176,15 +190,15 @@ function initPolicyGate() {
     const selected = choices.find((c) => c.checked)?.value;
     if (selected === "agree") {
       policyProceed.disabled = false;
-      policyNote.textContent = "Thanks for agreeing. You can proceed.";
+      policyNote.textContent = t("policy_note_agree");
       policyNote.style.color = "var(--accent-2)";
     } else if (selected === "disagree") {
       policyProceed.disabled = true;
-      policyNote.textContent = "You must agree to continue using the site.";
+      policyNote.textContent = t("policy_note_disagree");
       policyNote.style.color = "var(--muted)";
     } else {
       policyProceed.disabled = true;
-      policyNote.textContent = "Select an option to continue.";
+      policyNote.textContent = t("policy_note_default");
       policyNote.style.color = "var(--muted)";
     }
   };
@@ -196,8 +210,10 @@ function initPolicyGate() {
     if (selected !== "agree") return;
     localStorage.setItem(POLICY_KEY, "agreed");
     policyDialog.close();
-    showToast("Thanks for agreeing to the policy.", "success");
+    showToast(t("toast_policy_thanks"), "success");
   });
+
+  window.addEventListener("language-changed", () => updateState());
 }
 
 function normalizeContent(html) {
@@ -240,14 +256,14 @@ function applyPostFilter() {
   const filtered = filterPostsByQuery(allPostsCache, query);
   const empty = document.getElementById("postsEmpty");
   if (empty) {
-    empty.textContent = query ? "No posts match your search." : "No posts yet. Sign in to add the first story.";
+    empty.textContent = query ? t("posts_empty_search") : t("posts_empty");
   }
   renderPosts(filtered);
 }
 
 async function resolveAuthorName() {
   const user = auth?.currentUser;
-  if (!user) return "Contributor";
+  if (!user) return t("contributor");
   if (cachedAuthorName) return cachedAuthorName;
   try {
     const profile = await getUserProfile(user.uid);
@@ -266,7 +282,7 @@ async function resolveAuthorName() {
     cachedAuthorName = user.email.split("@")[0];
     return cachedAuthorName;
   }
-  return "Contributor";
+  return t("contributor");
 }
 // --- Utility: haversine distance (meters) ---
 function haversineDistanceMeters(a, b) {
@@ -372,13 +388,22 @@ function safeShowToast(message, type = "info") {
 
 function updateMapInfoPanel(accuracy, precise, source) {
   if (!mapInfo) return;
-  const accText = accuracy ? `${Math.round(accuracy)} m` : "unknown";
+  latestMapInfo = { accuracy, precise, source };
+  const accText = accuracy ? `${Math.round(accuracy)} m` : t("map_accuracy_unknown");
+  const sourceLabel = localizeGeoSource(source);
   mapInfo.classList.remove("hidden");
-  mapInfo.innerHTML = `<strong>Location:</strong> ${precise ? "Precise" : "Approximate"} (${source || "unknown"}, accuracy ~ ${accText})`;
+  mapInfo.innerHTML = `<strong>${t("map_location_label")}</strong> ${
+    precise ? t("map_precise") : t("map_approximate")
+  } (${sourceLabel}, accuracy ~ ${accText})`;
   if (accuracyIndicator) {
     const quality = accuracy ? (accuracy <= 50 ? "good" : accuracy <= 200 ? "fair" : "poor") : "unknown";
     accuracyIndicator.dataset.quality = quality; // style via CSS using data-quality attribute
-    accuracyIndicator.textContent = quality === "good" ? "GPS ✓" : quality === "fair" ? "Wi‑Fi" : "Coarse";
+    accuracyIndicator.textContent =
+      quality === "good"
+        ? t("map_quality_good")
+        : quality === "fair"
+          ? t("map_quality_fair")
+          : t("map_quality_poor");
   }
 }
 
@@ -414,10 +439,10 @@ async function onLocationSuccess(position) {
       const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
       const d = haversineDistanceMeters(pos, ipLoc);
       if (d < 3000 && (position.coords.accuracy ?? 9999) > 500) {
-        safeShowToast("Location looks coarse and may be based on IP/Wi‑Fi database, not device GPS. Move outdoors and enable device GPS for better accuracy.", "warn");
+        safeShowToast(t("toast_location_coarse_ip"), "warn");
       }
     } else {
-      safeShowToast("Location accuracy is poor; the browser may be using network/IP-based location instead of device GPS.", "info");
+      safeShowToast(t("toast_location_accuracy_poor"), "info");
     }
   }
 
@@ -456,10 +481,10 @@ async function onLocationSuccess(position) {
     userAccuracyCircle = null;
   }
 
-  const accuracyText = effectiveAccuracy ? `${Math.round(effectiveAccuracy)} m` : "unknown";
+  const accuracyText = effectiveAccuracy ? `${Math.round(effectiveAccuracy)} m` : t("map_accuracy_unknown");
   const label = isPrecise
-    ? `You are here (accuracy ~ ${accuracyText})`
-    : `Approximate location (accuracy ~ ${accuracyText}). Move outdoors for better GPS.`;
+    ? t("marker_you_are_here", { accuracy: accuracyText })
+    : t("marker_approximate", { accuracy: accuracyText });
 
   userMarker.bindTooltip(label, { permanent: false, direction: "top" });
   userMarker.openTooltip();
@@ -467,9 +492,9 @@ async function onLocationSuccess(position) {
   updateMapInfoPanel(effectiveAccuracy, isPrecise, source);
 
   if (isPrecise) {
-    safeShowToast(`Location locked (accuracy ~ ${Math.round(effectiveAccuracy)} m)`, "success");
+    safeShowToast(t("toast_location_locked", { accuracy: `${Math.round(effectiveAccuracy)} m` }), "success");
   } else {
-    safeShowToast(`Approximate location (accuracy ~ ${accuracyText}). Waiting for better GPS...`, "info");
+    safeShowToast(t("toast_location_approx_wait", { accuracy: accuracyText }), "info");
   }
 }
 
@@ -477,16 +502,16 @@ function onLocationError(error) {
   console.error("Location error:", error);
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      safeShowToast("Location permission denied. Allow access in your browser settings.", "error");
+      safeShowToast(t("toast_location_permission_denied"), "error");
       break;
     case error.POSITION_UNAVAILABLE:
-      safeShowToast("Position unavailable. Ensure device location services are enabled.", "warn");
+      safeShowToast(t("toast_position_unavailable"), "warn");
       break;
     case error.TIMEOUT:
-      safeShowToast("Location request timed out. Try again or move to a location with better signal.", "warn");
+      safeShowToast(t("toast_location_timeout"), "warn");
       break;
     default:
-      safeShowToast("Unable to retrieve location. Check permissions and try again.", "warn");
+      safeShowToast(t("toast_location_unavailable"), "warn");
       break;
   }
   stopTracking();
@@ -548,8 +573,8 @@ function stopTracking(cleanupOnly = false) {
   isTracking = false;
   if (!cleanupOnly) {
     trackLocationBtn?.classList.remove("active");
-    if (trackLocationBtn) trackLocationBtn.innerHTML = `<span class="icon">⌖</span> My Location`;
-    safeShowToast("Location tracking stopped.", "info");
+    setTrackLocationButtonLabel("btn_my_location");
+    safeShowToast(t("toast_location_tracking_stopped"), "info");
   }
 }
 
@@ -560,7 +585,7 @@ async function toggleLocationTracking() {
   }
 
   if (!navigator.geolocation) {
-    safeShowToast("Geolocation is not supported by your browser.", "error");
+    safeShowToast(t("toast_geolocation_unsupported"), "error");
     return;
   }
 
@@ -569,7 +594,7 @@ async function toggleLocationTracking() {
     try {
       const perm = await navigator.permissions.query({ name: "geolocation" });
       if (perm.state === "denied") {
-        safeShowToast("Location access is denied. Please enable it in your browser.", "error");
+        safeShowToast(t("toast_location_access_denied"), "error");
         return;
       }
     } catch (e) {
@@ -594,7 +619,7 @@ async function toggleLocationTracking() {
 
   // Update UI
   trackLocationBtn?.classList.add("active");
-  if (trackLocationBtn) trackLocationBtn.innerHTML = `<span class="icon">⌖</span> Starting...`;
+  setTrackLocationButtonLabel("btn_my_location_starting");
   if (trackLocationBtn) trackLocationBtn.disabled = true;
 
   // Start tracking
@@ -608,7 +633,7 @@ async function toggleLocationTracking() {
     });
   } catch (e) {
     console.error("Failed to start watchPosition:", e);
-    safeShowToast("Failed to start location tracking.", "error");
+    safeShowToast(t("toast_tracking_start_failed"), "error");
     isTracking = false;
     if (trackLocationBtn) trackLocationBtn.disabled = false;
     return;
@@ -635,12 +660,12 @@ async function toggleLocationTracking() {
     if (!isTracking) return;
     const currentBest = isFinite(bestAccuracySeen) ? bestAccuracySeen : null;
     if (!currentBest || currentBest > MAX_ACCEPTABLE_ACCURACY) {
-      safeShowToast("Still acquiring a precise GPS fix. Try moving outdoors, enable device GPS, and turn off battery saver.", "info");
+      safeShowToast(t("toast_still_acquiring_gps"), "info");
     }
   }, 25000);
 
   if (trackLocationBtn) {
-    trackLocationBtn.innerHTML = `<span class="icon">⌖</span> Tracking...`;
+    setTrackLocationButtonLabel("btn_my_location_tracking");
     trackLocationBtn.disabled = false;
   }
 }
@@ -845,7 +870,7 @@ mobileLoginBtn?.addEventListener("click", () => {
 
 mobileLogoutBtn?.addEventListener("click", async () => {
   await logout();
-  showToast("Logged out successfully.", "success");
+  showToast(t("toast_logged_out"), "success");
   mobileMenu.classList.remove("open");
   menuToggle.setAttribute("aria-expanded", "false");
 });
@@ -875,19 +900,19 @@ emailForm.addEventListener("submit", async (e) => {
   const email = emailInput.value.trim();
   const password = passwordInput.value.trim();
   if (!/\S+@\S+\.\S+/.test(email)) {
-    showToast("Please enter a valid email address.", "warn");
+    showToast(t("toast_valid_email"), "warn");
     return;
   }
   if (password.length < 6) {
-    showToast("Password must be at least 6 characters.", "warn");
+    showToast(t("toast_pass_short"), "warn");
     return;
   }
   try {
     await loginWithEmail(email, password);
-    showToast("Logged in successfully.", "success");
+    showToast(t("toast_logged_in"), "success");
     authDialog.close();
   } catch (err) {
-    showToast("Email sign-in failed: " + err.message, "error");
+    showToast(t("toast_login_failed", { error: err.message }), "error");
   }
 });
 
@@ -896,7 +921,7 @@ document.getElementById("createAccountBtn")?.addEventListener("click", () => {
 });
 logoutBtn?.addEventListener("click", async () => {
   await logout();
-  showToast("Logged out successfully.", "success");
+  showToast(t("toast_logged_out"), "success");
 });
 
 async function triggerPasswordReset() {
@@ -922,23 +947,23 @@ changePassForm?.addEventListener("submit", async (e) => {
   const next = newPassword.value.trim();
   const confirm = confirmPassword.value.trim();
   if (!current || !next || !confirm) {
-    showToast("Please fill in all password fields.", "warn");
+    showToast(t("toast_fill_password_fields"), "warn");
     return;
   }
   if (next.length < 6) {
-    showToast("New password must be at least 6 characters.", "warn");
+    showToast(t("toast_new_pass_short"), "warn");
     return;
   }
   if (next !== confirm) {
-    showToast("New passwords do not match.", "warn");
+    showToast(t("toast_pass_not_match"), "warn");
     return;
   }
   try {
     await changePassword({ currentPassword: current, newPassword: next });
-    showToast("Password updated successfully.", "success");
+    showToast(t("toast_pass_updated"), "success");
     changePassDialog.close();
   } catch (err) {
-    showToast("Current password is incorrect.", "error");
+    showToast(t("toast_current_pass_wrong"), "error");
   }
 });
 
@@ -946,8 +971,8 @@ changePassForm?.addEventListener("submit", async (e) => {
 toggleLoginPass?.addEventListener("click", () => {
   const isHidden = passwordInput.type === "password";
   passwordInput.type = isHidden ? "text" : "password";
-  toggleLoginPass.textContent = isHidden ? "Hide" : "Show";
-  toggleLoginPass.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+  toggleLoginPass.textContent = isHidden ? t("hide") : t("show");
+  toggleLoginPass.setAttribute("aria-label", isHidden ? t("hide") : t("show"));
 });
 
 // Post UI (kept brief)
@@ -978,7 +1003,7 @@ function bindUserToolbar() {
     const value = btn.dataset.value || null;
     focusEditor();
     if (cmd === "createLink") {
-      const url = prompt("Enter URL");
+      const url = prompt(t("prompt_enter_url"));
       if (url) document.execCommand(cmd, false, url);
     } else if (cmd === "formatBlock") {
       document.execCommand(cmd, false, normalizeBlockValue(value || "p"));
@@ -1034,7 +1059,7 @@ document.getElementById("createAccountBtn")?.addEventListener("click", () => win
 document.getElementById("newPostBtn")?.addEventListener("click", () => {
   const user = auth?.currentUser;
   if (!user) {
-    showToast("Login to create a post.", "warn");
+    showToast(t("toast_login_to_post"), "warn");
     authDialog.showModal();
     return;
   }
@@ -1050,7 +1075,7 @@ userImageInput?.addEventListener("change", () => {
   // trim to allowed max
   const trimmed = files.slice(0, MAX_IMAGES_PER_POST);
   if (files.length > MAX_IMAGES_PER_POST) {
-    showToast(`You can upload up to ${MAX_IMAGES_PER_POST} images. Only the first ${MAX_IMAGES_PER_POST} were selected.`, "warn");
+    showToast(t("toast_upload_limit", { limit: MAX_IMAGES_PER_POST }), "warn");
   }
   // clear previous previews and create new ones
   imagePreviewUser.innerHTML = "";
@@ -1073,17 +1098,17 @@ userSavePostBtn?.addEventListener("click", async () => {
   const title = userPostTitle.value.trim();
   const content = normalizeContent(userEditor.innerHTML.trim());
   if (!title || !content) {
-    showToast("Title and content are required.", "warn");
+    showToast(t("toast_title_content_required"), "warn");
     return;
   }
   const user = auth?.currentUser;
   if (!user) {
-    showToast("Login to publish.", "warn");
+    showToast(t("toast_login_to_publish"), "warn");
     return;
   }
   const authorName = await resolveAuthorName();
   userPostSubmitting = true;
-  userSavePostBtn.textContent = "Publishing...";
+  userSavePostBtn.textContent = t("publish_in_progress");
   userSavePostBtn.disabled = true;
 
   // Upload multiple images if provided
@@ -1093,25 +1118,25 @@ userSavePostBtn?.addEventListener("click", async () => {
     try {
       media = await uploadImages(selected, {
         onProgress: (i, uploaded, total) => {
-          userSavePostBtn.textContent = `Uploading ${uploaded}/${total}...`;
+          userSavePostBtn.textContent = t("uploading_progress", { uploaded, total });
         },
       });
     } catch (e) {
       console.error("Image uploads failed:", e);
-      showToast("One or more image uploads failed.", "warn");
+      showToast(t("toast_upload_failed"), "warn");
     }
   }
 
   try {
     await savePost({ title, content, media, author: authorName, authorId: user.uid });
-    showToast("Post published successfully.", "success");
+    showToast(t("toast_post_published"), "success");
     userPostDialog.close();
     await loadPosts();
   } catch (e) {
-    showToast("Failed to publish: " + (e.message || e), "error");
+    showToast(t("toast_post_publish_failed", { error: e.message || e }), "error");
   } finally {
     userPostSubmitting = false;
-    userSavePostBtn.textContent = "Publish";
+    userSavePostBtn.textContent = t("publish");
     userSavePostBtn.disabled = false;
     // cleanup previews and object URLs
     imagePreviewUser.innerHTML = "";
@@ -1130,7 +1155,7 @@ async function loadPosts() {
       lastUpdated: posts[0]?.updatedAt?.toDate?.().toLocaleDateString?.() || "N/A",
     });
   } catch (e) {
-    showToast("Failed to load posts: " + e.message, "error");
+    showToast(t("toast_failed_load_posts", { error: e.message }), "error");
   }
 }
 
@@ -1172,6 +1197,26 @@ async function loadUserCount() {
   }
 }
 
+function refreshLocalizedRuntimeText() {
+  applyPostFilter();
+  if (passwordInput && toggleLoginPass) {
+    const isHidden = passwordInput.type === "password";
+    toggleLoginPass.textContent = isHidden ? t("show") : t("hide");
+    toggleLoginPass.setAttribute("aria-label", isHidden ? t("show") : t("hide"));
+  }
+  if (trackLocationBtn) {
+    setTrackLocationButtonLabel(isTracking ? "btn_my_location_tracking" : "btn_my_location");
+  }
+  if (userSavePostBtn && !userPostSubmitting) {
+    userSavePostBtn.textContent = t("publish");
+  }
+  if (mapInfo && !mapInfo.classList.contains("hidden")) {
+    updateMapInfoPanel(latestMapInfo.accuracy, latestMapInfo.precise, latestMapInfo.source);
+  }
+}
+
+window.addEventListener("language-changed", refreshLocalizedRuntimeText);
+
 observeAuth(async (user) => {
   const authed = !!user;
   loginBtn.classList.toggle("hidden", authed);
@@ -1212,6 +1257,8 @@ window.addEventListener("landmarks-updated", () => {
 
 // Initial Execution
 initTheme();
+initI18n();
+refreshLocalizedRuntimeText();
 initPolicyGate();
 loadUserCount();
 // Real-time posts
@@ -1226,4 +1273,4 @@ postsUnsub = observePosts((posts) => {
 
 ensureLeaflet()
   .then(initMap)
-  .catch(() => showToast("Map library failed to load.", "error"));
+  .catch(() => showToast(t("toast_map_library_failed"), "error"));
