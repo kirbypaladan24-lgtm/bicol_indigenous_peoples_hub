@@ -8,6 +8,51 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css" />
+  <style>
+    /* Additional styles for birthdate input */
+    .birthdate-field {
+      position: relative;
+    }
+    
+    .birthdate-input {
+      font-family: 'Sora', monospace;
+      letter-spacing: 0.05em;
+      font-size: 16px;
+    }
+    
+    .birthdate-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    
+    .birthdate-input::placeholder {
+      color: var(--muted);
+      opacity: 0.6;
+    }
+    
+    /* Visual feedback for valid/invalid */
+    .birthdate-input.valid {
+      border-color: var(--accent-2) !important;
+      box-shadow: 0 0 0 2px rgba(90, 154, 106, 0.2);
+    }
+    
+    .birthdate-input.invalid {
+      border-color: #c0392b !important;
+      box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.2);
+    }
+    
+    .birthdate-error {
+      font-size: 12px;
+      color: #c0392b;
+      margin-top: 4px;
+      display: none;
+    }
+    
+    .birthdate-error.show {
+      display: block;
+    }
+  </style>
 </head>
 <body class="auth-page">
   <div class="auth-shell">
@@ -18,23 +63,190 @@
       <form id="signupForm" class="form">
         <label>Username</label>
         <input type="text" id="usernameInput" placeholder="Your name" required />
+        
         <label>Phone Number</label>
         <input type="tel" id="phoneInput" placeholder="+63 9XX XXX XXXX" required />
+        
         <label>Birthdate</label>
-        <input type="date" id="birthdateInput" required />
+        <div class="birthdate-field">
+          <input 
+            type="text" 
+            id="birthdateInput" 
+            class="birthdate-input" 
+            placeholder="MM/DD/YYYY" 
+            maxlength="10"
+            inputmode="numeric"
+            autocomplete="off"
+            required 
+          />
+          <p class="birthdate-hint">Type your birthdate (e.g., 12/25/1995)</p>
+          <p class="birthdate-error" id="birthdateError">Please enter a valid date</p>
+        </div>
+        
         <label>Email</label>
         <input type="email" id="emailInput" placeholder="you@example.com" required />
+        
         <label>Password</label>
         <div class="password-field">
-          <input type="password" id="passwordInput" placeholder="????????" required />
+          <input type="password" id="passwordInput" placeholder="••••••••" required />
           <button type="button" class="toggle-pass" id="toggleSignupPass" aria-label="Show password">Show</button>
         </div>
+        
         <button type="submit" class="solid full">Create Account</button>
         <p class="hint">Already have an account? <a href="index.html">Login</a></p>
       </form>
       <div id="signupToast" class="toast hidden"></div>
     </div>
   </div>
+  
+  <script>
+    // Birthdate input auto-formatting
+    (function() {
+      const birthdateInput = document.getElementById('birthdateInput');
+      const birthdateError = document.getElementById('birthdateError');
+      
+      // Format the input value with slashes
+      function formatBirthdate(value) {
+        // Remove all non-digits
+        const digits = value.replace(/\D/g, '');
+        
+        // Build formatted string
+        let formatted = '';
+        if (digits.length >= 1) {
+          formatted = digits.substring(0, 2);
+        }
+        if (digits.length >= 3) {
+          formatted += '/' + digits.substring(2, 4);
+        }
+        if (digits.length >= 5) {
+          formatted += '/' + digits.substring(4, 8);
+        }
+        
+        return formatted;
+      }
+      
+      // Validate the date
+      function validateDate(value) {
+        if (!value || value.length !== 10) return false;
+        
+        const parts = value.split('/');
+        if (parts.length !== 3) return false;
+        
+        const month = parseInt(parts[0], 10);
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        
+        // Basic range checks
+        if (month < 1 || month > 12) return false;
+        if (day < 1 || day > 31) return false;
+        if (year < 1900 || year > new Date().getFullYear()) return false;
+        
+        // Check days in month
+        const daysInMonth = new Date(year, month, 0).getDate();
+        if (day > daysInMonth) return false;
+        
+        // Check if date is in the future
+        const inputDate = new Date(year, month - 1, day);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (inputDate > today) return false;
+        
+        return true;
+      }
+      
+      // Handle input
+      birthdateInput.addEventListener('input', function(e) {
+        const cursorPosition = this.selectionStart;
+        const oldValue = this.value;
+        const newValue = formatBirthdate(this.value);
+        
+        // Only update if changed (prevents cursor jumping)
+        if (oldValue !== newValue) {
+          this.value = newValue;
+          
+          // Adjust cursor position
+          if (cursorPosition === oldValue.length) {
+            this.setSelectionRange(newValue.length, newValue.length);
+          }
+        }
+        
+        // Validate and show feedback
+        if (this.value.length === 10) {
+          if (validateDate(this.value)) {
+            this.classList.add('valid');
+            this.classList.remove('invalid');
+            birthdateError.classList.remove('show');
+          } else {
+            this.classList.add('invalid');
+            this.classList.remove('valid');
+            birthdateError.classList.add('show');
+          }
+        } else {
+          this.classList.remove('valid', 'invalid');
+          birthdateError.classList.remove('show');
+        }
+      });
+      
+      // Handle keydown to prevent non-numeric input (except backspace, delete, arrows)
+      birthdateInput.addEventListener('keydown', function(e) {
+        // Allow: backspace, delete, tab, escape, enter, arrows
+        if ([8, 46, 9, 27, 13, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 ||
+            // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+            (e.keyCode === 65 && e.ctrlKey) ||
+            (e.keyCode === 67 && e.ctrlKey) ||
+            (e.keyCode === 86 && e.ctrlKey) ||
+            (e.keyCode === 88 && e.ctrlKey) ||
+            // Allow: home, end
+            (e.keyCode >= 35 && e.keyCode <= 39)) {
+          return;
+        }
+        
+        // Ensure it's a number
+        if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
+          e.preventDefault();
+        }
+      });
+      
+      // Handle paste - strip non-digits
+      birthdateInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        const digits = pasted.replace(/\D/g, '').substring(0, 8);
+        this.value = formatBirthdate(digits);
+        
+        // Trigger validation
+        if (this.value.length === 10) {
+          if (validateDate(this.value)) {
+            this.classList.add('valid');
+            this.classList.remove('invalid');
+            birthdateError.classList.remove('show');
+          } else {
+            this.classList.add('invalid');
+            this.classList.remove('valid');
+            birthdateError.classList.add('show');
+          }
+        }
+      });
+      
+      // Handle blur - final validation
+      birthdateInput.addEventListener('blur', function() {
+        if (this.value && this.value.length < 10) {
+          this.classList.add('invalid');
+          this.classList.remove('valid');
+          birthdateError.textContent = 'Please complete the date (MM/DD/YYYY)';
+          birthdateError.classList.add('show');
+        }
+      });
+      
+      // Handle focus - clear error
+      birthdateInput.addEventListener('focus', function() {
+        if (this.classList.contains('invalid')) {
+          birthdateError.textContent = 'Please enter a valid date';
+        }
+      });
+    })();
+  </script>
+  
   <script type="module" src="./signup.js"></script>
 </body>
 </html>
