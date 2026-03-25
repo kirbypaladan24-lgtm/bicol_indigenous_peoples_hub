@@ -15,6 +15,7 @@ import {
   setPublicUserCount,
   fetchLandmarks,
   ensureAnonAuth,
+  db, // Import db from auth.js
 } from "./auth.js";
 import { initAdmin } from "./admin.js";
 import { renderPosts, showToast, setStats } from "./ui.js";
@@ -54,7 +55,7 @@ const userSavePostBtn = document.getElementById("userSavePostBtn");
 const userToolbar = document.getElementById("userToolbar");
 const trackLocationBtn = document.getElementById("trackLocationBtn");
 const mapInfo = document.getElementById("mapInfo");
-const accuracyIndicator = document.getElementById("accuracyIndicator"); // optional small UI element for signal
+const accuracyIndicator = document.getElementById("accuracyIndicator");
 const policyDialog = document.getElementById("policyDialog");
 const policyProceed = document.getElementById("policyProceed");
 const policyNote = document.getElementById("policyNote");
@@ -80,10 +81,10 @@ let postsUnsub = null;
 
 // Settings to tune
 const POSITION_BUFFER_SIZE = 8;
-const MAX_ACCEPTABLE_ACCURACY = 50; // meters for claiming "precise"
-const MAX_IGNORABLE_AGE_MS = 25_000; // consider readings older than this stale
-const INITIAL_POLL_DURATION_MS = 30_000; // how long to aggressively poll getCurrentPosition
-const INITIAL_POLL_INTERVAL_MS = 3000; // poll every 3s during initial period
+const MAX_ACCEPTABLE_ACCURACY = 50;
+const MAX_IGNORABLE_AGE_MS = 25_000;
+const INITIAL_POLL_DURATION_MS = 30_000;
+const INITIAL_POLL_INTERVAL_MS = 3000;
 const TOAST_THROTTLE_MS = 12000;
 const MAX_IMAGES_PER_POST = 10;
 let cachedAuthorName = null;
@@ -96,7 +97,7 @@ let allPostsCache = [];
 let latestMapInfo = { accuracy: null, precise: false, source: null };
 
 // Buffers and state
-let positionsBuffer = []; // {lat,lng,accuracy,timestamp}
+let positionsBuffer = [];
 let bestAccuracySeen = Infinity;
 let lastToastAt = 0;
 
@@ -113,7 +114,6 @@ function localizeGeoSource(source) {
 }
 
 // --- Kalman filter (simple) for smoothing coordinates ---
-// (unchanged from your original file)
 class Kalman1D {
   constructor(processNoise = 1e-3, initialEstimate = 0, initialUncertainty = 1e3) {
     this.q = processNoise;
@@ -284,6 +284,7 @@ async function resolveAuthorName() {
   }
   return t("contributor");
 }
+
 // --- Utility: haversine distance (meters) ---
 function haversineDistanceMeters(a, b) {
   const toRad = (v) => (v * Math.PI) / 180;
@@ -303,7 +304,6 @@ function haversineDistanceMeters(a, b) {
 function detectLikelySource(position) {
   const coords = position.coords || {};
   const acc = typeof coords.accuracy === "number" ? coords.accuracy : null;
-  // altitude/heading/speed presence is a strong indicator of GPS
   if (coords.altitude !== null || coords.heading !== null || coords.speed !== null) return "gps";
   if (acc !== null && acc <= 50) return "gps";
   if (acc !== null && acc <= 1000) return "wifi/cell";
@@ -315,7 +315,7 @@ let _cachedIpLocation = null;
 async function fetchIpLocation() {
   if (_cachedIpLocation) return _cachedIpLocation;
   try {
-    const res = await fetch("https://ipapi.co/json/"); // swap provider if needed
+    const res = await fetch("https://ipapi.co/json/");
     if (!res.ok) return null;
     const json = await res.json();
     const lat = Number(json.latitude ?? json.lat);
@@ -397,7 +397,7 @@ function updateMapInfoPanel(accuracy, precise, source) {
   } (${sourceLabel}, accuracy ~ ${accText})`;
   if (accuracyIndicator) {
     const quality = accuracy ? (accuracy <= 50 ? "good" : accuracy <= 200 ? "fair" : "poor") : "unknown";
-    accuracyIndicator.dataset.quality = quality; // style via CSS using data-quality attribute
+    accuracyIndicator.dataset.quality = quality;
     accuracyIndicator.textContent =
       quality === "good"
         ? t("map_quality_good")
@@ -429,10 +429,8 @@ async function onLocationSuccess(position) {
   const accepted = acceptPositionIfValid(position);
   if (!accepted) return;
 
-  // detect probable source
   const source = detectLikelySource(position);
 
-  // optional IP comparison for coarse indications
   if ((source === "ip/coarse" || source === "wifi/cell") && position.coords && (position.coords.accuracy ?? 9999) > 300) {
     const ipLoc = await fetchIpLocation();
     if (ipLoc) {
@@ -471,7 +469,6 @@ async function onLocationSuccess(position) {
     userMarker.setLatLng(latlng);
   }
 
-  // show accuracy circle
   if (effectiveAccuracy && effectiveAccuracy > 0) {
     ensureAccuracyCircle(latlng, effectiveAccuracy);
   } else if (userAccuracyCircle) {
@@ -517,10 +514,9 @@ function onLocationError(error) {
   stopTracking();
 }
 
-// --- Aggressive initial polling to "wake" GPS hardware (best-effort) ---
+// --- Aggressive initial polling to "wake" GPS hardware ---
 function startInitialPolling() {
   const start = Date.now();
-  // poll getCurrentPosition at short intervals for INITIAL_POLL_DURATION_MS
   pollIntervalId = setInterval(() => {
     if (!isTracking) return;
     if (Date.now() - start > INITIAL_POLL_DURATION_MS) {
@@ -528,14 +524,11 @@ function startInitialPolling() {
       pollIntervalId = null;
       return;
     }
-    // call getCurrentPosition once to attempt a fresh GPS fix
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        // onLocationSuccess will be triggered through acceptPositionIfValid etc.
         onLocationSuccess(pos);
       },
       (err) => {
-        // don't spam errors; only surface if persistent
         console.warn("Initial poll getCurrentPosition failed:", err);
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
@@ -589,7 +582,6 @@ async function toggleLocationTracking() {
     return;
   }
 
-  // Permission quick-check (best-effort)
   if (navigator.permissions && navigator.permissions.query) {
     try {
       const perm = await navigator.permissions.query({ name: "geolocation" });
@@ -598,11 +590,10 @@ async function toggleLocationTracking() {
         return;
       }
     } catch (e) {
-      // ignore; we'll request permission via getCurrentPosition
+      // ignore
     }
   }
 
-  // Clear previous state and UI
   clearPositionsBuffer();
   if (userMarker && mapInstance) {
     try {
@@ -617,12 +608,10 @@ async function toggleLocationTracking() {
     userAccuracyCircle = null;
   }
 
-  // Update UI
   trackLocationBtn?.classList.add("active");
   setTrackLocationButtonLabel("btn_my_location_starting");
   if (trackLocationBtn) trackLocationBtn.disabled = true;
 
-  // Start tracking
   isTracking = true;
 
   try {
@@ -639,10 +628,9 @@ async function toggleLocationTracking() {
     return;
   }
 
-  // Seed with an initial getCurrentPosition (and start aggressive polling) to improve chance of GPS fix
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      onLocationSuccess(pos); // handle and seed
+      onLocationSuccess(pos);
       if (trackLocationBtn) trackLocationBtn.disabled = false;
     },
     (err) => {
@@ -652,10 +640,8 @@ async function toggleLocationTracking() {
     { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
   );
 
-  // Start aggressive polling for a while to "wake" GPS chip (best-effort; power-hungry)
   startInitialPolling();
 
-  // Warn after some time if still not precise
   setTimeout(() => {
     if (!isTracking) return;
     const currentBest = isFinite(bestAccuracySeen) ? bestAccuracySeen : null;
@@ -673,7 +659,7 @@ async function toggleLocationTracking() {
 // Global Event Listeners
 trackLocationBtn?.addEventListener("click", toggleLocationTracking);
 
-// --- Map & app initialization (kept minimal; ensure Leaflet is loaded before initMap) ---
+// --- Map & app initialization ---
 const defaultLandmarks = [
   {
     name: "Agta of Mt. Isarog",
@@ -831,7 +817,7 @@ async function loadLandmarksToMap() {
   renderLandmarks(normalized);
 }
 
-// --- Posts/auth/UI plumbing (kept as in your original file) ---
+// --- Posts/auth/UI plumbing ---
 loginBtn.addEventListener("click", () => authDialog.showModal());
 ctaLoginBtn.addEventListener("click", () => authDialog.showModal());
 closeAuth.addEventListener("click", () => authDialog.close());
@@ -975,7 +961,7 @@ toggleLoginPass?.addEventListener("click", () => {
   toggleLoginPass.setAttribute("aria-label", isHidden ? t("hide") : t("show"));
 });
 
-// Post UI (kept brief)
+// Post UI
 function bindUserToolbar() {
   if (!userToolbar) return;
   const buttons = Array.from(userToolbar.querySelectorAll("button"));
@@ -1072,12 +1058,10 @@ closeUserPost?.addEventListener("click", () => {
 // show local previews for user dialog and enforce max images
 userImageInput?.addEventListener("change", () => {
   const files = Array.from(userImageInput.files || []);
-  // trim to allowed max
   const trimmed = files.slice(0, MAX_IMAGES_PER_POST);
   if (files.length > MAX_IMAGES_PER_POST) {
     showToast(t("toast_upload_limit", { limit: MAX_IMAGES_PER_POST }), "warn");
   }
-  // clear previous previews and create new ones
   imagePreviewUser.innerHTML = "";
   const objectUrls = [];
   trimmed.forEach((f) => {
@@ -1088,8 +1072,6 @@ userImageInput?.addEventListener("change", () => {
     wrapper.innerHTML = `<img src="${url}" alt="${f.name}" />`;
     imagePreviewUser.appendChild(wrapper);
   });
-  // revoke object URLs when dialog closes or input changes again (we can't easily track removal per tile here)
-  // revoke after a moment when likely not needed, or rely on reset/submit to revoke
   setTimeout(() => objectUrls.forEach((u) => URL.revokeObjectURL(u)), 60_000);
 });
 
@@ -1111,7 +1093,6 @@ userSavePostBtn?.addEventListener("click", async () => {
   userSavePostBtn.textContent = t("publish_in_progress");
   userSavePostBtn.disabled = true;
 
-  // Upload multiple images if provided
   let media = [];
   const selected = Array.from(userImageInput.files || []).slice(0, MAX_IMAGES_PER_POST);
   if (selected.length) {
@@ -1138,7 +1119,6 @@ userSavePostBtn?.addEventListener("click", async () => {
     userPostSubmitting = false;
     userSavePostBtn.textContent = t("publish");
     userSavePostBtn.disabled = false;
-    // cleanup previews and object URLs
     imagePreviewUser.innerHTML = "";
     userImageInput.value = "";
   }
@@ -1167,7 +1147,6 @@ async function loadUserCount() {
     await ensureAnonAuth();
     let { count, source } = await fetchUsersCount();
 
-    // If public stats are stale at 0, recompute from /users for signed-in non-anonymous sessions.
     if (
       source === "stats" &&
       count === 0 &&
@@ -1231,7 +1210,6 @@ observeAuth(async (user) => {
   newPostBtn.classList.toggle("hidden", !authed || isAdminUser);
   cachedAuthorName = null;
 
-  // expose auth state for UI helpers (e.g., reactions gating)
   window.__currentUser = user || null;
 
   const adminSection = document.getElementById("adminPanel");
@@ -1242,7 +1220,6 @@ observeAuth(async (user) => {
     adminSection?.classList.add("hidden");
   }
 
-  // Re-evaluate user count when auth state changes so public stats can self-heal.
   loadUserCount();
 });
 
@@ -1261,6 +1238,7 @@ initI18n();
 refreshLocalizedRuntimeText();
 initPolicyGate();
 loadUserCount();
+
 // Real-time posts
 postsUnsub = observePosts((posts) => {
   allPostsCache = posts;
