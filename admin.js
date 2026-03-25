@@ -36,7 +36,7 @@ const landmarkMapEl = document.getElementById("landmarkMap");
 let currentId = null;
 let currentUser = null;
 let cachedAuthorName = null;
-let currentMedia = []; // array of image URLs (for existing post)
+let currentMedia = [];
 let currentLandmarkId = null;
 let currentLandmarkCover = null;
 let landmarkMap = null;
@@ -200,10 +200,8 @@ function renderAdminPreviews(urls = []) {
 
 /* When admin selects new files, show previews (object URLs). They will be uploaded on Save */
 imageInput?.addEventListener("change", () => {
-  // clear previous selection previews (but keep currentMedia displayed first)
-  // we'll append file previews after existing currentMedia tiles
   const files = Array.from(imageInput.files || []);
-  const trimmed = files.slice(0, 10); // enforce client-side cap
+  const trimmed = files.slice(0, 10);
   if (files.length > 10) {
     showToast("Only the first 10 selected images will be used.", "warn");
   }
@@ -218,7 +216,6 @@ imageInput?.addEventListener("change", () => {
     wrapper.className = "preview-tile";
     wrapper.innerHTML = `<img src="${url}" alt="${f.name}" />`;
     imagePreviewAdmin.appendChild(wrapper);
-    // revoke later on save/reset; keep short-lived in-memory preview
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   });
 });
@@ -250,6 +247,8 @@ async function handleSave() {
     await savePost({ id: currentId, title, content, media, author: authorName, authorId: currentUser?.uid || null });
 
     showToast(currentId ? "Post updated successfully." : "Post published successfully.", "success");
+    
+    // CRITICAL: Force server read to ensure fresh data
     await loadAdminPosts();
     window.dispatchEvent(new Event("posts-updated"));
     resetForm();
@@ -385,6 +384,8 @@ async function handleSaveLandmark() {
     }
     await saveLandmark({ id: currentLandmarkId, name, lat, lng, summary, coverUrl, color });
     showToast(currentLandmarkId ? "Landmark updated successfully." : "Landmark added successfully.", "success");
+    
+    // CRITICAL: Force server read to ensure fresh data
     await loadLandmarks();
     window.dispatchEvent(new Event("landmarks-updated"));
     resetLandmarkForm();
@@ -401,6 +402,7 @@ async function loadLandmarks() {
   if (!landmarksList) return;
   landmarksList.innerHTML = "Loading...";
   try {
+    // CRITICAL: Force server read for production P2P reliability
     const items = await fetchLandmarks(true);
     if (!items.length) {
       landmarksList.innerHTML = "<p class='hint'>No landmarks yet.</p>";
@@ -446,6 +448,7 @@ async function loadLandmarks() {
         try {
           await deleteLandmark(id);
           showToast("Landmark deleted successfully.", "success");
+          // CRITICAL: Force server read after delete
           await loadLandmarks();
           window.dispatchEvent(new Event("landmarks-updated"));
         } catch (e) {
@@ -466,6 +469,7 @@ async function loadAdminPosts() {
   if (!listContainer) return;
   listContainer.innerHTML = "Loading...";
   try {
+    // CRITICAL: Force server read for production P2P reliability
     const posts = await fetchPosts(true);
     if (!posts || posts.length === 0) {
       listContainer.innerHTML = "<p class='hint'>No posts yet.</p>";
@@ -493,6 +497,7 @@ async function loadAdminPosts() {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.id;
         try {
+          // CRITICAL: Force server read for edit to get fresh data
           const post = await fetchPost(id, true);
           if (!post) {
             showToast("Post not found.", "warn");
@@ -520,6 +525,7 @@ async function loadAdminPosts() {
         try {
           await deletePost(id);
           showToast("Post deleted successfully.", "success");
+          // CRITICAL: Force server read after delete
           await loadAdminPosts();
           window.dispatchEvent(new Event("posts-updated"));
         } catch (e) {
@@ -553,7 +559,7 @@ export async function initAdmin(user) {
   saveBtn.onclick = handleSave;
   resetBtn.onclick = resetForm;
 
-  // load posts
+  // load posts with forced server read
   await loadAdminPosts();
 
   // landmarks panel (if present)
@@ -601,6 +607,7 @@ export async function initAdmin(user) {
       if (isFinite(lat) && isFinite(lng)) setLandmarkMarker(lat, lng);
     });
     await initLandmarkMap();
+    // Load landmarks with forced server read
     await loadLandmarks();
   }
 }
