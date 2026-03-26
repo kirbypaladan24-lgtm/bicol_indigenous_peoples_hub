@@ -25,7 +25,7 @@ function readFirebaseConfig() {
 export default function handler(_req, res) {
   const firebaseConfig = readFirebaseConfig();
   const publicUploadConfig = {
-    imgbbKey: process.env.VITE_IMGBB_KEY || "",
+    imgbbKey: process.env.VITE_IMGBB_KEY || process.env.IMGBB_KEY || "",
   };
   const payload = `
 window.__FIREBASE_CONFIG__ = ${JSON.stringify(firebaseConfig)};
