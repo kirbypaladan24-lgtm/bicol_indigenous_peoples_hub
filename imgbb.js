@@ -74,7 +74,11 @@ async function uploadOne(blobOrFile, filename = "upload.jpg") {
     throw new Error(payload?.error || "Image upload failed");
   }
 
-  return payload?.url || null;
+  if (!payload?.url) {
+    throw new Error("Image upload completed without a returned URL");
+  }
+
+  return payload.url;
 }
 
 export async function uploadImages(files, options = {}) {
@@ -84,16 +88,18 @@ export async function uploadImages(files, options = {}) {
 
   const urls = [];
   let uploaded = 0;
+  let failed = 0;
 
   for (let i = 0; i < arr.length; i++) {
     const file = arr[i];
     try {
       const resized = await resizeImage(file);
       const url = await uploadOne(resized, file.name || `upload-${i + 1}.jpg`);
-      if (url) urls.push(url);
+      urls.push(url);
       uploaded++;
       options.onProgress?.(i, uploaded, arr.length);
     } catch (error) {
+      failed++;
       console.error("Image upload failed for file", file.name, error);
       showToast(`Image failed: ${file.name}`, "warn");
     }
@@ -101,6 +107,14 @@ export async function uploadImages(files, options = {}) {
 
   if (uploaded > 0) {
     showToast(`Uploaded ${uploaded}/${arr.length} images`, "success");
+  }
+
+  if (failed > 0 && uploaded > 0) {
+    showToast(`${failed} image(s) were skipped`, "warn");
+  }
+
+  if (uploaded === 0) {
+    throw new Error("All selected image uploads failed");
   }
 
   return urls;
