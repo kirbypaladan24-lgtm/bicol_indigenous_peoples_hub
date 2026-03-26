@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile | Bicol Indigenous Peoples Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <img
+            src="https://raw.githubusercontent.com/kirbypaladan24-lgtm/Images-/fe9832e74e7cccd0ef63584c8557593eccbc2de4/0109ed35-4400-46b1-a678-59a51e71b17e.jpg"
+            alt="Bicol Indigenous Peoples Hub Logo"
+          />
+        </span>
+        <div>
+          <h1>Bicol Indigenous Peoples Hub</h1>
+          <p>Profile</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html#home">Home</a>
+        <a href="index.html#map">Map</a>
+        <a href="index.html#posts">Posts</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <div class="auth-cta">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <a id="profileBtn" class="ghost" href="profile.html">Profile</a>
+        <button id="changePassBtn" class="ghost" type="button">Change Password</button>
+        <button id="logoutBtn" class="solid">Logout</button>
+        <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+      </div>
+    </header>
+
+    <div id="mobileMenu" class="mobile-menu">
+      <div class="mobile-links">
+        <a href="index.html#home">Home</a>
+        <a href="index.html#map">Map</a>
+        <a href="index.html#posts">Posts</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#contact">Contact</a>
+      </div>
+      <div class="mobile-actions">
+        <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <button id="mobileChangePassBtn" class="ghost full" type="button">Change Password</button>
+        <button id="mobileLogoutBtn" class="solid full">Logout</button>
+      </div>
+    </div>
+
+    <main class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Profile</p>
+          <h3>Your posts</h3>
+          <p id="profileStatus" class="section-desc">Loading your posts...</p>
+          <div class="profile-identity">
+            <p><strong>Username:</strong> <span id="profileUsername">--</span></p>
+            <p><strong>Email:</strong> <span id="profileEmail">--</span></p>
+          </div>
+        </div>
+      </div>
+      <div id="profilePosts" class="posts-feed"></div>
+      <div id="profileEmpty" class="empty hidden">No posts yet.</div>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <dialog id="changePassDialog" class="modal">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button class="icon-btn" id="closeChangePass">&times;</button>
+      </div>
+      <form id="changePassForm" class="form">
+        <label>Current password</label>
+        <input type="password" id="currentPassword" required />
+        <label>New password</label>
+        <input type="password" id="newPassword" required />
+        <label>Confirm new password</label>
+        <input type="password" id="confirmPassword" required />
+        <button type="submit" class="solid full">Update Password</button>
+      </form>
+    </dialog>
+
+    <dialog id="profileEditDialog" class="modal">
+      <div class="modal-header">
+        <h3>Edit post</h3>
+        <button class="icon-btn" id="closeProfileEdit">&times;</button>
+      </div>
+      <div class="form">
+        <label>Title</label>
+        <input type="text" id="profilePostTitle" placeholder="Post title" />
+        <label>Cover Images (optional, up to 10)</label>
+        <input type="file" id="profileImageInput" accept="image/*" multiple />
+        <div id="profileImagePreview" class="media-preview"></div>
+        <div class="toolbar" id="profileToolbar">
+          <button data-cmd="undo" type="button">Undo</button>
+          <button data-cmd="redo" type="button">Redo</button>
+          <button data-cmd="bold" type="button">Bold</button>
+          <button data-cmd="italic" type="button">Italic</button>
+          <button data-cmd="underline" type="button">Underline</button>
+          <select data-cmd="fontName">
+            <option value="">Font</option>
+            <option value="Sora">Sora</option>
+            <option value="Manrope">Manrope</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Arial">Arial</option>
+          </select>
+          <button data-cmd="formatBlock" data-value="h2" type="button">H2</button>
+          <button data-cmd="formatBlock" data-value="h3" type="button">H3</button>
+          <button data-cmd="formatBlock" data-value="p" type="button">Body</button>
+          <button data-cmd="insertUnorderedList" type="button">Bullets</button>
+          <button data-cmd="insertOrderedList" type="button">Numbered</button>
+          <button data-cmd="formatBlock" data-value="blockquote" type="button">Quote</button>
+          <button data-cmd="justifyLeft" type="button">Left</button>
+          <button data-cmd="justifyCenter" type="button">Center</button>
+          <button data-cmd="justifyRight" type="button">Right</button>
+          <button data-cmd="createLink" type="button">Link</button>
+          <button data-cmd="insertHorizontalRule" type="button">Line</button>
+          <button data-cmd="removeFormat" type="button">Clear</button>
+        </div>
+        <div id="profileEditor" class="editor" contenteditable="true"></div>
+        <button id="profileSaveBtn" class="solid full">Save changes</button>
+      </div>
+    </dialog>
+
+    <script type="module" src="./profile.js"></script>
+  </body>
+</html>

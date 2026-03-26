@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Landmark | Bicol IP Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <img src="https://raw.githubusercontent.com/kirbypaladan24-lgtm/Images-/fe9832e74e7cccd0ef63584c8557593eccbc2de4/0109ed35-4400-46b1-a678-59a51e71b17e.jpg" alt="Bicol Indigenous Peoples Hub Logo" />
+      </span>
+      <div>
+        <h1>Bicol Indigenous Peoples Hub</h1>
+        <p>Landmark</p>
+      </div>
+    </div>
+    <div class="auth-cta">
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-thumb"></span>
+        <span class="toggle-icon sun">☀︎</span>
+        <span class="toggle-icon moon">☾</span>
+      </button>
+      <a href="index.html#map" class="ghost small">Back to Map</a>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Indigenous Community</p>
+        <h2 id="landmarkTitleMain">Landmark</h2>
+      </div>
+    </div>
+    <div id="landmarkCover" class="hero-card landmark-cover" style="display:none;"></div>
+    <div id="landmarkSummary" class="post-body landmark-summary"></div>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="./landmark.js"></script>
+</body>
+</html>

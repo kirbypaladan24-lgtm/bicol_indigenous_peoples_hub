@@ -1,0 +1,647 @@
+/* styles-additions.css - Additional styles for Bicol IP Hub
+ * Skeleton loaders, accessibility improvements, print styles, RTL support
+ */
+
+/* ==========================================
+ * SKELETON LOADING ANIMATIONS
+ * ========================================== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--card) 25%,
+    var(--border) 50%,
+    var(--card) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-text.short { width: 60%; }
+.skeleton-text.medium { width: 80%; }
+.skeleton-text.long { width: 100%; }
+
+.skeleton-title {
+  height: 1.5em;
+  width: 70%;
+  margin-bottom: 1em;
+}
+
+.skeleton-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.skeleton-image {
+  height: 200px;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.skeleton-card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: var(--card);
+}
+
+.skeleton-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.skeleton-stat {
+  height: 60px;
+  border-radius: 8px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--border);
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================
+ * ACCESSIBILITY IMPROVEMENTS
+ * ========================================== */
+
+/* Focus visible styles */
+*:focus-visible {
+  outline: 3px solid var(--accent-2);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent);
+  color: var(--bg);
+  padding: 8px 16px;
+  z-index: 100000;
+  transition: top 0.3s;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: #ffffff;
+    --text: #ffffff;
+    --bg: #000000;
+    --card: #000000;
+  }
+  
+  [data-theme="light"] {
+    --border: #000000;
+    --text: #000000;
+    --bg: #ffffff;
+    --card: #ffffff;
+  }
+  
+  * {
+    border-width: 2px !important;
+  }
+}
+
+/* ==========================================
+ * CONNECTION INDICATOR
+ * ========================================== */
+
+#connection-indicator {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  padding: 8px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+}
+
+#connection-indicator.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#connection-indicator.online {
+  border-color: #5a9a6a;
+}
+
+#connection-indicator.offline {
+  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.1);
+}
+
+#connection-indicator.slow {
+  border-color: #f39c12;
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+#connection-indicator.online .indicator-dot {
+  background: #5a9a6a;
+  box-shadow: 0 0 8px #5a9a6a;
+}
+
+#connection-indicator.offline .indicator-dot {
+  background: #c0392b;
+  box-shadow: 0 0 8px #c0392b;
+}
+
+#connection-indicator.slow .indicator-dot {
+  background: #f39c12;
+  box-shadow: 0 0 8px #f39c12;
+}
+
+/* ==========================================
+ * RTL (Right-to-Left) SUPPORT
+ * ========================================== */
+
+[dir="rtl"] .brand {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .auth-cta {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .hero-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .section-head {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .post-head {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .post-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .list-item {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .list-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .toolbar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .searchbar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .searchbar input {
+  text-align: right;
+}
+
+/* ==========================================
+ * PRINT STYLES
+ * ========================================== */
+
+@media print {
+  /* Hide interactive elements */
+  .topbar,
+  .auth-cta,
+  .nav,
+  .hero-actions,
+  .map-controls,
+  .posts-tools,
+  .post-actions,
+  .post-reactions,
+  .post-share,
+  .mobile-menu,
+  #menuToggle,
+  .theme-toggle,
+  button,
+  .toast,
+  .lightbox,
+  .modal,
+  #connection-indicator {
+    display: none !important;
+  }
+  
+  /* Reset backgrounds */
+  body {
+    background: white !important;
+    color: black !important;
+    padding-top: 0 !important;
+  }
+  
+  /* Ensure content is visible */
+  .hero,
+  .section,
+  .post-row {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  /* Links */
+  a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+  
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    word-break: break-all;
+  }
+  
+  /* Images */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  
+  /* Map */
+  .map {
+    height: 300px !important;
+    page-break-inside: avoid;
+  }
+  
+  /* Footer */
+  .site-footer {
+    border-top: 2px solid black !important;
+    margin-top: 20px !important;
+  }
+  
+  /* Page breaks */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  .post-row {
+    margin-bottom: 20px !important;
+  }
+}
+
+/* ==========================================
+ * ERROR BOUNDARY STYLES
+ * ========================================== */
+
+.error-boundary {
+  padding: 20px;
+  border: 2px solid #c0392b;
+  border-radius: 12px;
+  background: rgba(192, 57, 43, 0.1);
+  margin: 10px 0;
+  text-align: center;
+}
+
+.error-boundary h3 {
+  color: #c0392b;
+  margin: 0 0 10px;
+}
+
+.error-boundary button {
+  margin-top: 10px;
+}
+
+/* ==========================================
+ * LAZY LOADING TRANSITIONS
+ * ========================================== */
+
+.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: var(--card);
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+.lazy-image.error {
+  opacity: 1;
+  background: var(--border);
+  position: relative;
+}
+
+.lazy-image.error::after {
+  content: "⚠";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: var(--muted);
+}
+
+/* ==========================================
+ * MARKER CLUSTER STYLES
+ * ========================================== */
+
+.marker-cluster {
+  background-clip: padding-box;
+  border-radius: 20px;
+}
+
+.marker-cluster div {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  border-radius: 15px;
+  font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+
+.marker-cluster span {
+  line-height: 30px;
+}
+
+/* ==========================================
+ * VIRTUAL SCROLLER STYLES
+ * ========================================== */
+
+.virtual-scroll-container {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  will-change: transform;
+}
+
+.virtual-scroll-spacer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+.virtual-scroll-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* ==========================================
+ * ANALYTICS CONSENT BANNER
+ * ========================================== */
+
+.analytics-consent {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  z-index: 10000;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.analytics-consent p {
+  margin: 0;
+  flex: 1;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.analytics-consent button {
+  white-space: nowrap;
+}
+
+/* ==========================================
+ * MAP ENHANCEMENTS
+ * ========================================== */
+
+.leaflet-container .leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 5px;
+}
+
+.offline-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #c0392b;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+/* Proximity alert animation */
+@keyframes proximity-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.proximity-alert {
+  animation: proximity-pulse 2s infinite;
+}
+
+/* Sacred site marker style */
+.sacred-site-marker {
+  filter: drop-shadow(0 0 8px gold);
+}
+
+/* ==========================================
+ * TOAST NOTIFICATIONS (Enhanced)
+ * ========================================== */
+
+.toast {
+  position: fixed;
+  top: calc(88px + 18px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  background: #101722;
+  color: var(--text);
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  max-width: min(520px, 90vw);
+  text-align: center;
+  opacity: 0.98;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.toast-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.toast-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 14px;
+}
+
+.toast[data-variant="warn"] {
+  background: #1e1a10;
+  border-color: #b67a2c;
+  color: #ffdca3;
+}
+
+.toast[data-variant="error"] {
+  background: #2a1313;
+  border-color: #d14d4d;
+  color: #ffe0e0;
+}
+
+.toast[data-variant="success"] {
+  background: #12301f;
+  border-color: #4fa673;
+  color: #d7f2e4;
+}
+
+/* ==========================================
+ * RESPONSIVE IMPROVEMENTS
+ * ========================================== */
+
+/* Tablet adjustments */
+@media (max-width: 1024px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-card {
+    order: -1;
+  }
+}
+
+/* Mobile landscape */
+@media (max-width: 768px) and (orientation: landscape) {
+  .topbar {
+    height: 60px;
+  }
+  
+  body {
+    padding-top: 60px;
+  }
+  
+  .hero {
+    min-height: auto;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1400px) {
+  .posts-feed {
+    max-width: 1200px;
+  }
+  
+  .hero-content h2 {
+    font-size: 52px;
+  }
+}
+
+/* ==========================================
+ * DARK MODE TRANSITIONS
+ * ========================================== */
+
+[data-theme="light"] {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="light"] * {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Disable transitions for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="light"],
+  [data-theme="light"] * {
+    transition: none !important;
+  }
+}
