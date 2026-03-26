@@ -1,4 +1,4 @@
-import { observeAuth, fetchPosts, savePost, deletePost, logout, changePassword, auth, getUserProfile, isAdmin } from "./auth.js";
+import { observeAuth, fetchPosts, savePost, deletePost, logout, changePassword, auth, getUserProfile, isAdmin, fetchLandmarks } from "./auth.js";
 import { uploadImages } from "./imgbb.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
@@ -18,6 +18,14 @@ const profilePosts = document.getElementById("profilePosts");
 const profileEmpty = document.getElementById("profileEmpty");
 const profileUsername = document.getElementById("profileUsername");
 const profileEmail = document.getElementById("profileEmail");
+const profileRole = document.getElementById("profileRole");
+const profileOwnedCount = document.getElementById("profileOwnedCount");
+const profileCommunityCount = document.getElementById("profileCommunityCount");
+const profileLandmarkCount = document.getElementById("profileLandmarkCount");
+const profileAdminTools = document.getElementById("profileAdminTools");
+const profileWorkspaceNote = document.getElementById("profileWorkspaceNote");
+const adminQuickLink = document.getElementById("adminQuickLink");
+const landmarkQuickLink = document.getElementById("landmarkQuickLink");
 
 const editDialog = document.getElementById("profileEditDialog");
 const closeEdit = document.getElementById("closeProfileEdit");
@@ -46,6 +54,21 @@ let saving = false;
 function renderProfileIdentity({ username = "--", email = "--" } = {}) {
   if (profileUsername) profileUsername.textContent = username;
   if (profileEmail) profileEmail.textContent = email;
+}
+
+function renderWorkspaceSummary({ role = "Guest", ownedCount = 0, communityCount = 0, landmarkCount = 0, admin = false } = {}) {
+  if (profileRole) profileRole.textContent = role;
+  if (profileOwnedCount) profileOwnedCount.textContent = String(ownedCount);
+  if (profileCommunityCount) profileCommunityCount.textContent = String(communityCount);
+  if (profileLandmarkCount) profileLandmarkCount.textContent = String(landmarkCount);
+  if (profileAdminTools) profileAdminTools.textContent = admin ? "Admin" : "Profile";
+  if (profileWorkspaceNote) {
+    profileWorkspaceNote.textContent = admin
+      ? "You can moderate posts and map entries from this dashboard."
+      : "Manage your account and personal posts here.";
+  }
+  adminQuickLink?.classList.toggle("hidden", !admin);
+  landmarkQuickLink?.classList.toggle("hidden", !admin);
 }
 
 function applyTheme(theme) {
@@ -237,11 +260,22 @@ async function loadProfilePosts() {
     const posts = await fetchPosts(true);
     const owned = posts.filter((p) => isOwnedPost(p, authorName));
     profileStatus.textContent = owned.length ? `You have ${owned.length} post(s).` : "You haven't shared any posts yet.";
+    if (profileOwnedCount) profileOwnedCount.textContent = String(owned.length);
+    if (profileCommunityCount) profileCommunityCount.textContent = String(posts.length);
     renderPosts(owned);
   } catch (e) {
     console.error("Failed to load profile posts:", e);
     profileStatus.textContent = "Error loading posts. Please refresh.";
     showToast("Failed to load posts: " + (e.message || e), "error");
+  }
+}
+
+async function loadLandmarkSummary() {
+  try {
+    const landmarks = await fetchLandmarks(true);
+    if (profileLandmarkCount) profileLandmarkCount.textContent = String(landmarks.length);
+  } catch (e) {
+    console.warn("Failed to load landmark count:", e);
   }
 }
 
@@ -454,6 +488,7 @@ observeAuth(async (user) => {
   if (!currentUser) {
     profileStatus.textContent = "Please log in to view your profile.";
     renderProfileIdentity({ username: "--", email: "--" });
+    renderWorkspaceSummary({ role: "Guest", ownedCount: 0, communityCount: 0, landmarkCount: 0, admin: false });
     profileEmpty?.classList.remove("hidden");
     profilePosts.innerHTML = "";
     adminPanel?.classList.add("hidden");
@@ -476,14 +511,31 @@ observeAuth(async (user) => {
     renderProfileIdentity({ username: fallbackName, email: currentUser.email || "--" });
   }
 
-  if (isAdmin(currentUser)) {
+  const adminUser = isAdmin(currentUser);
+  renderWorkspaceSummary({
+    role: adminUser ? "Administrator" : "Member",
+    admin: adminUser,
+  });
+
+  if (adminUser) {
     adminPanel?.classList.remove("hidden");
     await initAdmin(currentUser);
   } else {
     adminPanel?.classList.add("hidden");
   }
   
-  await loadProfilePosts();
+  await Promise.all([
+    loadProfilePosts(),
+    loadLandmarkSummary(),
+  ]);
+});
+
+window.addEventListener("posts-updated", () => {
+  if (currentUser) loadProfilePosts();
+});
+
+window.addEventListener("landmarks-updated", () => {
+  if (currentUser) loadLandmarkSummary();
 });
 
 initTheme();
