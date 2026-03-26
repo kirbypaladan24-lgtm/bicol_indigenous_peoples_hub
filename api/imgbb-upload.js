@@ -1,3 +1,30 @@
+async function parseJsonBody(req) {
+  if (req.body && typeof req.body === "object") {
+    return req.body;
+  }
+
+  if (typeof req.body === "string" && req.body.trim()) {
+    try {
+      return JSON.parse(req.body);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  const chunks = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  if (!chunks.length) return null;
+
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch (error) {
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -9,20 +36,24 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Missing IMGBB_KEY environment variable" });
   }
 
-  const image = typeof req.body?.image === "string" ? req.body.image.trim() : "";
-  const name = typeof req.body?.name === "string" ? req.body.name.trim() : "upload.jpg";
+  const body = await parseJsonBody(req);
+  const image = typeof body?.image === "string" ? body.image.trim() : "";
+  const name = typeof body?.name === "string" ? body.name.trim() : "upload.jpg";
 
   if (!image) {
     return res.status(400).json({ error: "Missing image payload" });
   }
 
   try {
-    const form = new FormData();
-    form.append("image", image);
-    form.append("name", name);
+    const form = new URLSearchParams();
+    form.set("image", image);
+    form.set("name", name);
 
     const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
       body: form,
     });
 
@@ -35,11 +66,16 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: errorMessage });
     }
 
+    const url = payload?.data?.display_url || payload?.data?.url || null;
+    if (!url) {
+      return res.status(502).json({ error: "ImgBB did not return an image URL" });
+    }
+
     return res.status(200).json({
-      url: payload?.data?.display_url || payload?.data?.url || null,
+      url,
     });
   } catch (error) {
     console.error("[imgbb-upload] Upload failed:", error);
-    return res.status(500).json({ error: "Upload proxy failed" });
+    return res.status(500).json({ error: error?.message || "Upload proxy failed" });
   }
 }
