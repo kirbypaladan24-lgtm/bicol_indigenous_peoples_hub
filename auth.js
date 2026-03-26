@@ -33,11 +33,12 @@ import {
   persistentMultipleTabManager,
   connectFirestoreEmulator,
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
+import { assertFirebaseConfig } from "./firebase-config.js";
 
 const ADMIN_UID = "6bs7TaQnJBZDGiyhR1eoDMLncsb2";
 const ADMIN_EMAIL = "admin@ip-bicol.com";
 
+const firebaseConfig = assertFirebaseConfig();
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
