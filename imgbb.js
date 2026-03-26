@@ -3,6 +3,7 @@ import { showToast } from "./ui.js";
 const MAX_UPLOAD_DIMENSION = 1600;
 const JPEG_QUALITY = 0.82;
 const MAX_IMAGES_PER_POST = 10;
+const PUBLIC_IMGBB_FALLBACK_KEY = "dae3de7222aca4af1a7d47c6cfd70840";
 
 async function resizeImage(file, maxDim = MAX_UPLOAD_DIMENSION, quality = JPEG_QUALITY) {
   if (!file.type.startsWith("image/")) return file;
@@ -76,6 +77,7 @@ async function uploadOne(blobOrFile, filename = "upload.jpg") {
     const publicKey =
       (typeof window !== "undefined" && window.__PUBLIC_UPLOAD_CONFIG__?.imgbbKey) ||
       (typeof import.meta !== "undefined" && import.meta.env?.VITE_IMGBB_KEY) ||
+      PUBLIC_IMGBB_FALLBACK_KEY ||
       "";
 
     if (publicKey && /missing imgbb environment variable/i.test(proxyError)) {
