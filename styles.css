@@ -1567,6 +1567,12 @@ button {
   border-top: 1px solid var(--border);
 }
 
+.profile-admin-panel {
+  margin-bottom: 28px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
 [data-theme="light"] .admin {
   background: #f7f9f4;
   color: #1b1f1a;
