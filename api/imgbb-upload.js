@@ -25,15 +25,25 @@ async function parseJsonBody(req) {
   }
 }
 
+function readApiKey() {
+  return (
+    process.env.IMGBB_KEY ||
+    process.env.VITE_IMGBB_KEY ||
+    ""
+  ).trim();
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.IMGBB_KEY;
+  const apiKey = readApiKey();
   if (!apiKey) {
-    return res.status(500).json({ error: "Missing IMGBB_KEY environment variable" });
+    return res.status(500).json({
+      error: "Missing ImgBB environment variable. Add IMGBB_KEY in Vercel or .env.",
+    });
   }
 
   const body = await parseJsonBody(req);
