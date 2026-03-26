@@ -4,6 +4,8 @@ const MAX_UPLOAD_DIMENSION = 1600;
 const JPEG_QUALITY = 0.82;
 const MAX_IMAGES_PER_POST = 10;
 const PUBLIC_IMGBB_FALLBACK_KEY = "dae3de7222aca4af1a7d47c6cfd70840";
+const UPLOAD_TIMEOUT_MS = 25_000;
+const MAX_UPLOAD_RETRIES = 1;
 
 async function resizeImage(file, maxDim = MAX_UPLOAD_DIMENSION, quality = JPEG_QUALITY) {
   if (!file.type.startsWith("image/")) return file;
@@ -57,19 +59,55 @@ async function blobToBase64(blobOrFile) {
   });
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = UPLOAD_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error("Upload timed out");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function attemptUpload(requestFn, retries = MAX_UPLOAD_RETRIES) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) break;
+    }
+  }
+
+  throw lastError || new Error("Upload failed");
+}
+
 async function uploadOne(blobOrFile, filename = "upload.jpg") {
   const image = await blobToBase64(blobOrFile);
   const payloadBody = JSON.stringify({
     image,
     name: filename,
   });
-  const res = await fetch("/api/imgbb-upload", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: payloadBody,
-  });
+  const res = await attemptUpload(() =>
+    fetchWithTimeout("/api/imgbb-upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: payloadBody,
+    })
+  );
 
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -105,13 +143,15 @@ async function uploadDirectToImgBB(image, filename, apiKey) {
   form.set("image", image);
   form.set("name", filename);
 
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: form,
-  });
+  const response = await attemptUpload(() =>
+    fetchWithTimeout(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form,
+    })
+  );
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
