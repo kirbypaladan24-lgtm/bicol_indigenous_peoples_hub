@@ -71,79 +71,132 @@
 
   <section id="adminPanel" class="admin">
     <div class="admin-bar">
-      <h3>Admin Panel</h3>
+      <div class="admin-heading">
+        <p class="admin-kicker">Dashboard</p>
+        <h3>Admin Panel</h3>
+        <p class="admin-subtitle">Manage published stories, media, and landmark entries from one place.</p>
+      </div>
       <div class="status">
         <span class="dot"></span>
         <p id="adminStatus">Restricted</p>
       </div>
     </div>
-    <div class="admin-grid">
-      <div class="form">
-        <label>Title</label>
-        <input type="text" id="postTitle" placeholder="Post title" />
-        <label>Cover Images (optional, up to 10)</label>
-        <input type="file" id="imageInput" accept="image/*" multiple />
-        <div id="imagePreviewAdmin" class="media-preview"></div>
-
-        <div class="toolbar">
-          <button data-cmd="bold" type="button">Bold</button>
-          <button data-cmd="italic" type="button">Italic</button>
-          <select data-cmd="fontName">
-            <option value="">Font</option>
-            <option value="Sora">Sora</option>
-            <option value="Manrope">Manrope</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Arial">Arial</option>
-          </select>
-          <button data-cmd="insertUnorderedList" type="button">List</button>
-          <button data-cmd="formatBlock" data-value="h3" type="button">H3</button>
-          <button data-cmd="formatBlock" data-value="h4" type="button">H4</button>
-          <button data-cmd="createLink" type="button">Link</button>
+    <div class="admin-grid admin-grid-posts">
+      <div class="form admin-card">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow">Story Editor</p>
+            <h4>Compose or update a post</h4>
+          </div>
+          <p class="admin-card-note">Upload up to 10 images and keep the layout reader-friendly.</p>
         </div>
-        <div id="richEditor" class="editor" contenteditable="true"></div>
-        <button id="savePostBtn" class="solid full">Publish / Update</button>
-        <button id="resetPostBtn" class="ghost full">Reset</button>
+        <div class="admin-fieldset">
+          <label>Title</label>
+          <input type="text" id="postTitle" placeholder="Post title" />
+        </div>
+        <div class="admin-fieldset">
+          <label>Cover Images (optional, up to 10)</label>
+          <input type="file" id="imageInput" accept="image/*" multiple />
+          <div id="imagePreviewAdmin" class="media-preview"></div>
+        </div>
+
+        <div class="admin-editor-shell">
+          <div class="admin-fieldset">
+            <label>Formatting tools</label>
+            <div class="toolbar">
+              <button data-cmd="bold" type="button">Bold</button>
+              <button data-cmd="italic" type="button">Italic</button>
+              <select data-cmd="fontName">
+                <option value="">Font</option>
+                <option value="Sora">Sora</option>
+                <option value="Manrope">Manrope</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Arial">Arial</option>
+              </select>
+              <button data-cmd="insertUnorderedList" type="button">List</button>
+              <button data-cmd="formatBlock" data-value="h3" type="button">H3</button>
+              <button data-cmd="formatBlock" data-value="h4" type="button">H4</button>
+              <button data-cmd="createLink" type="button">Link</button>
+            </div>
+          </div>
+          <div class="admin-fieldset">
+            <label>Body content</label>
+            <div id="richEditor" class="editor" contenteditable="true"></div>
+          </div>
+        </div>
+        <div class="admin-actions">
+          <button id="savePostBtn" class="solid full">Publish / Update</button>
+          <button id="resetPostBtn" class="ghost full">Reset</button>
+        </div>
       </div>
-      <div>
-        <h4>Existing Posts</h4>
-        <div id="adminPosts" class="list"></div>
+      <div class="admin-side-panel">
+        <div class="admin-side-head">
+          <p class="admin-card-eyebrow">Library</p>
+          <h4>Existing Posts</h4>
+        </div>
+        <div id="adminPosts" class="list admin-list"></div>
       </div>
     </div>
 
-    <div class="admin-grid">
-      <div class="form">
-        <h4>Landmarks (Map)</h4>
-        <label>Name</label>
-        <input type="text" id="landmarkName" placeholder="Landmark name" />
-        <label>Latitude</label>
-        <input type="number" id="landmarkLat" placeholder="e.g. 13.6693" step="0.000001" />
-        <label>Longitude</label>
-        <input type="number" id="landmarkLng" placeholder="e.g. 123.3307" step="0.000001" />
-        <label>Summary</label>
-        <textarea id="landmarkSummary" rows="4" placeholder="Short description"></textarea>
-        <label>Cover Photo (optional)</label>
-        <input type="file" id="landmarkCoverInput" accept="image/*" />
-        <label>Marker Color</label>
-        <select id="landmarkColor">
-          <option value="#2f5c3a">Forest Green</option>
-          <option value="#5a9a6a">Moss</option>
-          <option value="#c36b2a">Clay</option>
-          <option value="#2b7bff">Blue</option>
-          <option value="#8e44ad">Purple</option>
-          <option value="#c0392b">Red</option>
-        </select>
+    <div class="admin-grid admin-grid-landmarks">
+      <div class="form admin-card">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow">Map Editor</p>
+            <h4>Landmarks and place markers</h4>
+          </div>
+          <p class="admin-card-note">Use the map to set exact coordinates and maintain consistent marker styling.</p>
+        </div>
+        <div class="admin-field-grid">
+          <div class="admin-fieldset">
+            <label>Name</label>
+            <input type="text" id="landmarkName" placeholder="Landmark name" />
+          </div>
+          <div class="admin-fieldset">
+            <label>Marker Color</label>
+            <select id="landmarkColor">
+              <option value="#2f5c3a">Forest Green</option>
+              <option value="#5a9a6a">Moss</option>
+              <option value="#c36b2a">Clay</option>
+              <option value="#2b7bff">Blue</option>
+              <option value="#8e44ad">Purple</option>
+              <option value="#c0392b">Red</option>
+            </select>
+          </div>
+          <div class="admin-fieldset">
+            <label>Latitude</label>
+            <input type="number" id="landmarkLat" placeholder="e.g. 13.6693" step="0.000001" />
+          </div>
+          <div class="admin-fieldset">
+            <label>Longitude</label>
+            <input type="number" id="landmarkLng" placeholder="e.g. 123.3307" step="0.000001" />
+          </div>
+        </div>
+        <div class="admin-fieldset">
+          <label>Summary</label>
+          <textarea id="landmarkSummary" rows="4" placeholder="Short description"></textarea>
+        </div>
+        <div class="admin-fieldset">
+          <label>Cover Photo (optional)</label>
+          <input type="file" id="landmarkCoverInput" accept="image/*" />
+        </div>
         <div class="map-tools">
           <button id="landmarkPickBtn" class="ghost small" type="button">Pick From Map</button>
-          <span class="map-help">Click the map to set coordinates.</span>
+          <span class="map-help">Pan the map while pick mode is active to place the marker precisely.</span>
         </div>
         <div id="landmarkMap" class="map admin-map"></div>
-        <button id="saveLandmarkBtn" class="solid full">Save Landmark</button>
-        <button id="resetLandmarkBtn" class="ghost full">Reset</button>
+        <div class="admin-actions">
+          <button id="saveLandmarkBtn" class="solid full">Save Landmark</button>
+          <button id="resetLandmarkBtn" class="ghost full">Reset</button>
+        </div>
       </div>
-      <div>
-        <h4>Existing Landmarks</h4>
-        <div id="adminLandmarks" class="list"></div>
+      <div class="admin-side-panel">
+        <div class="admin-side-head">
+          <p class="admin-card-eyebrow">Directory</p>
+          <h4>Existing Landmarks</h4>
+        </div>
+        <div id="adminLandmarks" class="list admin-list"></div>
       </div>
     </div>
   </section>
