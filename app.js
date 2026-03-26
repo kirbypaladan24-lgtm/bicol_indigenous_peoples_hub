@@ -15,8 +15,7 @@ import {
   fetchLandmarks,
   ensureAnonAuth,
 } from "./auth.js";
-import { initAdmin } from "./admin.js";
-import { renderPosts, showToast, setStats } from "./ui.js";
+  import { renderPosts, showToast, setStats } from "./ui.js";
 import { uploadImages } from "./imgbb.js";
 import { initI18n, t } from "./i18n.js";
 import { initSecurity } from "./security.js";
@@ -1216,14 +1215,6 @@ observeAuth(async (user) => {
   cachedAuthorName = null;
 
   window.__currentUser = user || null;
-
-  const adminSection = document.getElementById("adminPanel");
-  if (authed && isAdminUser) {
-    adminSection?.classList.remove("hidden");
-    initAdmin(user);
-  } else {
-    adminSection?.classList.add("hidden");
-  }
 
   loadUserCount();
 });
