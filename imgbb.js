@@ -80,8 +80,14 @@ async function uploadOne(blobOrFile, filename = "upload.jpg") {
       PUBLIC_IMGBB_FALLBACK_KEY ||
       "";
 
-    if (publicKey && /missing imgbb environment variable/i.test(proxyError)) {
-      return uploadDirectToImgBB(image, filename, publicKey);
+    if (publicKey) {
+      try {
+        return await uploadDirectToImgBB(image, filename, publicKey);
+      } catch (fallbackError) {
+        throw new Error(
+          fallbackError?.message || proxyError
+        );
+      }
     }
 
     throw new Error(proxyError);
