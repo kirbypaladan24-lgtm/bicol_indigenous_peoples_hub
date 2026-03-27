@@ -1177,7 +1177,12 @@ async function loadUserCount() {
         setStats({ userCount: count });
         localStorage.setItem(USER_COUNT_CACHE_KEY, String(count));
       }
-      if (source === "users" && auth?.currentUser && auth.currentUser.isAnonymous !== true) {
+      if (
+        source === "users" &&
+        auth?.currentUser &&
+        auth.currentUser.isAnonymous !== true &&
+        isAdmin(auth.currentUser)
+      ) {
         try {
           await setPublicUserCount(count);
         } catch (e) {}
@@ -1223,6 +1228,9 @@ observeAuth(async (user) => {
   cachedAuthorName = null;
 
   window.__currentUser = user || null;
+  if (allPostsCache.length) {
+    applyPostFilter();
+  }
 
   loadUserCount();
 });
