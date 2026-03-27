@@ -95,6 +95,20 @@ async function attemptUpload(requestFn, retries = MAX_UPLOAD_RETRIES) {
 
 async function uploadOne(blobOrFile, filename = "upload.jpg") {
   const image = await blobToBase64(blobOrFile);
+  const publicKey =
+    (typeof window !== "undefined" && window.__PUBLIC_UPLOAD_CONFIG__?.imgbbKey) ||
+    (typeof import.meta !== "undefined" && import.meta.env?.VITE_IMGBB_KEY) ||
+    PUBLIC_IMGBB_FALLBACK_KEY ||
+    "";
+
+  if (publicKey) {
+    try {
+      return await uploadDirectToImgBB(image, filename, publicKey);
+    } catch (directError) {
+      console.warn("Direct ImgBB upload failed, trying proxy:", directError);
+    }
+  }
+
   const payloadBody = JSON.stringify({
     image,
     name: filename,
@@ -111,24 +125,7 @@ async function uploadOne(blobOrFile, filename = "upload.jpg") {
 
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const proxyError = payload?.error || "Image upload failed";
-    const publicKey =
-      (typeof window !== "undefined" && window.__PUBLIC_UPLOAD_CONFIG__?.imgbbKey) ||
-      (typeof import.meta !== "undefined" && import.meta.env?.VITE_IMGBB_KEY) ||
-      PUBLIC_IMGBB_FALLBACK_KEY ||
-      "";
-
-    if (publicKey) {
-      try {
-        return await uploadDirectToImgBB(image, filename, publicKey);
-      } catch (fallbackError) {
-        throw new Error(
-          fallbackError?.message || proxyError
-        );
-      }
-    }
-
-    throw new Error(proxyError);
+    throw new Error(payload?.error || "Image upload failed");
   }
 
   if (!payload?.url) {
