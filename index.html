@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tl">
+<html lang="tl" data-page-title-key="page_title">
 <head>
   <meta name="google-site-verification" content="960zUcTkH4mRs2wDF4RvAXBExGGlEn4Dy3O2ZB1SiL0" />
   <meta charset="UTF-8" />
@@ -17,7 +17,7 @@
   <!-- CSP will be injected by security.js -->
 </head>
 <body>
-  <a class="skip-link" href="#home">Skip to content</a>
+  <a class="skip-link" href="#home" data-i18n="skip_to_content">Skip to content</a>
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">
@@ -101,16 +101,16 @@
       </div>
       <div class="hero-storyline" aria-label="Platform highlights">
         <div class="hero-story-pill">
-          <span class="hero-story-label">Stories</span>
-          <strong>Community voices and lived experience</strong>
+          <span class="hero-story-label" data-i18n="hero_story_stories_label">Stories</span>
+          <strong data-i18n="hero_story_stories_value">Community voices and lived experience</strong>
         </div>
         <div class="hero-story-pill">
-          <span class="hero-story-label">Mapping</span>
-          <strong>Places, landscapes, and cultural memory</strong>
+          <span class="hero-story-label" data-i18n="hero_story_mapping_label">Mapping</span>
+          <strong data-i18n="hero_story_mapping_value">Places, landscapes, and cultural memory</strong>
         </div>
         <div class="hero-story-pill">
-          <span class="hero-story-label">Stewardship</span>
-          <strong>Respectful sharing with care and consent</strong>
+          <span class="hero-story-label" data-i18n="hero_story_stewardship_label">Stewardship</span>
+          <strong data-i18n="hero_story_stewardship_value">Respectful sharing with care and consent</strong>
         </div>
       </div>
       <div class="emblems" aria-hidden="true">
@@ -128,8 +128,8 @@
     </div>
     <div class="hero-card">
       <div class="hero-card-head">
-        <p class="eyebrow">Live Overview</p>
-        <h3>A living archive for communities, schools, and cultural partners.</h3>
+        <p class="eyebrow" data-i18n="live_overview_eyebrow">Live Overview</p>
+        <h3 data-i18n="live_overview_title">A living archive for communities, schools, and cultural partners.</h3>
       </div>
       <div class="stat">
         <span id="postCount">--</span>
@@ -158,9 +158,9 @@
         <h3 data-i18n="map_title">Land, waters, and stories across Bicol.</h3>
         <p class="section-desc" data-i18n="map_desc">Explore landmarks and territories associated with Indigenous communities. Click a marker to learn more.</p>
         <div class="map-legend" aria-label="Map guide">
-          <span class="legend-chip">Live location support</span>
-          <span class="legend-chip">Landmark detail views</span>
-          <span class="legend-chip">Community-aware mapping</span>
+          <span class="legend-chip" data-i18n="legend_live_location">Live location support</span>
+          <span class="legend-chip" data-i18n="legend_landmark_detail">Landmark detail views</span>
+          <span class="legend-chip" data-i18n="legend_community_mapping">Community-aware mapping</span>
         </div>
       </div>
       <div class="map-controls">
@@ -205,16 +205,16 @@
       </p>
       <div class="trust-band" aria-label="Platform values">
         <div class="trust-band-item">
-          <span class="trust-band-kicker">Consent</span>
-          <strong>Community-first sharing</strong>
+          <span class="trust-band-kicker" data-i18n="trust_consent_kicker">Consent</span>
+          <strong data-i18n="trust_consent_value">Community-first sharing</strong>
         </div>
         <div class="trust-band-item">
-          <span class="trust-band-kicker">Accuracy</span>
-          <strong>Curated stories and references</strong>
+          <span class="trust-band-kicker" data-i18n="trust_accuracy_kicker">Accuracy</span>
+          <strong data-i18n="trust_accuracy_value">Curated stories and references</strong>
         </div>
         <div class="trust-band-item">
-          <span class="trust-band-kicker">Continuity</span>
-          <strong>Knowledge that remains accessible</strong>
+          <span class="trust-band-kicker" data-i18n="trust_continuity_kicker">Continuity</span>
+          <strong data-i18n="trust_continuity_value">Knowledge that remains accessible</strong>
         </div>
       </div>
     </div>
@@ -235,7 +235,7 @@
       <h3 data-i18n="contact_title">Partner with communities</h3>
       <p>Email: <a href="mailto:bicolindigenouspeopleshub@gmail.com">bicolindigenouspeopleshub@gmail.com</a></p>
       <p data-i18n="contact_text">For collaboration, capacity building, and data stewardship inquiries.</p>
-      <p class="contact-note">Built for preservation, learning, and respectful public access.</p>
+      <p class="contact-note" data-i18n="contact_note">Built for preservation, learning, and respectful public access.</p>
     </div>
     <div class="cta-card">
       <h4 data-i18n="cta_title">Want to contribute content?</h4>
@@ -265,8 +265,8 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 Bicol Indigenous Peoples Hub. All rights reserved.</span>
-       <span>Developed By Kirby Paladan</span>
+      <span data-i18n="footer_copyright">© 2026 Bicol Indigenous Peoples Hub. All rights reserved.</span>
+       <span data-i18n="footer_developed_by">Developed By Kirby Paladan</span>
       <span data-i18n="footer_built">Built with community care</span>
     </div>
   </footer>
@@ -292,13 +292,13 @@
       <input type="file" id="userImageInput" accept="image/*" multiple />
       <div id="imagePreviewUser" class="media-preview"></div>
       <div class="toolbar" id="userToolbar">
-        <button data-cmd="undo" type="button">Undo</button>
-        <button data-cmd="redo" type="button">Redo</button>
-        <button data-cmd="bold" type="button">Bold</button>
-        <button data-cmd="italic" type="button">Italic</button>
-        <button data-cmd="underline" type="button">Underline</button>
+        <button data-cmd="undo" type="button" data-i18n="toolbar_undo">Undo</button>
+        <button data-cmd="redo" type="button" data-i18n="toolbar_redo">Redo</button>
+        <button data-cmd="bold" type="button" data-i18n="toolbar_bold">Bold</button>
+        <button data-cmd="italic" type="button" data-i18n="toolbar_italic">Italic</button>
+        <button data-cmd="underline" type="button" data-i18n="toolbar_underline">Underline</button>
         <select data-cmd="fontName">
-          <option value="">Font</option>
+          <option value="" data-i18n="toolbar_font">Font</option>
           <option value="Sora">Sora</option>
           <option value="Manrope">Manrope</option>
           <option value="Georgia">Georgia</option>
@@ -307,16 +307,16 @@
         </select>
         <button data-cmd="formatBlock" data-value="h2" type="button">H2</button>
         <button data-cmd="formatBlock" data-value="h3" type="button">H3</button>
-        <button data-cmd="formatBlock" data-value="p" type="button">Body</button>
-        <button data-cmd="insertUnorderedList" type="button">Bullets</button>
-        <button data-cmd="insertOrderedList" type="button">Numbered</button>
-        <button data-cmd="formatBlock" data-value="blockquote" type="button">Quote</button>
-        <button data-cmd="justifyLeft" type="button">Left</button>
-        <button data-cmd="justifyCenter" type="button">Center</button>
-        <button data-cmd="justifyRight" type="button">Right</button>
-        <button data-cmd="createLink" type="button">Link</button>
-        <button data-cmd="insertHorizontalRule" type="button">Line</button>
-        <button data-cmd="removeFormat" type="button">Clear</button>
+        <button data-cmd="formatBlock" data-value="p" type="button" data-i18n="toolbar_body">Body</button>
+        <button data-cmd="insertUnorderedList" type="button" data-i18n="toolbar_bullets">Bullets</button>
+        <button data-cmd="insertOrderedList" type="button" data-i18n="toolbar_numbered">Numbered</button>
+        <button data-cmd="formatBlock" data-value="blockquote" type="button" data-i18n="toolbar_quote">Quote</button>
+        <button data-cmd="justifyLeft" type="button" data-i18n="toolbar_left">Left</button>
+        <button data-cmd="justifyCenter" type="button" data-i18n="toolbar_center">Center</button>
+        <button data-cmd="justifyRight" type="button" data-i18n="toolbar_right">Right</button>
+        <button data-cmd="createLink" type="button" data-i18n="toolbar_link">Link</button>
+        <button data-cmd="insertHorizontalRule" type="button" data-i18n="toolbar_line">Line</button>
+        <button data-cmd="removeFormat" type="button" data-i18n="toolbar_clear">Clear</button>
       </div>
       <div id="userEditor" class="editor" contenteditable="true"></div>
       <button id="userSavePostBtn" class="solid full" data-i18n="publish">Publish</button>
