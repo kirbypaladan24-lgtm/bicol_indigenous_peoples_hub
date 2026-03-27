@@ -809,10 +809,13 @@ function bindSyncedReactions(article, post) {
 
     try {
       const { setPostReaction } = await import("./auth.js");
-      const savedReaction = await setPostReaction(id, nextReaction);
+      const result = await setPostReaction(id, nextReaction);
       window.__reactionState = window.__reactionState || {};
-      if (savedReaction) window.__reactionState[id] = savedReaction;
+      if (result.likeDelta !== likeDelta) adjust(likeCountEl, result.likeDelta - likeDelta);
+      if (result.dislikeDelta !== dislikeDelta) adjust(dislikeCountEl, result.dislikeDelta - dislikeDelta);
+      if (result.reaction) window.__reactionState[id] = result.reaction;
       else delete window.__reactionState[id];
+      setActive(result.reaction === "like", result.reaction === "dislike");
     } catch (e) {
       console.error("Like failed for post:", id, e);
       if (current) window.__reactionState[id] = current;
@@ -839,10 +842,13 @@ function bindSyncedReactions(article, post) {
 
     try {
       const { setPostReaction } = await import("./auth.js");
-      const savedReaction = await setPostReaction(id, nextReaction);
+      const result = await setPostReaction(id, nextReaction);
       window.__reactionState = window.__reactionState || {};
-      if (savedReaction) window.__reactionState[id] = savedReaction;
+      if (result.likeDelta !== likeDelta) adjust(likeCountEl, result.likeDelta - likeDelta);
+      if (result.dislikeDelta !== dislikeDelta) adjust(dislikeCountEl, result.dislikeDelta - dislikeDelta);
+      if (result.reaction) window.__reactionState[id] = result.reaction;
       else delete window.__reactionState[id];
+      setActive(result.reaction === "like", result.reaction === "dislike");
     } catch (e) {
       console.error("Dislike failed for post:", id, e);
       if (current) window.__reactionState[id] = current;
