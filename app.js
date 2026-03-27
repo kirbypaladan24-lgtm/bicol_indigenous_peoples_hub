@@ -1129,6 +1129,11 @@ userSavePostBtn?.addEventListener("click", async () => {
 });
 
 async function loadPosts() {
+  const postsGrid = document.getElementById("postsGrid");
+  const postsEmpty = document.getElementById("postsEmpty");
+  postsGrid?.classList.add("loading");
+  postsGrid?.setAttribute("aria-busy", "true");
+  if (postsEmpty) postsEmpty.classList.add("hidden");
   try {
     await ensureAnonAuth();
     const posts = await fetchPosts();
@@ -1140,6 +1145,9 @@ async function loadPosts() {
     });
   } catch (e) {
     showToast(t("toast_failed_load_posts", { error: e.message }), "error");
+  } finally {
+    postsGrid?.classList.remove("loading");
+    postsGrid?.setAttribute("aria-busy", "false");
   }
 }
 
