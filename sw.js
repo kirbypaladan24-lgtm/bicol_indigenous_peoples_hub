@@ -1,7 +1,7 @@
 // sw.js - Service Worker for Bicol IP Hub
 // Provides offline caching for assets, posts, and map tiles
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const STATIC_CACHE = `bicol-ip-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bicol-ip-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bicol-ip-images-${CACHE_VERSION}`;
