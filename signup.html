@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page-title-key="page_title_signup">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -62,42 +62,43 @@
   <div class="auth-shell">
     <div class="auth-card">
       <a href="index.html" class="back-link">← Back to Home</a>
-      <h2>Create your account</h2>
-      <p class="hint">Access across devices with the same credentials.</p>
+      <h2 data-i18n="create_your_account">Create your account</h2>
+      <p class="hint" data-i18n="access_across_devices">Access across devices with the same credentials.</p>
       <form id="signupForm" class="form">
-        <label>Username</label>
-        <input type="text" id="usernameInput" placeholder="Your name" required />
+        <label data-i18n="username">Username</label>
+        <input type="text" id="usernameInput" placeholder="Your name" data-i18n-placeholder="your_name_placeholder" required />
         
-        <label>Phone Number</label>
-        <input type="tel" id="phoneInput" placeholder="+63 9XX XXX XXXX" required />
+        <label data-i18n="phone_number">Phone Number</label>
+        <input type="tel" id="phoneInput" placeholder="+63 9XX XXX XXXX" data-i18n-placeholder="phone_placeholder" required />
         
-        <label>Birthdate</label>
+        <label data-i18n="birthdate">Birthdate</label>
         <div class="birthdate-field">
           <input 
             type="text" 
             id="birthdateInput" 
             class="birthdate-input" 
-            placeholder="MM/DD/YYYY" 
+            placeholder="MM/DD/YYYY"
+            data-i18n-placeholder="birthdate_placeholder"
             maxlength="10"
             inputmode="numeric"
             autocomplete="off"
             required 
           />
-          <p class="birthdate-hint">Type your birthdate (e.g., 12/25/1995)</p>
-          <p class="birthdate-error" id="birthdateError">Please enter a valid date</p>
+          <p class="birthdate-hint" data-i18n="birthdate_hint">Type your birthdate (e.g., 12/25/1995)</p>
+          <p class="birthdate-error" id="birthdateError" data-i18n="birthdate_error_invalid">Please enter a valid date</p>
         </div>
         
-        <label>Email</label>
+        <label data-i18n="email">Email</label>
         <input type="email" id="emailInput" placeholder="you@example.com" required />
         
-        <label>Password</label>
+        <label data-i18n="password">Password</label>
         <div class="password-field">
           <input type="password" id="passwordInput" placeholder="••••••••" required />
-          <button type="button" class="toggle-pass" id="toggleSignupPass" aria-label="Show password">Show</button>
+          <button type="button" class="toggle-pass" id="toggleSignupPass" aria-label="Show password" data-i18n="show">Show</button>
         </div>
         
-        <button type="submit" class="solid full">Create Account</button>
-        <p class="hint">Already have an account? <a href="index.html">Login</a></p>
+        <button type="submit" class="solid full" data-i18n="create_account">Create Account</button>
+        <p class="hint" data-i18n="already_have_account">Already have an account? Login</p>
       </form>
       <div id="signupToast" class="toast hidden"></div>
     </div>
