@@ -15,6 +15,7 @@ import {
   fetchLandmarks,
   ensureAnonAuth,
   fetchCurrentUserReactions,
+  observeCurrentUserReactions,
 } from "./auth.js";
 import { renderPosts, showToast, setStats } from "./ui.js";
 import { uploadImages } from "./imgbb.js";
@@ -98,6 +99,7 @@ const USER_COUNT_CACHE_KEY = "bicol-ip-user-count";
 let allPostsCache = [];
 let latestMapInfo = { accuracy: null, precise: false, source: null };
 let reactionStateLoadToken = 0;
+let reactionStateUnsub = null;
 
 // Buffers and state
 let positionsBuffer = [];
@@ -286,6 +288,29 @@ async function loadReactionState(user) {
   if (allPostsCache.length) {
     applyPostFilter();
   }
+}
+
+function stopReactionStateSubscription() {
+  if (typeof reactionStateUnsub === "function") {
+    try {
+      reactionStateUnsub();
+    } catch (error) {
+      console.warn("Failed to unsubscribe reaction state listener:", error);
+    }
+  }
+  reactionStateUnsub = null;
+}
+
+function startReactionStateSubscription(user) {
+  stopReactionStateSubscription();
+  if (!user) return;
+
+  reactionStateUnsub = observeCurrentUserReactions((reactions) => {
+    window.__reactionState = reactions;
+    if (allPostsCache.length) {
+      applyPostFilter();
+    }
+  });
 }
 
 async function resolveAuthorName() {
@@ -1255,6 +1280,7 @@ observeAuth(async (user) => {
 
   window.__currentUser = user || null;
   await loadReactionState(user || null);
+  startReactionStateSubscription(user || null);
 
   loadUserCount();
 });
