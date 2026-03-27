@@ -1,3 +1,5 @@
 {
+  "name": "ipsnewweb",
+  "private": "true",
   "type": "module"
 }
