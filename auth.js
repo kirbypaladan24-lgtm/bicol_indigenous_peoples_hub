@@ -347,6 +347,33 @@ export async function fetchCurrentUserReactions(forceServer = true) {
   }, {});
 }
 
+export function observeCurrentUserReactions(callback) {
+  const user = auth.currentUser;
+  if (!user?.uid || user.isAnonymous) {
+    callback({});
+    return () => {};
+  }
+
+  const reactionsQuery = query(postReactionsRef, where("userId", "==", user.uid));
+  return onSnapshot(
+    reactionsQuery,
+    (snapshot) => {
+      const reactions = snapshot.docs.reduce((acc, reactionDoc) => {
+        const data = reactionDoc.data();
+        if (data?.postId && (data?.value === "like" || data?.value === "dislike")) {
+          acc[data.postId] = data.value;
+        }
+        return acc;
+      }, {});
+      callback(reactions);
+    },
+    (error) => {
+      console.warn("observeCurrentUserReactions error:", error);
+      callback({});
+    }
+  );
+}
+
 export async function setPostReaction(postId, nextReaction) {
   const user = auth.currentUser;
   if (!user?.uid || user.isAnonymous) {
@@ -364,7 +391,11 @@ export async function setPostReaction(postId, nextReaction) {
 
   const currentReaction = reactionSnap.exists() ? reactionSnap.data()?.value || null : null;
   if (currentReaction === nextReaction) {
-    return currentReaction;
+    return {
+      reaction: currentReaction,
+      likeDelta: 0,
+      dislikeDelta: 0,
+    };
   }
 
   let likeDelta = 0;
@@ -401,7 +432,11 @@ export async function setPostReaction(postId, nextReaction) {
   }
 
   await batch.commit();
-  return nextReaction || null;
+  return {
+    reaction: nextReaction || null,
+    likeDelta,
+    dislikeDelta,
+  };
 }
 
 export async function getUserProfile(uid) {
