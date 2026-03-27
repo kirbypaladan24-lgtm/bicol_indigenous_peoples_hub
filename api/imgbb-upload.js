@@ -33,10 +33,57 @@ function readApiKey() {
   ).trim();
 }
 
+function readContentLength(req) {
+  const raw = req.headers["content-length"];
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function requestHost(req) {
+  return String(req.headers["x-forwarded-host"] || req.headers.host || "").toLowerCase();
+}
+
+function hasAllowedOrigin(req) {
+  const host = requestHost(req);
+  if (!host) return true;
+  const configuredAppUrl = process.env.VITE_APP_URL || "";
+  let configuredHost = "";
+  try {
+    configuredHost = configuredAppUrl ? new URL(configuredAppUrl).host.toLowerCase() : "";
+  } catch {
+    configuredHost = "";
+  }
+  const candidates = [req.headers.origin, req.headers.referer].filter(Boolean);
+  if (!candidates.length) return true;
+  return candidates.some((value) => {
+    try {
+      const candidateHost = new URL(String(value)).host.toLowerCase();
+      return (
+        candidateHost === host ||
+        candidateHost === configuredHost ||
+        host.endsWith(`.${candidateHost}`) ||
+        candidateHost.endsWith(`.${host}`) ||
+        (configuredHost && candidateHost.endsWith(`.${configuredHost}`)) ||
+        (configuredHost && configuredHost.endsWith(`.${candidateHost}`))
+      );
+    } catch {
+      return false;
+    }
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!hasAllowedOrigin(req)) {
+    return res.status(403).json({ error: "Forbidden origin" });
+  }
+
+  if (readContentLength(req) > 12_000_000) {
+    return res.status(413).json({ error: "Upload payload too large" });
   }
 
   const apiKey = readApiKey();
@@ -52,6 +99,10 @@ export default async function handler(req, res) {
 
   if (!image) {
     return res.status(400).json({ error: "Missing image payload" });
+  }
+
+  if (!/^[A-Za-z0-9+/=_-]+$/.test(image) || image.length > 11_000_000) {
+    return res.status(400).json({ error: "Invalid image payload" });
   }
 
   try {
