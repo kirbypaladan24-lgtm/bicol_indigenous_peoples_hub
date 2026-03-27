@@ -34,45 +34,49 @@ function getLandmarkId() {
 
 async function loadLandmark() {
   const id = getLandmarkId();
+  const titleEl = document.getElementById("landmarkTitleMain");
+  const summaryEl = document.getElementById("landmarkSummary");
+  const coverEl = document.getElementById("landmarkCover");
   if (!id) {
     showToast("Landmark not found.", "error");
     return;
   }
-  
-  console.log('Loading landmark:', id);
-  
+
+  summaryEl?.classList.add("loading");
+  summaryEl?.setAttribute("aria-busy", "true");
+  if (coverEl) coverEl.classList.add("loading");
+
   try {
-    // CRITICAL: Force server read for production P2P reliability
     const item = await fetchLandmark(id, true);
-    
+
     if (!item) {
-      console.error('Landmark not found in database:', id);
       showToast("Landmark not found.", "error");
       return;
     }
-    
-    console.log('Landmark loaded:', item.name);
-    
-    const titleEl = document.getElementById("landmarkTitleMain");
-    const summaryEl = document.getElementById("landmarkSummary");
-    const coverEl = document.getElementById("landmarkCover");
-    
+
     if (titleEl) titleEl.textContent = item.name || "Landmark";
     document.title = `${item.name || "Landmark"} | Bicol IP Hub`;
-    
+
     if (summaryEl) {
       summaryEl.textContent = item.summary || "";
       linkifyElement(summaryEl);
       addYouTubePreviews(summaryEl);
     }
-    
+
     if (item.coverUrl && coverEl) {
       coverEl.style.display = "block";
       coverEl.innerHTML = `<img src="${item.coverUrl}" alt="${item.name || "Landmark"}" style="width:100%; border-radius:12px; display:block;"/>`;
+    } else if (coverEl) {
+      coverEl.style.display = "none";
+      coverEl.innerHTML = "";
     }
   } catch (e) {
     console.error("Load landmark failed:", e);
     showToast("Failed to load landmark: " + (e.message || e), "error");
+  } finally {
+    summaryEl?.classList.remove("loading");
+    summaryEl?.setAttribute("aria-busy", "false");
+    coverEl?.classList.remove("loading");
   }
 }
 
