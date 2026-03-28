@@ -63,10 +63,12 @@ let latestChartPayload = null;
 let currentIdentity = null;
 let currentRange = "7";
 let liveChartUnsubs = [];
+let chartViewportObserver = null;
 const prefersReducedMotion =
   typeof window !== "undefined" &&
   window.matchMedia &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const chartVisibilityState = new WeakMap();
 
 function escapeHtml(value = "") {
   return String(value)
@@ -250,6 +252,18 @@ function buildSeriesForRange(items, resolveDate, range = currentRange) {
   return days ? buildDailySeries(items, resolveDate, days) : buildMonthlySeries(items, resolveDate);
 }
 
+function isElementInViewport(element) {
+  if (!element || typeof element.getBoundingClientRect !== "function" || typeof window === "undefined") return false;
+  const rect = element.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+  return rect.top < viewportHeight * 0.92 && rect.bottom > viewportHeight * 0.08;
+}
+
+function shouldAnimateChart(element) {
+  if (prefersReducedMotion) return false;
+  return chartVisibilityState.get(element) === true || isElementInViewport(element);
+}
+
 function renderMetric(element, value) {
   if (!element) return;
 
@@ -382,7 +396,7 @@ function renderLineChart(svgEl, series, { lineColor = "#5a9a6a", fillColor = "rg
       `
     )
     .join("");
-  const seriesGroupClass = prefersReducedMotion ? "" : `class="chart-series-grow"`;
+  const seriesGroupClass = shouldAnimateChart(svgEl) ? `class="chart-series-grow"` : "";
 
   svgEl.innerHTML = `
     <rect x="0" y="0" width="${width}" height="${height}" rx="18" fill="transparent"></rect>
@@ -408,7 +422,8 @@ function renderBarChart(container, items) {
   container.innerHTML = items
     .map((item, index) => {
       const width = Math.max((item.value / maxValue) * 100, item.value > 0 ? 8 : 0);
-      const barStyle = prefersReducedMotion
+      const animateBar = shouldAnimateChart(container);
+      const barStyle = !animateBar
         ? `width:${width}%; background:${item.color};`
         : `--target-width:${width}%; --bar-delay:${index * 90}ms; background:${item.color};`;
       return `
@@ -418,12 +433,43 @@ function renderBarChart(container, items) {
             <strong>${formatCompactNumber(item.value)}</strong>
           </div>
           <div class="admin-bar-track">
-            <span class="admin-bar-fill${prefersReducedMotion ? "" : " is-animated"}" style="${barStyle}"></span>
+            <span class="admin-bar-fill${animateBar ? " is-animated" : ""}" style="${barStyle}"></span>
           </div>
         </div>
       `;
     })
     .join("");
+}
+
+function initChartViewportObserver() {
+  if (prefersReducedMotion || typeof IntersectionObserver === "undefined") return;
+
+  const targets = [
+    adminPostsChart,
+    adminUsersChart,
+    adminLandmarksChart,
+    adminEngagementChart,
+  ].filter(Boolean);
+
+  if (!targets.length) return;
+
+  chartViewportObserver?.disconnect();
+  chartViewportObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        chartVisibilityState.set(entry.target, entry.isIntersecting);
+        if (entry.isIntersecting && latestChartPayload) {
+          renderCharts(latestChartPayload);
+        }
+      });
+    },
+    {
+      threshold: 0.2,
+      rootMargin: "0px 0px -6% 0px",
+    }
+  );
+
+  targets.forEach((target) => chartViewportObserver.observe(target));
 }
 
 function renderTopPosts(container, posts = []) {
@@ -736,5 +782,6 @@ window.addEventListener("beforeunload", stopLiveChartObservers);
 initI18n();
 initTheme();
 initRevealAnimations();
+initChartViewportObserver();
 setRange(currentRange);
 registerServiceWorker();
