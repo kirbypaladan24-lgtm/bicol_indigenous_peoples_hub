@@ -3239,9 +3239,14 @@ textarea#landmarkSummary {
   .mobile-actions .theme-toggle {
     display: none;
   }
+  .mobile-links,
+  .mobile-actions {
+    display: grid;
+    gap: 10px;
+  }
   .mobile-menu {
     position: fixed;
-    top: 92px;
+    top: 104px;
     left: 0;
     right: 0;
     background: rgba(9, 14, 10, 0.96);
@@ -3264,31 +3269,43 @@ textarea#landmarkSummary {
     max-height: 720px;
     opacity: 1;
     transform: translateY(0);
-    padding: 14px 16px 24px;
+    padding: 0 16px 24px;
     pointer-events: auto;
   }
-  .mobile-menu a {
+  .mobile-menu a,
+  .mobile-menu button,
+  .mobile-menu .language-select {
     display: block;
+    width: 100%;
     padding: 10px 12px;
     border-radius: 10px;
     color: var(--text);
     border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+    font: inherit;
+    font-weight: 400;
+    text-align: left;
   }
-  .mobile-menu a:hover {
+  .mobile-menu a:hover,
+  .mobile-menu button:hover,
+  .mobile-menu .language-select:hover {
     border-color: rgba(90, 154, 106, 0.4);
     background: rgba(90, 154, 106, 0.12);
   }
-  .mobile-menu a[aria-current="page"] {
+  .mobile-menu a[aria-current="page"],
+  .mobile-menu button[aria-current="page"],
+  .mobile-menu .language-select:focus {
     border-color: rgba(90, 154, 106, 0.4);
     background: rgba(90, 154, 106, 0.12);
   }
-  .mobile-actions button {
-    width: 100%;
+  .mobile-menu .solid.full,
+  .mobile-menu .ghost.full {
+    color: var(--text);
   }
-  .mobile-actions .ghost.full {
-    display: block;
-    width: 100%;
-    text-align: center;
+  .mobile-menu .language-select {
+    min-width: 0;
+    height: auto;
   }
 
   /* adjust gallery sizes for narrower screens */
@@ -3376,6 +3393,9 @@ textarea#landmarkSummary {
 
   body {
     padding-top: 120px;
+  }
+  .mobile-menu {
+    top: 120px;
   }
   .post-row {
     padding: 16px;
@@ -3530,10 +3550,11 @@ textarea#landmarkSummary {
   background: rgba(63, 107, 63, 0.12);
   border-color: rgba(63, 107, 63, 0.25);
 }
-[data-theme="light"] .mobile-actions button {
+[data-theme="light"] .mobile-menu button,
+[data-theme="light"] .mobile-menu .language-select {
   color: #1b1f1a;
   border-color: #d4dcca;
-  background: rgba(63, 107, 63, 0.08);
+  background: transparent;
 }
 
 [data-theme="light"] .insta-carousel {
