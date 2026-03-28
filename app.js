@@ -284,22 +284,15 @@ function focusLinkedPost() {
   if (!target) return;
 
   linkedPostHandled = true;
-  const postsSection = document.getElementById("posts");
+  target.scrollIntoView({ behavior: "auto", block: "center" });
+  target.classList.add("is-linked-post");
+  target.setAttribute("tabindex", "-1");
+  target.focus({ preventScroll: true });
 
-  postsSection?.scrollIntoView({ behavior: "smooth", block: "start" });
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-      target.classList.add("is-linked-post");
-      target.setAttribute("tabindex", "-1");
-      target.focus({ preventScroll: true });
-
-      if (linkedPostClearTimer) clearTimeout(linkedPostClearTimer);
-      linkedPostClearTimer = setTimeout(() => {
-        target.classList.remove("is-linked-post");
-      }, 3200);
-    }, 180);
-  });
+  if (linkedPostClearTimer) clearTimeout(linkedPostClearTimer);
+  linkedPostClearTimer = setTimeout(() => {
+    target.classList.remove("is-linked-post");
+  }, 3200);
 }
 
 async function loadReactionState(user) {
