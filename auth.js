@@ -243,6 +243,12 @@ export async function fetchUsersCount(options = {}) {
   return { count: 0, source: "fallback" };
 }
 
+export async function fetchUsers(forceServer = true) {
+  const usersRef = collection(db, "users");
+  const snapshot = forceServer ? await getDocsFromServer(usersRef) : await getDocs(usersRef);
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
 export async function setPublicUserCount(count) {
   if (!Number.isFinite(count)) return;
   await setDoc(statsRef, { userCount: count }, { merge: true });
