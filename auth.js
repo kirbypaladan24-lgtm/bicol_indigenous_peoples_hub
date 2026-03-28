@@ -249,6 +249,20 @@ export async function fetchUsers(forceServer = true) {
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
+export function observeUsers(callback) {
+  const usersRef = collection(db, "users");
+  return onSnapshot(
+    usersRef,
+    (snapshot) => {
+      const users = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      callback(users);
+    },
+    (error) => {
+      console.warn("observeUsers error:", error);
+    }
+  );
+}
+
 export async function setPublicUserCount(count) {
   if (!Number.isFinite(count)) return;
   await setDoc(statsRef, { userCount: count }, { merge: true });
@@ -465,6 +479,19 @@ export async function getUserProfile(uid) {
 export async function fetchLandmarks(forceServer = true) {
   const snapshot = forceServer ? await getDocsFromServer(landmarksRef) : await getDocs(landmarksRef);
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export function observeLandmarks(callback) {
+  return onSnapshot(
+    landmarksRef,
+    (snapshot) => {
+      const landmarks = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      callback(landmarks);
+    },
+    (error) => {
+      console.warn("observeLandmarks error:", error);
+    }
+  );
 }
 
 export async function fetchLandmark(id, forceServer = true) {
