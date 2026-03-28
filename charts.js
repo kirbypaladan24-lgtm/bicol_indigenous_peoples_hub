@@ -64,6 +64,7 @@ let currentIdentity = null;
 let currentRange = "7";
 let liveChartUnsubs = [];
 let chartViewportObserver = null;
+const chartAnimatedState = new WeakSet();
 const prefersReducedMotion =
   typeof window !== "undefined" &&
   window.matchMedia &&
@@ -261,7 +262,13 @@ function isElementInViewport(element) {
 
 function shouldAnimateChart(element) {
   if (prefersReducedMotion) return false;
+  if (!element || chartAnimatedState.has(element)) return false;
   return chartVisibilityState.get(element) === true || isElementInViewport(element);
+}
+
+function markChartAnimated(element) {
+  if (!element || prefersReducedMotion) return;
+  chartAnimatedState.add(element);
 }
 
 function renderMetric(element, value) {
@@ -396,7 +403,9 @@ function renderLineChart(svgEl, series, { lineColor = "#5a9a6a", fillColor = "rg
       `
     )
     .join("");
-  const seriesGroupClass = shouldAnimateChart(svgEl) ? `class="chart-series-grow"` : "";
+  const animateSeries = shouldAnimateChart(svgEl);
+  const seriesGroupClass = animateSeries ? `class="chart-series-grow"` : "";
+  if (animateSeries) markChartAnimated(svgEl);
 
   svgEl.innerHTML = `
     <rect x="0" y="0" width="${width}" height="${height}" rx="18" fill="transparent"></rect>
@@ -439,6 +448,10 @@ function renderBarChart(container, items) {
       `;
     })
     .join("");
+
+  if (shouldAnimateChart(container)) {
+    markChartAnimated(container);
+  }
 }
 
 function initChartViewportObserver() {
@@ -458,8 +471,11 @@ function initChartViewportObserver() {
     (entries) => {
       entries.forEach((entry) => {
         chartVisibilityState.set(entry.target, entry.isIntersecting);
-        if (entry.isIntersecting && latestChartPayload) {
+        if (entry.isIntersecting && latestChartPayload && !chartAnimatedState.has(entry.target)) {
           renderCharts(latestChartPayload);
+          if (chartAnimatedState.has(entry.target)) {
+            chartViewportObserver?.unobserve(entry.target);
+          }
         }
       });
     },
