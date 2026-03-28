@@ -1205,6 +1205,34 @@ button {
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.34);
 }
 
+.focused-post-notice {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(195, 107, 42, 0.24);
+  background:
+    linear-gradient(135deg, rgba(195, 107, 42, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(14, 24, 16, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.focused-post-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.focused-post-copy strong {
+  font-size: 0.95rem;
+}
+
+.focused-post-copy span {
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
 .post-row.is-linked-post {
   border-color: rgba(195, 107, 42, 0.82);
   box-shadow: 0 0 0 1px rgba(195, 107, 42, 0.32), 0 24px 50px rgba(0, 0, 0, 0.34);
