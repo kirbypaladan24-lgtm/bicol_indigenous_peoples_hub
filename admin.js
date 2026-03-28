@@ -60,6 +60,14 @@ let landmarkBindingsBound = false;
 let chartBindingsBound = false;
 let latestAdminChartPayload = null;
 
+function autoResizeTextarea(textarea, maxHeight = 260) {
+  if (!textarea) return;
+  textarea.style.height = "auto";
+  const nextHeight = Math.min(textarea.scrollHeight, maxHeight);
+  textarea.style.height = `${nextHeight}px`;
+  textarea.style.overflowY = textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+}
+
 function showPostsSkeleton(container, count = 3) {
   if (!container) return;
   container.innerHTML = "";
@@ -590,6 +598,7 @@ function resetLandmarkForm() {
   if (landmarkLat) landmarkLat.value = "";
   if (landmarkLng) landmarkLng.value = "";
   if (landmarkSummary) landmarkSummary.value = "";
+  autoResizeTextarea(landmarkSummary);
   if (landmarkCoverInput) landmarkCoverInput.value = "";
   if (landmarkColor) landmarkColor.value = "#2f5c3a";
   if (landmarkMarker && landmarkMap) {
@@ -745,6 +754,7 @@ async function loadLandmarks() {
         landmarkLat.value = item.lat ?? "";
         landmarkLng.value = item.lng ?? "";
         landmarkSummary.value = item.summary || "";
+        autoResizeTextarea(landmarkSummary);
         currentLandmarkCover = item.coverUrl || null;
         if (landmarkColor) landmarkColor.value = item.color || "#2f5c3a";
         setLandmarkMarker(Number(item.lat), Number(item.lng));
@@ -897,6 +907,8 @@ export async function initAdmin(user) {
     saveLandmarkBtn.onclick = handleSaveLandmark;
     resetLandmarkBtn.onclick = resetLandmarkForm;
     if (!landmarkBindingsBound) {
+      autoResizeTextarea(landmarkSummary);
+      landmarkSummary?.addEventListener("input", () => autoResizeTextarea(landmarkSummary));
       landmarkPickBtn?.addEventListener("click", () => {
         pickingMode = !pickingMode;
         landmarkPickBtn.classList.toggle("active", pickingMode);
