@@ -226,6 +226,34 @@ function renderMetric(element, value) {
   if (element) element.textContent = formatCompactNumber(value);
 }
 
+function buildYAxisTicks(maxValue, maxTicks = 4) {
+  if (maxValue <= 0) return [0];
+
+  if (Number.isInteger(maxValue) && maxValue <= 4) {
+    return Array.from({ length: maxValue + 1 }, (_, index) => index);
+  }
+
+  const roughStep = maxValue / Math.max(maxTicks - 1, 1);
+  const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+  const residual = roughStep / magnitude;
+
+  let niceStep = 1;
+  if (residual <= 1) niceStep = 1;
+  else if (residual <= 2) niceStep = 2;
+  else if (residual <= 5) niceStep = 5;
+  else niceStep = 10;
+
+  niceStep *= magnitude;
+
+  const axisMax = Math.ceil(maxValue / niceStep) * niceStep;
+  const ticks = [];
+  for (let value = 0; value <= axisMax + niceStep * 0.5; value += niceStep) {
+    ticks.push(value);
+  }
+
+  return ticks;
+}
+
 function renderLineChart(svgEl, series, { lineColor = "#5a9a6a", fillColor = "rgba(90, 154, 106, 0.16)" } = {}) {
   if (!svgEl) return;
 
@@ -244,9 +272,11 @@ function renderLineChart(svgEl, series, { lineColor = "#5a9a6a", fillColor = "rg
     return;
   }
 
+  const yAxisTicks = buildYAxisTicks(maxValue);
+  const axisMax = yAxisTicks[yAxisTicks.length - 1] || maxValue;
   const points = series.map((item, index) => {
     const x = padding.left + (index / Math.max(series.length - 1, 1)) * innerWidth;
-    const y = padding.top + innerHeight - (item.count / maxValue) * innerHeight;
+    const y = padding.top + innerHeight - (item.count / axisMax) * innerHeight;
     return { x, y, label: item.label, value: item.count };
   });
 
@@ -256,10 +286,9 @@ function renderLineChart(svgEl, series, { lineColor = "#5a9a6a", fillColor = "rg
   const areaPath = `${linePath} L ${points[points.length - 1].x.toFixed(2)} ${(height - padding.bottom).toFixed(2)} L ${points[0].x.toFixed(2)} ${(height - padding.bottom).toFixed(2)} Z`;
   const xLabelIndexes = Array.from(new Set([0, Math.floor((series.length - 1) / 2), series.length - 1]));
 
-  const gridLines = Array.from({ length: 4 }, (_, index) => {
-    const ratio = index / 3;
+  const gridLines = yAxisTicks.map((value) => {
+    const ratio = axisMax === 0 ? 0 : value / axisMax;
     const y = padding.top + innerHeight - ratio * innerHeight;
-    const value = Math.round(ratio * maxValue);
     return `
       <line x1="${padding.left}" y1="${y.toFixed(2)}" x2="${(width - padding.right).toFixed(2)}" y2="${y.toFixed(2)}" stroke="var(--border)" stroke-width="1" opacity="0.7"></line>
       <text x="${padding.left - 8}" y="${(y + 4).toFixed(2)}" text-anchor="end" fill="var(--muted)" font-size="11">${value}</text>
