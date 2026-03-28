@@ -1,4 +1,5 @@
 import { fetchLandmark } from "./auth.js";
+import { initI18n, t } from "./i18n.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
 
@@ -38,7 +39,7 @@ async function loadLandmark() {
   const summaryEl = document.getElementById("landmarkSummary");
   const coverEl = document.getElementById("landmarkCover");
   if (!id) {
-    showToast("Landmark not found.", "error");
+    showToast(t("toast_landmark_not_found"), "error");
     return;
   }
 
@@ -50,12 +51,12 @@ async function loadLandmark() {
     const item = await fetchLandmark(id, true);
 
     if (!item) {
-      showToast("Landmark not found.", "error");
+      showToast(t("toast_landmark_not_found"), "error");
       return;
     }
 
     if (titleEl) titleEl.textContent = item.name || "Landmark";
-    document.title = `${item.name || "Landmark"} | Bicol IP Hub`;
+    document.title = `${item.name || t("landmark")} | Bicol Indigenous Peoples Hub`;
 
     if (summaryEl) {
       summaryEl.textContent = item.summary || "";
@@ -81,7 +82,7 @@ async function loadLandmark() {
     }
   } catch (e) {
     console.error("Load landmark failed:", e);
-    showToast("Failed to load landmark: " + (e.message || e), "error");
+    showToast(t("toast_failed_load_landmark", { error: e.message || e }), "error");
   } finally {
     summaryEl?.classList.remove("loading");
     summaryEl?.setAttribute("aria-busy", "false");
@@ -89,6 +90,7 @@ async function loadLandmark() {
   }
 }
 
+initI18n();
 initTheme();
 loadLandmark();
 registerServiceWorker();
@@ -146,9 +148,9 @@ function addYouTubePreviews(root) {
     wrapper.className = "link-preview";
     wrapper.innerHTML = `
       <a href="${href}" target="_blank" rel="noopener noreferrer">
-        <img src="${thumb}" alt="YouTube preview" loading="lazy" />
+        <img src="${thumb}" alt="${t("youtube_preview_alt")}" loading="lazy" />
         <div class="link-meta">
-          <span class="link-title">YouTube Video</span>
+          <span class="link-title">${t("youtube_video")}</span>
           <span class="link-url">${href}</span>
         </div>
       </a>
