@@ -34,6 +34,9 @@ const adminPostsChart = document.getElementById("adminPostsChart");
 const adminUsersChart = document.getElementById("adminUsersChart");
 const adminLandmarksChart = document.getElementById("adminLandmarksChart");
 const adminEngagementChart = document.getElementById("adminEngagementChart");
+const adminTopPosts = document.getElementById("adminTopPosts");
+const rangeButtons = Array.from(document.querySelectorAll("[data-range]"));
+const chartRangeLabels = Array.from(document.querySelectorAll("[data-chart-range-label]"));
 
 const changePassDialog = document.getElementById("changePassDialog");
 const closeChangePass = document.getElementById("closeChangePass");
@@ -43,8 +46,16 @@ const newPassword = document.getElementById("newPassword");
 const confirmPassword = document.getElementById("confirmPassword");
 
 const THEME_KEY = "bicol-ip-theme";
+const RANGE_CONFIG = {
+  "7": { days: 7, labelKey: "range_7_days" },
+  "30": { days: 30, labelKey: "range_30_days" },
+  "90": { days: 90, labelKey: "range_90_days" },
+  all: { days: null, labelKey: "range_all_time" },
+};
+
 let latestChartPayload = null;
 let currentIdentity = null;
+let currentRange = "7";
 
 function escapeHtml(value = "") {
   return String(value)
@@ -99,6 +110,36 @@ function formatCompactNumber(value) {
   }).format(Number(value) || 0);
 }
 
+function getRangeDays(range = currentRange) {
+  return RANGE_CONFIG[range]?.days ?? RANGE_CONFIG["7"].days;
+}
+
+function getRangeLabel(range = currentRange) {
+  return t(RANGE_CONFIG[range]?.labelKey || RANGE_CONFIG["7"].labelKey);
+}
+
+function getRangeStart(range = currentRange) {
+  const days = getRangeDays(range);
+  if (!days) return null;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  return start;
+}
+
+function filterItemsByRange(items, keys = [], range = currentRange) {
+  const start = getRangeStart(range);
+  if (!start) return [...(items || [])];
+
+  return (items || []).filter((item) => {
+    const date = getDateValue(item, keys);
+    if (!date) return false;
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    return normalized >= start;
+  });
+}
+
 function buildDailySeries(items, resolveDate, days = 30) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -126,6 +167,56 @@ function buildDailySeries(items, resolveDate, days = 30) {
   });
 
   return buckets;
+}
+
+function buildMonthlySeries(items, resolveDate) {
+  const dates = (items || [])
+    .map((item) => resolveDate(item))
+    .filter(Boolean)
+    .sort((a, b) => a - b);
+
+  if (!dates.length) return [];
+
+  const start = new Date(dates[0]);
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date();
+  end.setDate(1);
+  end.setHours(0, 0, 0, 0);
+
+  const buckets = [];
+  const bucketMap = new Map();
+  const cursor = new Date(start);
+
+  while (cursor <= end) {
+    const year = cursor.getFullYear();
+    const month = cursor.getMonth();
+    const key = `${year}-${String(month + 1).padStart(2, "0")}`;
+    const bucket = {
+      key,
+      label: cursor.toLocaleDateString(undefined, { month: "short", year: "numeric" }),
+      count: 0,
+    };
+    buckets.push(bucket);
+    bucketMap.set(key, bucket);
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  (items || []).forEach((item) => {
+    const date = resolveDate(item);
+    if (!date) return;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const bucket = bucketMap.get(key);
+    if (bucket) bucket.count += 1;
+  });
+
+  return buckets;
+}
+
+function buildSeriesForRange(items, resolveDate, range = currentRange) {
+  const days = getRangeDays(range);
+  return days ? buildDailySeries(items, resolveDate, days) : buildMonthlySeries(items, resolveDate);
 }
 
 function renderMetric(element, value) {
@@ -225,6 +316,41 @@ function renderBarChart(container, items) {
     .join("");
 }
 
+function renderTopPosts(container, posts = []) {
+  if (!container) return;
+
+  if (!posts.length) {
+    container.innerHTML = `<p class="admin-chart-empty">${escapeHtml(t("top_posts_empty"))}</p>`;
+    return;
+  }
+
+  container.innerHTML = posts
+    .map((post, index) => {
+      const likes = Math.max(0, Number(post.likes || 0));
+      const dislikes = Math.max(0, Number(post.dislikes || 0));
+      const engagement = likes + dislikes;
+      const published = getDateValue(post, ["createdAt", "updatedAt"]);
+      return `
+        <article class="admin-top-post">
+          <div class="admin-top-post-rank">${index + 1}</div>
+          <div class="admin-top-post-main">
+            <div class="admin-top-post-head">
+              <h5>${escapeHtml(post.title || t("untitled_post"))}</h5>
+              <span class="admin-top-post-author">${escapeHtml(post.author || t("contributor"))}</span>
+            </div>
+            <div class="admin-top-post-stats">
+              <span>${escapeHtml(t("likes_label"))}: <strong>${formatCompactNumber(likes)}</strong></span>
+              <span>${escapeHtml(t("dislikes_label"))}: <strong>${formatCompactNumber(dislikes)}</strong></span>
+              <span>${escapeHtml(t("engagement_label"))}: <strong>${formatCompactNumber(engagement)}</strong></span>
+              <span>${published ? escapeHtml(published.toLocaleDateString()) : "--"}</span>
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
 function renderIdentity(identity) {
   currentIdentity = identity;
   if (chartUsername) chartUsername.textContent = identity?.username || "--";
@@ -240,37 +366,70 @@ function renderCharts(payload) {
     landmarks = [],
     users = [],
     userCount = 0,
-    totalLikes = 0,
-    totalDislikes = 0,
   } = payload || {};
 
-  const totalEngagement = totalLikes + totalDislikes;
+  const filteredPosts = filterItemsByRange(posts, ["createdAt", "updatedAt"], currentRange);
+  const filteredLandmarks = filterItemsByRange(landmarks, ["createdAt", "updatedAt"], currentRange);
+  const filteredUsers = filterItemsByRange(users, ["lastLoginAt", "createdAt"], currentRange);
+  const filteredLikes = filteredPosts.reduce((sum, post) => sum + Math.max(0, Number(post.likes || 0)), 0);
+  const filteredDislikes = filteredPosts.reduce((sum, post) => sum + Math.max(0, Number(post.dislikes || 0)), 0);
+  const totalEngagement = filteredLikes + filteredDislikes;
 
-  renderMetric(adminMetricPosts, posts.length);
-  renderMetric(adminMetricUsers, userCount);
-  renderMetric(adminMetricLandmarks, landmarks.length);
+  renderMetric(adminMetricPosts, filteredPosts.length);
+  renderMetric(adminMetricUsers, currentRange === "all" ? userCount : filteredUsers.length);
+  renderMetric(adminMetricLandmarks, filteredLandmarks.length);
   renderMetric(adminMetricEngagement, totalEngagement);
+
+  chartRangeLabels.forEach((label) => {
+    label.textContent = getRangeLabel();
+  });
 
   renderLineChart(
     adminPostsChart,
-    buildDailySeries(posts, (item) => getDateValue(item, ["createdAt", "updatedAt"])),
+    buildSeriesForRange(filteredPosts, (item) => getDateValue(item, ["createdAt", "updatedAt"]), currentRange),
     { lineColor: "#5a9a6a", fillColor: "rgba(90, 154, 106, 0.16)" }
   );
   renderLineChart(
     adminUsersChart,
-    buildDailySeries(users, (item) => getDateValue(item, ["lastLoginAt", "createdAt"])),
+    buildSeriesForRange(filteredUsers, (item) => getDateValue(item, ["lastLoginAt", "createdAt"]), currentRange),
     { lineColor: "#2b7bff", fillColor: "rgba(43, 123, 255, 0.14)" }
   );
   renderLineChart(
     adminLandmarksChart,
-    buildDailySeries(landmarks, (item) => getDateValue(item, ["createdAt", "updatedAt"])),
+    buildSeriesForRange(filteredLandmarks, (item) => getDateValue(item, ["createdAt", "updatedAt"]), currentRange),
     { lineColor: "#c36b2a", fillColor: "rgba(195, 107, 42, 0.14)" }
   );
   renderBarChart(adminEngagementChart, [
-    { label: t("likes_label"), value: totalLikes, color: "#5a9a6a" },
-    { label: t("dislikes_label"), value: totalDislikes, color: "#c36b2a" },
+    { label: t("likes_label"), value: filteredLikes, color: "#5a9a6a" },
+    { label: t("dislikes_label"), value: filteredDislikes, color: "#c36b2a" },
     { label: t("total_interactions"), value: totalEngagement, color: "#2f5c3a" },
   ]);
+
+  renderTopPosts(
+    adminTopPosts,
+    [...filteredPosts]
+      .sort((a, b) => {
+        const engagementA = Math.max(0, Number(a.likes || 0)) + Math.max(0, Number(a.dislikes || 0));
+        const engagementB = Math.max(0, Number(b.likes || 0)) + Math.max(0, Number(b.dislikes || 0));
+        if (engagementB !== engagementA) return engagementB - engagementA;
+        const likesA = Math.max(0, Number(a.likes || 0));
+        const likesB = Math.max(0, Number(b.likes || 0));
+        if (likesB !== likesA) return likesB - likesA;
+        const dateA = getDateValue(a, ["updatedAt", "createdAt"])?.getTime() || 0;
+        const dateB = getDateValue(b, ["updatedAt", "createdAt"])?.getTime() || 0;
+        return dateB - dateA;
+      })
+      .slice(0, 5)
+  );
+}
+
+function setRange(range) {
+  if (!RANGE_CONFIG[range]) return;
+  currentRange = range;
+  rangeButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.range === range);
+  });
+  if (latestChartPayload) renderCharts(latestChartPayload);
 }
 
 async function loadCharts() {
@@ -283,16 +442,11 @@ async function loadCharts() {
     fetchUsersCount(),
   ]);
 
-  const totalLikes = posts.reduce((sum, post) => sum + Math.max(0, Number(post.likes || 0)), 0);
-  const totalDislikes = posts.reduce((sum, post) => sum + Math.max(0, Number(post.dislikes || 0)), 0);
-
   renderCharts({
     posts,
     landmarks,
     users,
     userCount: userCountResult?.count ?? users.length,
-    totalLikes,
-    totalDislikes,
   });
 
   if (chartsStatus) chartsStatus.textContent = t("data_charts_subtitle");
@@ -347,6 +501,12 @@ mobileChangePassBtn?.addEventListener("click", () => {
   menuToggle?.setAttribute("aria-expanded", "false");
 });
 
+rangeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setRange(button.dataset.range);
+  });
+});
+
 closeChangePass?.addEventListener("click", () => changePassDialog.close());
 
 changePassForm?.addEventListener("submit", async (event) => {
@@ -378,17 +538,16 @@ changePassForm?.addEventListener("submit", async (event) => {
 });
 
 window.addEventListener("language-changed", () => {
+  rangeButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.range === currentRange);
+  });
   if (currentIdentity) renderIdentity(currentIdentity);
   if (latestChartPayload) renderCharts(latestChartPayload);
   if (chartsStatus && latestChartPayload) chartsStatus.textContent = t("data_charts_subtitle");
 });
 
 observeAuth(async (user) => {
-  if (!user) {
-    window.location.href = "profile.html";
-    return;
-  }
-  if (!isAdmin(user)) {
+  if (!user || !isAdmin(user)) {
     window.location.href = "profile.html";
     return;
   }
@@ -413,4 +572,5 @@ observeAuth(async (user) => {
 
 initI18n();
 initTheme();
+setRange(currentRange);
 registerServiceWorker();
