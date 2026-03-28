@@ -63,6 +63,10 @@ let latestChartPayload = null;
 let currentIdentity = null;
 let currentRange = "7";
 let liveChartUnsubs = [];
+const prefersReducedMotion =
+  typeof window !== "undefined" &&
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function escapeHtml(value = "") {
   return String(value)
@@ -247,7 +251,46 @@ function buildSeriesForRange(items, resolveDate, range = currentRange) {
 }
 
 function renderMetric(element, value) {
-  if (element) element.textContent = formatCompactNumber(value);
+  if (!element) return;
+
+  const targetValue = Number(value) || 0;
+  const previousValue = Number(element.dataset.metricValue || 0);
+  element.dataset.metricValue = String(targetValue);
+
+  if (prefersReducedMotion) {
+    element.textContent = formatCompactNumber(targetValue);
+    return;
+  }
+
+  if (element._metricAnimationFrame) {
+    cancelAnimationFrame(element._metricAnimationFrame);
+  }
+
+  const startValue = previousValue;
+  const delta = targetValue - startValue;
+  if (delta === 0) {
+    element.textContent = formatCompactNumber(targetValue);
+    return;
+  }
+
+  const duration = 650;
+  const startTime = performance.now();
+
+  const step = (now) => {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - (1 - progress) ** 3;
+    const nextValue = Math.round(startValue + delta * eased);
+    element.textContent = formatCompactNumber(nextValue);
+
+    if (progress < 1) {
+      element._metricAnimationFrame = requestAnimationFrame(step);
+    } else {
+      element.textContent = formatCompactNumber(targetValue);
+      element._metricAnimationFrame = null;
+    }
+  };
+
+  element._metricAnimationFrame = requestAnimationFrame(step);
 }
 
 function buildYAxisTicks(maxValue, maxTicks = 4) {
@@ -328,20 +371,35 @@ function renderLineChart(svgEl, series, { lineColor = "#5a9a6a", fillColor = "rg
 
   const dots = points
     .map(
-      (point) => `
-        <circle cx="${point.x.toFixed(2)}" cy="${point.y.toFixed(2)}" r="3.5" fill="${lineColor}"></circle>
+      (point, index) => `
+        <circle
+          cx="${point.x.toFixed(2)}"
+          cy="${point.y.toFixed(2)}"
+          r="3.5"
+          fill="${lineColor}"
+          class="chart-dot"
+          style="animation-delay:${index * 90}ms;"
+        ></circle>
         <title>${escapeHtml(point.label)}: ${point.value}</title>
       `
     )
     .join("");
 
+  const drawLength = Math.max(240, Math.round(points.length * 72));
+  const lineAnimation = prefersReducedMotion
+    ? ""
+    : `class="chart-line-path" stroke-dasharray="${drawLength}" stroke-dashoffset="${drawLength}" style="--chart-path-length:${drawLength};"`;
+  const areaAnimation = prefersReducedMotion ? "" : `class="chart-area-fill"`;
+  const gridAnimationClass = prefersReducedMotion ? "" : `class="chart-grid"`;
+  const labelAnimationClass = prefersReducedMotion ? "" : `class="chart-axis-labels"`;
+
   svgEl.innerHTML = `
     <rect x="0" y="0" width="${width}" height="${height}" rx="18" fill="transparent"></rect>
-    ${gridLines}
-    <path d="${areaPath}" fill="${fillColor}"></path>
-    <path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+    <g ${gridAnimationClass}>${gridLines}</g>
+    <path d="${areaPath}" fill="${fillColor}" ${areaAnimation}></path>
+    <path d="${linePath}" fill="none" stroke="${lineColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" ${lineAnimation}></path>
     ${dots}
-    ${xLabels}
+    <g ${labelAnimationClass}>${xLabels}</g>
   `;
 }
 
@@ -355,8 +413,11 @@ function renderBarChart(container, items) {
   }
 
   container.innerHTML = items
-    .map((item) => {
+    .map((item, index) => {
       const width = Math.max((item.value / maxValue) * 100, item.value > 0 ? 8 : 0);
+      const barStyle = prefersReducedMotion
+        ? `width:${width}%; background:${item.color};`
+        : `--target-width:${width}%; --bar-delay:${index * 90}ms; background:${item.color};`;
       return `
         <div class="admin-bar-row">
           <div class="admin-bar-copy">
@@ -364,7 +425,7 @@ function renderBarChart(container, items) {
             <strong>${formatCompactNumber(item.value)}</strong>
           </div>
           <div class="admin-bar-track">
-            <span class="admin-bar-fill" style="width:${width}%; background:${item.color};"></span>
+            <span class="admin-bar-fill${prefersReducedMotion ? "" : " is-animated"}" style="${barStyle}"></span>
           </div>
         </div>
       `;
@@ -387,7 +448,7 @@ function renderTopPosts(container, posts = []) {
       const engagement = likes + dislikes;
       const published = getDateValue(post, ["createdAt", "updatedAt"]);
       return `
-        <article class="admin-top-post">
+        <article class="admin-top-post${prefersReducedMotion ? "" : " is-animated"}" style="--post-delay:${index * 80}ms;">
           <div class="admin-top-post-rank">${index + 1}</div>
           <div class="admin-top-post-main">
             <div class="admin-top-post-head">
