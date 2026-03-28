@@ -2577,30 +2577,10 @@ textarea#landmarkSummary {
   min-height: 220px;
 }
 
-.chart-grid {
-  opacity: 0;
-  animation: chartFadeIn 0.45s ease forwards;
-}
-
-.chart-axis-labels {
-  opacity: 0;
-  animation: chartFadeIn 0.45s ease 120ms forwards;
-}
-
-.chart-area-fill {
-  opacity: 0;
+.chart-series-grow {
+  transform-box: fill-box;
   transform-origin: center bottom;
-  animation: chartAreaRise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 90ms forwards;
-}
-
-.chart-line-path {
-  animation: chartLineDraw 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.chart-dot {
-  opacity: 0;
-  transform-origin: center;
-  animation: chartDotPop 0.36s ease forwards;
+  animation: chartSeriesGrow 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .admin-bar-chart {
@@ -2668,13 +2648,6 @@ textarea#landmarkSummary {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.admin-top-post.is-animated {
-  opacity: 0;
-  transform: translateY(18px);
-  animation: chartCardRise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: var(--post-delay, 0ms);
-}
-
 .admin-top-post:nth-child(1) {
   background:
     linear-gradient(150deg, rgba(195, 107, 42, 0.13), rgba(255, 255, 255, 0.02)),
@@ -2698,43 +2671,14 @@ textarea#landmarkSummary {
   font-weight: 700;
 }
 
-@keyframes chartFadeIn {
+@keyframes chartSeriesGrow {
   from {
     opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes chartAreaRise {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scaleY(0.92);
+    transform: translateY(12px) scaleY(0.08);
   }
   to {
     opacity: 1;
     transform: translateY(0) scaleY(1);
-  }
-}
-
-@keyframes chartLineDraw {
-  from {
-    stroke-dashoffset: var(--chart-path-length, 1000);
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes chartDotPop {
-  from {
-    opacity: 0;
-    transform: scale(0.2);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -2746,17 +2690,6 @@ textarea#landmarkSummary {
   to {
     width: var(--target-width, 0%);
     opacity: 1;
-  }
-}
-
-@keyframes chartCardRise {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
