@@ -1,5 +1,6 @@
 import { initI18n } from "./i18n.js";
 import { registerServiceWorker } from "./pwa.js";
+import { initRevealAnimations } from "./motion.js";
 
 const THEME_KEY = "bicol-ip-theme";
 
@@ -49,4 +50,5 @@ mobileMenu?.querySelectorAll("a").forEach((link) => {
 
 initI18n();
 initTheme();
+initRevealAnimations();
 registerServiceWorker();
