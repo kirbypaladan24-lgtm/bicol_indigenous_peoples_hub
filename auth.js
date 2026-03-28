@@ -89,25 +89,28 @@ export const observeAuth = (cb) =>
 async function ensureUserProfile(user, profile = {}) {
   if (!user?.uid) return null;
 
+  const userRef = doc(db, "users", user.uid);
+  const existingSnap = await getDoc(userRef);
+  const existingProfile = existingSnap.exists() ? existingSnap.data() : null;
   const email = profile.email || user.email || null;
   const username =
+    existingProfile?.username ||
     profile.username ||
     user.displayName ||
     (email ? email.split("@")[0] : "Contributor");
 
-  await setDoc(
-    doc(db, "users", user.uid),
-    {
-      uid: user.uid,
-      email,
-      username,
-      phone: deleteField(),
-      birthdate: deleteField(),
-      createdAt: serverTimestamp(),
-      lastLoginAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  const payload = {
+    uid: user.uid,
+    email,
+    username,
+    lastLoginAt: serverTimestamp(),
+  };
+
+  if (!existingProfile?.createdAt) {
+    payload.createdAt = serverTimestamp();
+  }
+
+  await setDoc(userRef, payload, { merge: true });
 
   return user;
 }
