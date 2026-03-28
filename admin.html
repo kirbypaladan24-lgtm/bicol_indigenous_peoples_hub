@@ -1,23 +1,28 @@
 <!DOCTYPE html>
 <html lang="en" data-page-title-key="page_title_admin">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b120d" />
-  <meta name="color-scheme" content="dark light" />
-  <meta name="description" content="Redirect page for the admin workspace inside the Bicol Indigenous Peoples Hub profile dashboard." />
-  <title>Admin Workspace | Bicol Indigenous Peoples Hub</title>
-  <link rel="icon" type="image/png" href="./favicon.png" sizes="64x64" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css" />
-  <meta http-equiv="refresh" content="0; url=profile.html" />
-</head>
-<body class="auth-page">
-  <div class="auth-shell">
-    <div class="auth-card">
-      <div class="brand" style="justify-content:center; margin-bottom: 18px;">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b120d" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="Manage posts and landmarks in the Bicol Indigenous Peoples Hub admin tools workspace."
+    />
+    <title>Admin Workspace | Bicol Indigenous Peoples Hub</title>
+    <link rel="icon" type="image/png" href="./favicon.png" sizes="64x64" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="has-desktop-shortcuts">
+    <header class="topbar">
+      <div class="brand">
         <span class="brand-mark" aria-hidden="true">
           <img
             src="./brand-mark.png"
@@ -29,14 +34,231 @@
             fetchpriority="high"
           />
         </span>
+        <div>
+          <h1 data-i18n="page_title">Bicol Indigenous Peoples Hub</h1>
+          <p data-i18n="admin_tools">Admin Tools</p>
+        </div>
       </div>
-      <a href="profile.html" class="back-link" data-i18n="open_profile_workspace">Open Profile Workspace</a>
-      <h2 data-i18n="admin_tools_moved">Admin tools moved</h2>
-      <p class="hint" data-i18n="admin_redirect_hint1">The admin workspace now lives inside your profile dashboard for faster access and a cleaner main site.</p>
-      <p class="hint" data-i18n="admin_redirect_hint2">If you are not redirected automatically, use the button below.</p>
-      <a href="profile.html" class="solid full" style="display:inline-flex;justify-content:center;text-decoration:none;" data-i18n="go_to_profile_dashboard">Go to Profile Dashboard</a>
+      <div class="auth-cta">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+      </div>
+    </header>
+
+    <aside class="desktop-shortcuts" aria-label="Primary sidebar">
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="index.html#posts" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+      </nav>
+      <div class="sidebar-actions">
+        <a class="ghost" href="profile.html" data-i18n="profile">Profile</a>
+        <a class="ghost" href="admin.html" aria-current="page" data-i18n="admin_tools">Admin Tools</a>
+        <a class="ghost" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <button id="changePassBtn" class="ghost" type="button" data-i18n="change_password">Change Password</button>
+        <a class="ghost" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+        <button id="logoutBtn" class="solid" data-i18n="logout">Logout</button>
+      </div>
+    </aside>
+
+    <div id="mobileMenu" class="mobile-menu">
+      <div class="mobile-links">
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="index.html#posts" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+      </div>
+      <div class="mobile-actions">
+        <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <a class="ghost full" href="profile.html" data-i18n="profile">Profile</a>
+        <a class="ghost full" href="admin.html" aria-current="page" data-i18n="admin_tools">Admin Tools</a>
+        <a class="ghost full" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <button id="mobileChangePassBtn" class="ghost full" type="button" data-i18n="change_password">Change Password</button>
+        <button id="mobileLogoutBtn" class="solid full" data-i18n="logout">Logout</button>
+      </div>
     </div>
-  </div>
-  <script type="module" src="./adminPage.js"></script>
-</body>
+
+    <main class="section profile-dashboard">
+      <section class="profile-overview-shell">
+        <div class="profile-overview-card">
+          <div class="profile-overview-copy">
+            <p class="eyebrow" data-i18n="workspace">Workspace</p>
+            <h2 data-i18n="admin_tools">Admin Tools</h2>
+            <p id="adminWorkspaceStatus" class="section-desc" data-i18n="admin_subtitle">
+              Quick access to story and landmark management without leaving your profile workspace.
+            </p>
+          </div>
+          <div class="profile-identity">
+            <p><strong data-i18n="username_label">Username:</strong> <span id="adminUsername">--</span></p>
+            <p><strong data-i18n="email">Email</strong>: <span id="adminEmail">--</span></p>
+            <p><strong data-i18n="access_label">Access:</strong> <span id="adminRole">--</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="adminPanel" class="admin profile-admin-panel hidden">
+        <div class="admin-bar">
+          <div class="admin-heading">
+            <p class="admin-kicker" data-i18n="dashboard">Dashboard</p>
+            <h3 data-i18n="admin_panel">Admin Panel</h3>
+            <p class="admin-subtitle" data-i18n="admin_subtitle">Quick access to story and landmark management without leaving your profile workspace.</p>
+          </div>
+          <div class="status">
+            <span class="dot"></span>
+            <p id="adminStatus" data-i18n="restricted">Restricted</p>
+          </div>
+        </div>
+        <div id="profileEditTools" class="admin-grid admin-grid-posts">
+          <div class="form admin-card">
+            <div class="admin-card-head">
+              <div>
+                <p class="admin-card-eyebrow" data-i18n="story_editor">Story Editor</p>
+                <h4 data-i18n="compose_or_update_post">Compose or update a post</h4>
+              </div>
+              <p class="admin-card-note" data-i18n="story_editor_note">Publish new stories or revise existing entries while keeping reader-facing content tidy.</p>
+            </div>
+            <div class="admin-fieldset">
+              <label data-i18n="title">Title</label>
+              <input type="text" id="postTitle" placeholder="Post title" data-i18n-placeholder="post_title_placeholder" />
+            </div>
+            <div class="admin-fieldset">
+              <label data-i18n="cover_images_optional">Cover Images (optional, up to 10)</label>
+              <input type="file" id="imageInput" accept="image/*" multiple />
+              <div id="imagePreviewAdmin" class="media-preview"></div>
+            </div>
+            <div class="admin-editor-shell">
+              <div class="admin-fieldset">
+                <label data-i18n="formatting_tools">Formatting tools</label>
+                <div class="toolbar">
+                  <button data-cmd="bold" type="button" data-i18n="toolbar_bold">Bold</button>
+                  <button data-cmd="italic" type="button" data-i18n="toolbar_italic">Italic</button>
+                  <select data-cmd="fontName">
+                    <option value="" data-i18n="toolbar_font">Font</option>
+                    <option value="Sora">Sora</option>
+                    <option value="Manrope">Manrope</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Arial">Arial</option>
+                  </select>
+                  <button data-cmd="insertUnorderedList" type="button" data-i18n="toolbar_list">List</button>
+                  <button data-cmd="formatBlock" data-value="h3" type="button">H3</button>
+                  <button data-cmd="formatBlock" data-value="h4" type="button">H4</button>
+                  <button data-cmd="createLink" type="button" data-i18n="toolbar_link">Link</button>
+                </div>
+              </div>
+              <div class="admin-fieldset">
+                <label data-i18n="body_content">Body content</label>
+                <div id="richEditor" class="editor" contenteditable="true"></div>
+              </div>
+            </div>
+            <div class="admin-actions">
+              <button id="savePostBtn" class="solid full" data-i18n="publish_update">Publish / Update</button>
+              <button id="resetPostBtn" class="ghost full" data-i18n="reset">Reset</button>
+            </div>
+          </div>
+          <div class="admin-side-panel">
+            <div class="admin-side-head">
+              <p class="admin-card-eyebrow" data-i18n="library">Library</p>
+              <h4 data-i18n="all_published_posts">All Published Posts</h4>
+            </div>
+            <div id="adminPosts" class="list admin-list"></div>
+          </div>
+        </div>
+
+        <div id="landmarkWorkspace" class="admin-grid admin-grid-landmarks">
+          <div class="form admin-card">
+            <div class="admin-card-head">
+              <div>
+                <p class="admin-card-eyebrow" data-i18n="map_editor">Map Editor</p>
+                <h4 data-i18n="landmarks_markers">Landmarks and place markers</h4>
+              </div>
+              <p class="admin-card-note" data-i18n="map_editor_note">Update the public map from the same profile workspace for faster moderation.</p>
+            </div>
+            <div class="admin-field-grid">
+              <div class="admin-fieldset">
+                <label data-i18n="name">Name</label>
+                <input type="text" id="landmarkName" placeholder="Landmark name" />
+              </div>
+              <div class="admin-fieldset">
+                <label data-i18n="marker_color">Marker Color</label>
+                <select id="landmarkColor">
+                  <option value="#2f5c3a" data-i18n="forest_green">Forest Green</option>
+                  <option value="#5a9a6a" data-i18n="moss">Moss</option>
+                  <option value="#c36b2a" data-i18n="clay">Clay</option>
+                  <option value="#2b7bff" data-i18n="blue">Blue</option>
+                  <option value="#8e44ad" data-i18n="purple">Purple</option>
+                  <option value="#c0392b" data-i18n="red">Red</option>
+                </select>
+              </div>
+              <div class="admin-fieldset">
+                <label data-i18n="latitude">Latitude</label>
+                <input type="number" id="landmarkLat" placeholder="e.g. 13.6693" step="0.000001" />
+              </div>
+              <div class="admin-fieldset">
+                <label data-i18n="longitude">Longitude</label>
+                <input type="number" id="landmarkLng" placeholder="e.g. 123.3307" step="0.000001" />
+              </div>
+            </div>
+            <div class="admin-fieldset">
+              <label data-i18n="summary">Summary</label>
+              <textarea id="landmarkSummary" rows="4" placeholder="Short description"></textarea>
+            </div>
+            <div class="admin-fieldset">
+              <label data-i18n="cover_photo_optional">Cover Photo (optional)</label>
+              <input type="file" id="landmarkCoverInput" accept="image/*" />
+            </div>
+            <div class="map-tools">
+              <button id="landmarkPickBtn" class="ghost small" type="button" data-i18n="pick_from_map">Pick From Map</button>
+              <span class="map-help" data-i18n="map_help">Pan the map while pick mode is active to place the marker precisely.</span>
+            </div>
+            <div id="landmarkMap" class="map admin-map"></div>
+            <div class="admin-actions">
+              <button id="saveLandmarkBtn" class="solid full" data-i18n="save_landmark">Save Landmark</button>
+              <button id="resetLandmarkBtn" class="ghost full" data-i18n="reset">Reset</button>
+            </div>
+          </div>
+          <div class="admin-side-panel">
+            <div class="admin-side-head">
+              <p class="admin-card-eyebrow" data-i18n="directory">Directory</p>
+              <h4 data-i18n="all_landmarks">All Landmarks</h4>
+            </div>
+            <div id="adminLandmarks" class="list admin-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+    <dialog id="changePassDialog" class="modal">
+      <div class="modal-header">
+        <h3 data-i18n="change_password_title">Change Password</h3>
+        <button class="icon-btn" id="closeChangePass">&times;</button>
+      </div>
+      <form id="changePassForm" class="form">
+        <label data-i18n="current_password">Current password</label>
+        <input type="password" id="currentPassword" required />
+        <label data-i18n="new_password">New password</label>
+        <input type="password" id="newPassword" required />
+        <label data-i18n="confirm_new_password">Confirm new password</label>
+        <input type="password" id="confirmPassword" required />
+        <button type="submit" class="solid full" data-i18n="update_password">Update Password</button>
+      </form>
+    </dialog>
+
+    <script src="/api/runtime-config.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script type="module" src="./adminPage.js"></script>
+  </body>
 </html>
