@@ -2184,6 +2184,101 @@ button {
   box-shadow: var(--shadow);
 }
 
+.admin-insights-card {
+  display: grid;
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+.admin-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-metric-tile {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-metric-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.admin-metric-tile strong {
+  font-size: clamp(1.8rem, 2.8vw, 2.4rem);
+  line-height: 1;
+}
+
+.admin-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-chart-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-line-chart {
+  width: 100%;
+  height: auto;
+  min-height: 220px;
+}
+
+.admin-bar-chart {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-height: 220px;
+}
+
+.admin-bar-row {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-bar-copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.admin-bar-label {
+  color: var(--muted);
+}
+
+.admin-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.admin-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.admin-chart-empty {
+  margin: 0;
+  color: var(--muted);
+  align-self: center;
+}
+
 .admin-list {
   min-height: 220px;
   max-height: 720px;
@@ -2209,6 +2304,16 @@ button {
 [data-theme="light"] .admin-editor-shell,
 [data-theme="light"] .map-tools {
   background: rgba(27, 31, 26, 0.025);
+}
+
+[data-theme="light"] .admin-metric-tile,
+[data-theme="light"] .admin-chart-panel {
+  background: rgba(27, 31, 26, 0.025);
+  border-color: rgba(27, 31, 26, 0.08);
+}
+
+[data-theme="light"] .admin-bar-track {
+  background: rgba(27, 31, 26, 0.08);
 }
 
 [data-theme="light"] .list-item {
@@ -2562,6 +2667,10 @@ button {
   .admin-grid {
     grid-template-columns: 1fr;
   }
+  .admin-metrics-grid,
+  .admin-chart-grid {
+    grid-template-columns: 1fr;
+  }
   .profile-overview-card,
   .profile-summary-grid {
     grid-template-columns: 1fr;
@@ -2815,6 +2924,13 @@ button {
     text-decoration: none;
   }
 
+  .desktop-shortcuts .nav a[aria-current="page"],
+  .desktop-shortcuts .ghost[aria-current="page"] {
+    background: rgba(90, 154, 106, 0.14);
+    border-color: rgba(90, 154, 106, 0.4);
+    color: var(--text);
+  }
+
   .desktop-shortcuts .sidebar-controls {
     margin-top: 6px;
   }
@@ -2836,6 +2952,13 @@ button {
 
   [data-theme="light"] .desktop-shortcuts .ghost:hover,
   [data-theme="light"] .desktop-shortcuts .solid:hover {
+    color: #1b1f1a;
+    background: rgba(63, 107, 63, 0.14);
+    border-color: rgba(63, 107, 63, 0.35);
+  }
+
+  [data-theme="light"] .desktop-shortcuts .nav a[aria-current="page"],
+  [data-theme="light"] .desktop-shortcuts .ghost[aria-current="page"] {
     color: #1b1f1a;
     background: rgba(63, 107, 63, 0.14);
     border-color: rgba(63, 107, 63, 0.35);
