@@ -63,6 +63,29 @@ function showPostsSkeleton(container, count = 3) {
   }
 }
 
+function enhancePreviewImage(imgEl) {
+  if (!imgEl) return;
+  imgEl.loading = "lazy";
+  imgEl.decoding = "async";
+  imgEl.width = 96;
+  imgEl.height = 96;
+  imgEl.classList.add("progressive-image");
+
+  const markReady = () => {
+    imgEl.classList.remove("is-loading");
+    imgEl.classList.add("is-ready");
+  };
+
+  if (imgEl.complete) {
+    markReady();
+    return;
+  }
+
+  imgEl.classList.add("is-loading");
+  imgEl.addEventListener("load", markReady, { once: true });
+  imgEl.addEventListener("error", () => imgEl.classList.remove("is-loading"), { once: true });
+}
+
 /* Toolbar binding (uses document.execCommand for simple rich editor controls) */
 function bindToolbar() {
   if (toolbarBound) return;
@@ -210,6 +233,7 @@ function renderAdminPreviews(urls = []) {
     wrapper.className = "preview-tile";
     wrapper.innerHTML = `<img src="${u}" alt="media ${idx + 1}" /><button class="remove" data-idx="${idx}" title="Remove image">✕</button>`;
     imagePreviewAdmin.appendChild(wrapper);
+    enhancePreviewImage(wrapper.querySelector("img"));
   });
   // attach remove handlers
   imagePreviewAdmin.querySelectorAll(".remove").forEach((btn) =>
@@ -239,6 +263,7 @@ imageInput?.addEventListener("change", () => {
     wrapper.className = "preview-tile";
     wrapper.innerHTML = `<img src="${url}" alt="${f.name}" />`;
     imagePreviewAdmin.appendChild(wrapper);
+    enhancePreviewImage(wrapper.querySelector("img"));
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   });
 });
