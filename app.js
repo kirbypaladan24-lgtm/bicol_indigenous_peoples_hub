@@ -69,6 +69,7 @@ const policyProceed = document.getElementById("policyProceed");
 const policyNote = document.getElementById("policyNote");
 const postSearchInput = document.getElementById("postSearch");
 const clearPostSearch = document.getElementById("clearPostSearch");
+const focusedPostNotice = document.getElementById("focusedPostNotice");
 const changePassDialog = document.getElementById("changePassDialog");
 const closeChangePass = document.getElementById("closeChangePass");
 const changePassForm = document.getElementById("changePassForm");
@@ -101,13 +102,11 @@ const POLICY_KEY = "bicol-ip-policy-v1";
 const LANDMARK_CACHE_KEY = "bicol-ip-landmarks-cache-v1";
 const LANDMARK_CACHE_TTL_MS = 1000 * 60 * 30;
 const USER_COUNT_CACHE_KEY = "bicol-ip-user-count";
-const linkedPostId = new URLSearchParams(window.location.search).get("post");
+let activeLinkedPostId = new URLSearchParams(window.location.search).get("post");
 let allPostsCache = [];
 let latestMapInfo = { accuracy: null, precise: false, source: null };
 let reactionStateLoadToken = 0;
 let reactionStateUnsub = null;
-let linkedPostHandled = false;
-let linkedPostClearTimer = null;
 
 // Buffers and state
 let positionsBuffer = [];
@@ -264,35 +263,61 @@ function filterPostsByQuery(posts, query) {
   });
 }
 
-function applyPostFilter() {
-  const query = postSearchInput?.value || "";
-  const filtered = filterPostsByQuery(allPostsCache, query);
-  const empty = document.getElementById("postsEmpty");
-  if (empty) {
-    empty.textContent = query ? t("posts_empty_search") : t("posts_empty");
+function updateFocusedPostNotice(post) {
+  if (!focusedPostNotice) return;
+
+  if (!activeLinkedPostId) {
+    focusedPostNotice.classList.add("hidden");
+    focusedPostNotice.innerHTML = "";
+    postSearchInput?.removeAttribute("disabled");
+    clearPostSearch?.removeAttribute("disabled");
+    postSearchInput?.closest(".posts-tools")?.classList.remove("hidden");
+    return;
   }
-  renderPosts(filtered);
-  requestAnimationFrame(() => {
-    focusLinkedPost();
+
+  const postTitle = post?.title || t("untitled_post");
+  focusedPostNotice.classList.remove("hidden");
+  focusedPostNotice.innerHTML = `
+    <div class="focused-post-copy">
+      <strong>Focused post view</strong>
+      <span>Showing: ${postTitle}</span>
+    </div>
+    <button id="showAllPostsBtn" class="ghost small" type="button">Show all posts</button>
+  `;
+
+  postSearchInput?.setAttribute("disabled", "disabled");
+  clearPostSearch?.setAttribute("disabled", "disabled");
+  postSearchInput?.closest(".posts-tools")?.classList.add("hidden");
+
+  focusedPostNotice.querySelector("#showAllPostsBtn")?.addEventListener("click", () => {
+    activeLinkedPostId = null;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("post");
+    url.hash = "posts";
+    window.history.replaceState({}, "", url.toString());
+    applyPostFilter();
   });
 }
 
-function focusLinkedPost() {
-  if (!linkedPostId || linkedPostHandled) return;
-
-  const target = document.getElementById(`post-${linkedPostId}`);
-  if (!target) return;
-
-  linkedPostHandled = true;
-  target.scrollIntoView({ behavior: "auto", block: "center" });
-  target.classList.add("is-linked-post");
-  target.setAttribute("tabindex", "-1");
-  target.focus({ preventScroll: true });
-
-  if (linkedPostClearTimer) clearTimeout(linkedPostClearTimer);
-  linkedPostClearTimer = setTimeout(() => {
-    target.classList.remove("is-linked-post");
-  }, 3200);
+function applyPostFilter() {
+  const query = postSearchInput?.value || "";
+  const focusedPost = activeLinkedPostId
+    ? allPostsCache.find((post) => String(post?.id || "") === String(activeLinkedPostId))
+    : null;
+  const sourcePosts = activeLinkedPostId
+    ? (focusedPost ? [focusedPost] : [])
+    : allPostsCache;
+  const filtered = activeLinkedPostId ? sourcePosts : filterPostsByQuery(sourcePosts, query);
+  const empty = document.getElementById("postsEmpty");
+  updateFocusedPostNotice(focusedPost);
+  if (empty) {
+    if (activeLinkedPostId && !focusedPost) {
+      empty.textContent = "This linked post is no longer available.";
+    } else {
+      empty.textContent = query ? t("posts_empty_search") : t("posts_empty");
+    }
+  }
+  renderPosts(filtered);
 }
 
 async function loadReactionState(user) {
