@@ -111,10 +111,19 @@
           <div>
             <p class="admin-card-eyebrow" data-i18n="dashboard">Dashboard</p>
             <h4 data-i18n="data_charts">Data Charts</h4>
+            <p class="admin-card-note" data-i18n="data_charts_subtitle">
+              See what is happening across posts, users, engagement, and landmarks in one view.
+            </p>
           </div>
-          <p class="admin-card-note" data-i18n="data_charts_subtitle">
-            See what is happening across posts, users, engagement, and landmarks in one view.
-          </p>
+          <div class="admin-filter-group" role="group" data-i18n-aria-label="date_range_label" aria-label="Date range">
+            <span class="admin-filter-label" data-i18n="date_range_label">Date range</span>
+            <div class="admin-filter-chips">
+              <button type="button" class="admin-filter-chip active" data-range="7" data-i18n="range_7_days">7 days</button>
+              <button type="button" class="admin-filter-chip" data-range="30" data-i18n="range_30_days">30 days</button>
+              <button type="button" class="admin-filter-chip" data-range="90" data-i18n="range_90_days">90 days</button>
+              <button type="button" class="admin-filter-chip" data-range="all" data-i18n="range_all_time">All time</button>
+            </div>
+          </div>
         </div>
         <div class="admin-metrics-grid">
           <article class="admin-metric-tile">
@@ -137,31 +146,41 @@
         <div class="admin-chart-grid">
           <article class="admin-chart-panel">
             <div class="admin-side-head">
-              <p class="admin-card-eyebrow" data-i18n="chart_last_30_days">Last 30 days</p>
+              <p class="admin-card-eyebrow" data-chart-range-label>7 days</p>
               <h4 data-i18n="posts_over_time">Posts over time</h4>
             </div>
             <svg id="adminPostsChart" class="admin-line-chart" viewBox="0 0 520 220" role="img" aria-label="Posts over time"></svg>
           </article>
           <article class="admin-chart-panel">
             <div class="admin-side-head">
-              <p class="admin-card-eyebrow" data-i18n="chart_last_30_days">Last 30 days</p>
+              <p class="admin-card-eyebrow" data-chart-range-label>7 days</p>
               <h4 data-i18n="active_users_over_time">Active users over time</h4>
             </div>
             <svg id="adminUsersChart" class="admin-line-chart" viewBox="0 0 520 220" role="img" aria-label="Active users over time"></svg>
           </article>
           <article class="admin-chart-panel">
             <div class="admin-side-head">
-              <p class="admin-card-eyebrow" data-i18n="total_interactions">Total interactions</p>
+              <p class="admin-card-eyebrow" data-chart-range-label>7 days</p>
               <h4 data-i18n="engagement_overview">Engagement overview</h4>
             </div>
             <div id="adminEngagementChart" class="admin-bar-chart" aria-live="polite"></div>
           </article>
           <article class="admin-chart-panel">
             <div class="admin-side-head">
-              <p class="admin-card-eyebrow" data-i18n="chart_last_30_days">Last 30 days</p>
+              <p class="admin-card-eyebrow" data-chart-range-label>7 days</p>
               <h4 data-i18n="landmarks_over_time">Landmarks over time</h4>
             </div>
             <svg id="adminLandmarksChart" class="admin-line-chart" viewBox="0 0 520 220" role="img" aria-label="Landmarks over time"></svg>
+          </article>
+          <article class="admin-chart-panel admin-chart-panel-wide">
+            <div class="admin-side-head">
+              <div>
+                <p class="admin-card-eyebrow" data-chart-range-label>7 days</p>
+                <h4 data-i18n="top_performing_posts">Top Performing Posts</h4>
+              </div>
+              <p class="admin-card-note" data-i18n="top_posts_subtitle">Ranked by total likes and dislikes on posts within the selected range.</p>
+            </div>
+            <div id="adminTopPosts" class="admin-top-posts" aria-live="polite"></div>
           </article>
         </div>
       </section>
