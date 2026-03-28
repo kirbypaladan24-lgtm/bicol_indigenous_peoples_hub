@@ -3,6 +3,7 @@ import { uploadImages } from "./imgbb.js";
 import { initI18n, t } from "./i18n.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
+import { initRevealAnimations } from "./motion.js";
 
 const themeToggle = document.getElementById("themeToggle");
 const logoutBtn = document.getElementById("logoutBtn");
@@ -566,5 +567,6 @@ window.addEventListener("landmarks-updated", () => {
 
 initI18n();
 initTheme();
+initRevealAnimations();
 bindToolbar(profileEditor, profileToolbar);
 registerServiceWorker();
