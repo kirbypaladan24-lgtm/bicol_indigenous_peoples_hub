@@ -382,6 +382,23 @@ button {
   display: none !important;
 }
 
+[data-reveal].reveal-ready {
+  opacity: 0;
+  transform: translateY(28px) scale(0.985);
+  filter: blur(10px);
+  transition:
+    opacity 0.72s ease,
+    transform 0.82s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.72s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal].reveal-ready.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
 .hero {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -434,6 +451,132 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.hero-content,
+.hero-card,
+.hero-story-pill,
+.about-card,
+.cta-card,
+.workspace-meta-pill,
+.profile-stat-card,
+.admin-metric-tile,
+.admin-chart-panel,
+.admin-top-post,
+.landmark-summary-card {
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    border-color 0.28s ease,
+    background 0.28s ease;
+}
+
+.hero-story-pill:hover,
+.about-card:hover,
+.cta-card:hover,
+.workspace-meta-pill:hover,
+.profile-stat-card:hover,
+.admin-metric-tile:hover,
+.admin-chart-panel:hover,
+.admin-top-post:hover,
+.landmark-summary-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(195, 107, 42, 0.28);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.28);
+}
+
+.section-head > div:first-child,
+.profile-overview-copy,
+.admin-heading,
+.policy-hero-block {
+  position: relative;
+}
+
+#map .section-head > div:first-child::before,
+#posts .section-head > div:first-child::before,
+#about > div:first-child::before,
+#contact > div:first-child::before,
+.profile-overview-copy::before,
+.admin-heading::before,
+.policy-hero-block::before,
+.landmark-hero-shell .section-head > div:first-child::before {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(195, 107, 42, 0.24);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    var(--shadow);
+  background:
+    linear-gradient(145deg, rgba(195, 107, 42, 0.18), rgba(90, 154, 106, 0.14)),
+    radial-gradient(circle at 35% 30%, rgba(242, 246, 241, 0.26), rgba(242, 246, 241, 0) 42%),
+    linear-gradient(135deg, rgba(11, 18, 13, 0.96), rgba(21, 36, 27, 0.96));
+}
+
+#map .section-head > div:first-child::before {
+  background:
+    linear-gradient(145deg, rgba(43, 123, 255, 0.18), rgba(90, 154, 106, 0.14)),
+    radial-gradient(circle at 34% 30%, rgba(242, 246, 241, 0.26), rgba(242, 246, 241, 0) 42%),
+    linear-gradient(135deg, rgba(11, 18, 13, 0.96), rgba(17, 31, 25, 0.96));
+}
+
+#posts .section-head > div:first-child::before {
+  background:
+    linear-gradient(145deg, rgba(195, 107, 42, 0.22), rgba(90, 154, 106, 0.14)),
+    radial-gradient(circle at 34% 30%, rgba(242, 246, 241, 0.24), rgba(242, 246, 241, 0) 42%),
+    linear-gradient(135deg, rgba(11, 18, 13, 0.96), rgba(24, 33, 22, 0.96));
+}
+
+#about > div:first-child::before,
+.policy-hero-block::before {
+  background:
+    linear-gradient(145deg, rgba(195, 107, 42, 0.18), rgba(47, 92, 58, 0.18)),
+    radial-gradient(circle at 34% 30%, rgba(242, 246, 241, 0.24), rgba(242, 246, 241, 0) 42%),
+    linear-gradient(135deg, rgba(11, 18, 13, 0.96), rgba(20, 31, 24, 0.96));
+}
+
+#contact > div:first-child::before,
+.landmark-hero-shell .section-head > div:first-child::before {
+  background:
+    linear-gradient(145deg, rgba(43, 123, 255, 0.18), rgba(195, 107, 42, 0.18)),
+    radial-gradient(circle at 34% 30%, rgba(242, 246, 241, 0.24), rgba(242, 246, 241, 0) 42%),
+    linear-gradient(135deg, rgba(11, 18, 13, 0.96), rgba(19, 28, 24, 0.96));
+}
+
+.profile-overview-copy::before,
+.admin-heading::before {
+  background:
+    linear-gradient(145deg, rgba(90, 154, 106, 0.22), rgba(195, 107, 42, 0.14)),
+    radial-gradient(circle at 34% 30%, rgba(242, 246, 241, 0.26), rgba(242, 246, 241, 0) 42%),
+    linear-gradient(135deg, rgba(11, 18, 13, 0.96), rgba(18, 31, 23, 0.96));
+}
+
+.policy-hero-block {
+  position: relative;
+  margin-bottom: 22px;
+  padding: 24px 24px 22px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    radial-gradient(circle at top right, rgba(43, 123, 255, 0.08), rgba(0, 0, 0, 0));
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.policy-hero-block::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -70px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(195, 107, 42, 0.18), rgba(195, 107, 42, 0));
+  pointer-events: none;
 }
 
 .hero-content::after {
@@ -777,6 +920,8 @@ button {
 }
 
 .workspace-meta-pill {
+  position: relative;
+  overflow: hidden;
   display: grid;
   gap: 8px;
   padding: 16px 18px;
@@ -786,6 +931,15 @@ button {
     linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
     rgba(255, 255, 255, 0.02);
   box-shadow: var(--shadow);
+}
+
+.workspace-meta-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(195, 107, 42, 0.6), rgba(90, 154, 106, 0));
 }
 
 .workspace-meta-pill span {
@@ -1514,8 +1668,22 @@ button {
 }
 
 .landmark-hero-shell {
+  position: relative;
   display: grid;
   gap: 18px;
+}
+
+.landmark-hero-shell::after {
+  content: "";
+  position: absolute;
+  right: -56px;
+  top: -50px;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(43, 123, 255, 0.12), rgba(43, 123, 255, 0));
+  pointer-events: none;
+  z-index: -1;
 }
 
 .landmark-summary-card {
@@ -2209,6 +2377,27 @@ button {
 .admin-side-head h4,
 .admin-heading h3 {
   margin: 0;
+}
+
+.admin-card-head > div,
+.admin-side-head > div {
+  position: relative;
+}
+
+.admin-card-head > div::before,
+.admin-side-head > div::before {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(90, 154, 106, 0.22);
+  background:
+    linear-gradient(145deg, rgba(90, 154, 106, 0.18), rgba(195, 107, 42, 0.12)),
+    radial-gradient(circle at 35% 30%, rgba(242, 246, 241, 0.22), rgba(242, 246, 241, 0) 42%),
+    linear-gradient(135deg, rgba(11, 18, 13, 0.96), rgba(18, 31, 23, 0.96));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .admin-fieldset {
