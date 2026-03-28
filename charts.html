@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-page-title-key="page_title_data_charts">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b120d" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="View posts, users, engagement, and landmark analytics for the Bicol Indigenous Peoples Hub admin workspace."
+    />
+    <title>Data Charts | Bicol Indigenous Peoples Hub</title>
+    <link rel="icon" type="image/png" href="./favicon.png" sizes="64x64" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="has-desktop-shortcuts">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <img
+            src="./brand-mark.png"
+            alt="Bicol Indigenous Peoples Hub Logo"
+            width="512"
+            height="512"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </span>
+        <div>
+          <h1 data-i18n="page_title">Bicol Indigenous Peoples Hub</h1>
+          <p data-i18n="data_charts">Data Charts</p>
+        </div>
+      </div>
+      <div class="auth-cta">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+      </div>
+    </header>
+
+    <aside class="desktop-shortcuts" aria-label="Primary sidebar">
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="index.html#posts" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+      </nav>
+      <div class="sidebar-actions">
+        <a class="ghost" href="profile.html" data-i18n="profile">Profile</a>
+        <a class="ghost" href="profile.html#adminPanel" data-i18n="admin_tools">Admin Tools</a>
+        <a class="ghost" href="charts.html" aria-current="page" data-i18n="data_charts">Data Charts</a>
+        <button id="changePassBtn" class="ghost" type="button" data-i18n="change_password">Change Password</button>
+        <a class="ghost" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+        <button id="logoutBtn" class="solid" data-i18n="logout">Logout</button>
+      </div>
+    </aside>
+
+    <div id="mobileMenu" class="mobile-menu">
+      <div class="mobile-links">
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="index.html#posts" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+      </div>
+      <div class="mobile-actions">
+        <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <a class="ghost full" href="profile.html" data-i18n="profile">Profile</a>
+        <a class="ghost full" href="profile.html#adminPanel" data-i18n="admin_tools">Admin Tools</a>
+        <a class="ghost full" href="charts.html" aria-current="page" data-i18n="data_charts">Data Charts</a>
+        <button id="mobileChangePassBtn" class="ghost full" type="button" data-i18n="change_password">Change Password</button>
+        <button id="mobileLogoutBtn" class="solid full" data-i18n="logout">Logout</button>
+      </div>
+    </div>
+
+    <main class="section profile-dashboard">
+      <section class="profile-overview-shell">
+        <div class="profile-overview-card">
+          <div class="profile-overview-copy">
+            <p class="eyebrow" data-i18n="dashboard">Dashboard</p>
+            <h2 data-i18n="data_charts">Data Charts</h2>
+            <p id="chartsStatus" class="section-desc" data-i18n="data_charts_subtitle">
+              See what is happening across posts, users, engagement, and landmarks in one view.
+            </p>
+          </div>
+          <div class="profile-identity">
+            <p><strong data-i18n="username_label">Username:</strong> <span id="chartUsername">--</span></p>
+            <p><strong data-i18n="email">Email</strong>: <span id="chartEmail">--</span></p>
+            <p><strong data-i18n="access_label">Access:</strong> <span id="chartRole">--</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-card admin-insights-card">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow" data-i18n="dashboard">Dashboard</p>
+            <h4 data-i18n="data_charts">Data Charts</h4>
+          </div>
+          <p class="admin-card-note" data-i18n="data_charts_subtitle">
+            See what is happening across posts, users, engagement, and landmarks in one view.
+          </p>
+        </div>
+        <div class="admin-metrics-grid">
+          <article class="admin-metric-tile">
+            <span class="admin-metric-label" data-i18n="community_posts_label">Community Posts</span>
+            <strong id="adminMetricPosts">--</strong>
+          </article>
+          <article class="admin-metric-tile">
+            <span class="admin-metric-label" data-i18n="stat_users">Total users</span>
+            <strong id="adminMetricUsers">--</strong>
+          </article>
+          <article class="admin-metric-tile">
+            <span class="admin-metric-label" data-i18n="mapped_landmarks_label">Mapped Landmarks</span>
+            <strong id="adminMetricLandmarks">--</strong>
+          </article>
+          <article class="admin-metric-tile">
+            <span class="admin-metric-label" data-i18n="engagement_label">Total Engagement</span>
+            <strong id="adminMetricEngagement">--</strong>
+          </article>
+        </div>
+        <div class="admin-chart-grid">
+          <article class="admin-chart-panel">
+            <div class="admin-side-head">
+              <p class="admin-card-eyebrow" data-i18n="chart_last_30_days">Last 30 days</p>
+              <h4 data-i18n="posts_over_time">Posts over time</h4>
+            </div>
+            <svg id="adminPostsChart" class="admin-line-chart" viewBox="0 0 520 220" role="img" aria-label="Posts over time"></svg>
+          </article>
+          <article class="admin-chart-panel">
+            <div class="admin-side-head">
+              <p class="admin-card-eyebrow" data-i18n="chart_last_30_days">Last 30 days</p>
+              <h4 data-i18n="active_users_over_time">Active users over time</h4>
+            </div>
+            <svg id="adminUsersChart" class="admin-line-chart" viewBox="0 0 520 220" role="img" aria-label="Active users over time"></svg>
+          </article>
+          <article class="admin-chart-panel">
+            <div class="admin-side-head">
+              <p class="admin-card-eyebrow" data-i18n="total_interactions">Total interactions</p>
+              <h4 data-i18n="engagement_overview">Engagement overview</h4>
+            </div>
+            <div id="adminEngagementChart" class="admin-bar-chart" aria-live="polite"></div>
+          </article>
+          <article class="admin-chart-panel">
+            <div class="admin-side-head">
+              <p class="admin-card-eyebrow" data-i18n="chart_last_30_days">Last 30 days</p>
+              <h4 data-i18n="landmarks_over_time">Landmarks over time</h4>
+            </div>
+            <svg id="adminLandmarksChart" class="admin-line-chart" viewBox="0 0 520 220" role="img" aria-label="Landmarks over time"></svg>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+    <dialog id="changePassDialog" class="modal">
+      <div class="modal-header">
+        <h3 data-i18n="change_password_title">Change Password</h3>
+        <button class="icon-btn" id="closeChangePass">&times;</button>
+      </div>
+      <form id="changePassForm" class="form">
+        <label data-i18n="current_password">Current password</label>
+        <input type="password" id="currentPassword" required />
+        <label data-i18n="new_password">New password</label>
+        <input type="password" id="newPassword" required />
+        <label data-i18n="confirm_new_password">Confirm new password</label>
+        <input type="password" id="confirmPassword" required />
+        <button type="submit" class="solid full" data-i18n="update_password">Update Password</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="./charts.js"></script>
+  </body>
+</html>
