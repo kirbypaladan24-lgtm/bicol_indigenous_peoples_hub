@@ -2,6 +2,7 @@ import { fetchLandmark } from "./auth.js";
 import { initI18n, t } from "./i18n.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
+import { initRevealAnimations } from "./motion.js";
 
 const THEME_KEY = "bicol-ip-theme";
 
@@ -112,6 +113,7 @@ async function loadLandmark() {
 
 initI18n();
 initTheme();
+initRevealAnimations();
 loadLandmark();
 registerServiceWorker();
 
