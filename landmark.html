@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body class="has-desktop-shortcuts has-landmark-shortcuts">
+  <a class="skip-link" href="#landmarkMain" data-i18n="skip_to_content">Skip to content</a>
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">
@@ -43,13 +44,20 @@
   </header>
 
   <aside class="desktop-shortcuts" aria-label="Primary sidebar">
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html#home" data-i18n="nav_home">Home</a>
+      <a href="index.html#map" data-i18n="nav_map">Map</a>
+      <a href="index.html#posts" data-i18n="nav_posts">Posts</a>
+      <a href="index.html#about" data-i18n="nav_about">About</a>
+      <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+    </nav>
     <div class="sidebar-actions">
       <a href="index.html#map" class="ghost small" data-i18n="back_to_map">Back to Map</a>
       <a href="policy.html" class="ghost small" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
     </div>
   </aside>
 
-  <main class="section landmark-page">
+  <main id="landmarkMain" class="section landmark-page">
     <div class="landmark-hero-shell">
       <div class="section-head">
         <div>
