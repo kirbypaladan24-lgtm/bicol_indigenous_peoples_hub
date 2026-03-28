@@ -1,10 +1,12 @@
 import { createAccountWithProfile, loginWithEmail } from "./auth.js";
+import { initI18n, t } from "./i18n.js";
 import { registerServiceWorker } from "./pwa.js";
 
 const form = document.getElementById("signupForm");
 const toast = document.getElementById("signupToast");
 const passwordInput = document.getElementById("passwordInput");
 const toggleSignupPass = document.getElementById("toggleSignupPass");
+const birthdateError = document.getElementById("birthdateError");
 
 function showToast(msg, variant = "info") {
   toast.textContent = msg;
@@ -16,8 +18,8 @@ function showToast(msg, variant = "info") {
 toggleSignupPass?.addEventListener("click", () => {
   const isHidden = passwordInput.type === "password";
   passwordInput.type = isHidden ? "text" : "password";
-  toggleSignupPass.textContent = isHidden ? "Hide" : "Show";
-  toggleSignupPass.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+  toggleSignupPass.textContent = isHidden ? t("hide") : t("show");
+  toggleSignupPass.setAttribute("aria-label", isHidden ? t("hide") : t("show"));
 });
 
 form.addEventListener("submit", async (e) => {
@@ -29,15 +31,15 @@ form.addEventListener("submit", async (e) => {
   const password = document.getElementById("passwordInput").value.trim();
 
   if (!/\S+@\S+\.\S+/.test(email)) {
-    showToast("Enter a valid email address.", "warn");
+    showToast(t("toast_valid_email"), "warn");
     return;
   }
   if (password.length < 6) {
-    showToast("Password must be at least 6 characters.", "warn");
+    showToast(t("toast_pass_short"), "warn");
     return;
   }
   if (!username) {
-    showToast("Username is required.", "warn");
+    showToast(t("toast_signup_username_required"), "warn");
     return;
   }
   
@@ -46,7 +48,7 @@ form.addEventListener("submit", async (e) => {
   try {
     const user = await createAccountWithProfile({ email, password, username, phone, birthdate });
     console.log('Account created successfully:', user.uid);
-    showToast("Account created! Redirecting to login...", "success");
+    showToast(t("toast_signup_created_redirect"), "success");
     setTimeout(() => (window.location.href = "index.html"), 1200);
   } catch (err) {
     console.error("Signup error:", err);
@@ -56,24 +58,29 @@ form.addEventListener("submit", async (e) => {
       try {
         console.log('Email already in use, attempting login...');
         await loginWithEmail(email, password);
-        showToast("Email already registered. Logging you in...", "success");
+        showToast(t("toast_signup_email_registered_login"), "success");
         setTimeout(() => (window.location.href = "index.html"), 800);
         return;
       } catch (loginErr) {
         console.error("Auto-login failed:", loginErr);
-        showToast("Email already in use. Use Login or reset your password.", "error");
+        showToast(t("toast_signup_email_in_use"), "error");
         return;
       }
     }
     
     // Handle specific Firestore errors
     if (err.message && err.message.includes('Firestore sync failed')) {
-      showToast("Account created but profile sync failed. Please contact support.", "error");
+      showToast(t("toast_signup_profile_sync_failed"), "error");
       return;
     }
     
-    showToast("Signup failed: " + err.message, "error");
+    showToast(t("toast_signup_failed", { error: err.message }), "error");
   }
 });
 
+initI18n();
+if (birthdateError) {
+  birthdateError.dataset.invalidMessage = t("birthdate_error_invalid");
+  birthdateError.dataset.completeMessage = t("birthdate_error_complete");
+}
 registerServiceWorker();
