@@ -24,6 +24,7 @@ import { initSecurity } from "./security.js";
 import { initUtils } from "./utils.js";
 import { initAnalytics, requestAnalyticsConsent } from "./analytics.js";
 import { registerServiceWorker } from "./pwa.js";
+import { initRevealAnimations } from "./motion.js";
 
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
@@ -1317,6 +1318,7 @@ if (!localStorage.getItem('analytics-consent')) {
 // Initial Execution
 initTheme();
 initI18n();
+initRevealAnimations();
 refreshLocalizedRuntimeText();
 initPolicyGate();
 loadUserCount();
