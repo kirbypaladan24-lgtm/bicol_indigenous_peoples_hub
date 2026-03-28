@@ -39,6 +39,9 @@ const adminEngagementChart = document.getElementById("adminEngagementChart");
 const adminTopPosts = document.getElementById("adminTopPosts");
 const rangeButtons = Array.from(document.querySelectorAll("[data-range]"));
 const chartRangeLabels = Array.from(document.querySelectorAll("[data-chart-range-label]"));
+const chartRangeSummary = document.getElementById("chartRangeSummary");
+const chartTrackedPosts = document.getElementById("chartTrackedPosts");
+const chartLastUpdated = document.getElementById("chartLastUpdated");
 
 const changePassDialog = document.getElementById("changePassDialog");
 const closeChangePass = document.getElementById("closeChangePass");
@@ -111,6 +114,15 @@ function formatCompactNumber(value) {
     notation: Math.abs(value) >= 1000 ? "compact" : "standard",
     maximumFractionDigits: 0,
   }).format(Number(value) || 0);
+}
+
+function formatWorkspaceTimestamp(date = new Date()) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function getRangeDays(range = currentRange) {
@@ -455,6 +467,9 @@ function renderCharts(payload) {
   renderMetric(adminMetricUsers, currentRange === "all" ? userCount : filteredUsers.length);
   renderMetric(adminMetricLandmarks, filteredLandmarks.length);
   renderMetric(adminMetricEngagement, totalEngagement);
+  if (chartRangeSummary) chartRangeSummary.textContent = getRangeLabel();
+  if (chartTrackedPosts) chartTrackedPosts.textContent = formatCompactNumber(filteredPosts.length);
+  if (chartLastUpdated) chartLastUpdated.textContent = formatWorkspaceTimestamp(new Date());
 
   chartRangeLabels.forEach((label) => {
     label.textContent = getRangeLabel();
