@@ -1920,6 +1920,13 @@ button {
   resize: vertical;
 }
 
+#landmarkSummary {
+  min-height: 132px;
+  max-height: 260px;
+  overflow-y: hidden;
+  line-height: 1.55;
+}
+
 .map-tools {
   display: flex;
   align-items: center;
