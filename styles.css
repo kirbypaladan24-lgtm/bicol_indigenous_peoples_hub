@@ -1009,6 +1009,109 @@ button {
   text-align: center;
 }
 
+.location-share-card {
+  gap: 18px;
+}
+
+.profile-location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.profile-location-actions .ghost,
+.profile-location-actions .solid {
+  min-width: 180px;
+  justify-content: center;
+}
+
+.location-meta-grid {
+  margin-top: 2px;
+}
+
+.location-consent-copy {
+  gap: 14px;
+}
+
+.location-consent-copy p {
+  margin: 0;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.consent-points {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+}
+
+.tracker-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+  gap: 20px;
+}
+
+.tracker-map-card,
+.tracker-list-card {
+  display: grid;
+  gap: 16px;
+}
+
+.tracker-list {
+  display: grid;
+  gap: 12px;
+}
+
+.tracker-item {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.tracker-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tracker-item-head h4,
+.tracker-item-head p,
+.tracker-item-meta p {
+  margin: 0;
+}
+
+.tracker-item-head h4 {
+  font-size: 1rem;
+}
+
+.tracker-item-head p,
+.tracker-item-meta p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.tracker-item-meta {
+  display: grid;
+  gap: 6px;
+}
+
+.tracker-empty {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.02);
+}
+
 .profile-posts-section {
   display: grid;
   gap: 12px;
@@ -1022,6 +1125,13 @@ button {
 [data-theme="light"] .profile-overview-card,
 [data-theme="light"] .profile-stat-card,
 [data-theme="light"] .workspace-meta-pill {
+  background: #ffffff;
+  border-color: #d8dfd2;
+  color: #1b1f1a;
+}
+
+[data-theme="light"] .tracker-item,
+[data-theme="light"] .tracker-empty {
   background: #ffffff;
   border-color: #d8dfd2;
   color: #1b1f1a;
@@ -3419,13 +3529,22 @@ textarea#landmarkSummary {
   }
   .profile-overview-card,
   .profile-summary-grid,
-  .workspace-meta {
+  .workspace-meta,
+  .tracker-layout {
     grid-template-columns: 1fr;
   }
   .admin-bar,
   .admin-card-head,
   .admin-side-head {
     flex-direction: column;
+  }
+  .profile-location-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .profile-location-actions .ghost,
+  .profile-location-actions .solid {
+    width: 100%;
   }
   .admin-field-grid,
   .admin-actions {
