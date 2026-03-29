@@ -201,6 +201,7 @@ const postsRef = collection(db, "posts");
 const landmarksRef = collection(db, "landmarks");
 const postReactionsRef = collection(db, "post_reactions");
 const sharedLocationsRef = collection(db, "shared_locations");
+const emergencyAlertsRef = collection(db, "emergency_alerts");
 const statsRef = doc(db, "stats", "public");
 
 function getReactionDocRef(uid, postId) {
@@ -474,6 +475,22 @@ export async function submitEmergencyReport({ message, imageUrl, lat = null, lng
     { merge: true }
   );
 
+  await addDoc(emergencyAlertsRef, {
+    userId: user.uid,
+    uid: user.uid,
+    username: identity.username,
+    email: identity.email,
+    phone,
+    lat: nextLat,
+    lng: nextLng,
+    accuracy: nextAccuracy,
+    message: trimmedMessage,
+    imageUrl,
+    status: "pending",
+    submittedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
   return fetchSharedLocation(user.uid, false);
 }
 
@@ -550,6 +567,50 @@ export async function fetchSharedLocations(forceServer = true) {
     .sort((a, b) => {
       const aTime = a?.updatedAt?.seconds || 0;
       const bTime = b?.updatedAt?.seconds || 0;
+      return bTime - aTime;
+    });
+}
+
+export function observeEmergencyAlerts(callback) {
+  return onSnapshot(
+    emergencyAlertsRef,
+    (snapshot) => {
+      const alerts = snapshot.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter(
+          (entry) =>
+            entry?.userId &&
+            Number.isFinite(entry?.lat) &&
+            Number.isFinite(entry?.lng)
+        )
+        .sort((a, b) => {
+          const aTime = a?.submittedAt?.seconds || a?.updatedAt?.seconds || 0;
+          const bTime = b?.submittedAt?.seconds || b?.updatedAt?.seconds || 0;
+          return bTime - aTime;
+        });
+
+      callback(alerts);
+    },
+    (error) => {
+      console.warn("observeEmergencyAlerts error:", error);
+      callback([]);
+    }
+  );
+}
+
+export async function fetchEmergencyAlerts(forceServer = true) {
+  const snapshot = forceServer ? await getDocsFromServer(emergencyAlertsRef) : await getDocs(emergencyAlertsRef);
+  return snapshot.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter(
+      (entry) =>
+        entry?.userId &&
+        Number.isFinite(entry?.lat) &&
+        Number.isFinite(entry?.lng)
+    )
+    .sort((a, b) => {
+      const aTime = a?.submittedAt?.seconds || a?.updatedAt?.seconds || 0;
+      const bTime = b?.submittedAt?.seconds || b?.updatedAt?.seconds || 0;
       return bTime - aTime;
     });
 }
