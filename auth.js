@@ -537,6 +537,23 @@ export function observeSharedLocations(callback) {
   );
 }
 
+export async function fetchSharedLocations(forceServer = true) {
+  const snapshot = forceServer ? await getDocsFromServer(sharedLocationsRef) : await getDocs(sharedLocationsRef);
+  return snapshot.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter(
+      (entry) =>
+        entry?.sharingEnabled === true &&
+        Number.isFinite(entry?.lat) &&
+        Number.isFinite(entry?.lng)
+    )
+    .sort((a, b) => {
+      const aTime = a?.updatedAt?.seconds || 0;
+      const bTime = b?.updatedAt?.seconds || 0;
+      return bTime - aTime;
+    });
+}
+
 export async function fetchPost(id, forceServer = true) {
   const docRef = doc(db, "posts", id);
   const snap = forceServer ? await getDocFromServer(docRef) : await getDoc(docRef);
