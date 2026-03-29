@@ -139,12 +139,15 @@
           </div>
           <div class="tracker-search-shell">
             <label for="trackerSearch">Search by username or email</label>
-            <input
-              id="trackerSearch"
-              type="search"
-              placeholder="Type a username or email"
-              autocomplete="off"
-            />
+            <div class="tracker-search-field">
+              <span class="tracker-search-icon" aria-hidden="true">Search</span>
+              <input
+                id="trackerSearch"
+                type="search"
+                placeholder="Type a username or email"
+                autocomplete="off"
+              />
+            </div>
           </div>
           <div id="trackerMap" class="map admin-map" aria-label="User locations map"></div>
         </article>
