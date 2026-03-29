@@ -483,6 +483,8 @@ export async function respondToEmergency(userId, { status, reason = "" }) {
   await setDoc(
     getSharedLocationDocRef(userId),
     {
+      emergencyActive: false,
+      emergencyStatus: null,
       responseStatus: normalizedStatus,
       responseReason: trimmedReason || null,
       respondedAt: serverTimestamp(),
