@@ -130,6 +130,7 @@
         <div class="profile-quick-actions">
           <a href="#profilePostsSection" class="ghost small" data-i18n="your_posts_title">Your Posts</a>
           <button id="shareLocationQuickAction" type="button" class="ghost small">Share My Location</button>
+          <button id="emergencyQuickAction" type="button" class="ghost small">Emergency Alert</button>
           <a id="trackerQuickAction" href="tracker.html" class="ghost small hidden">Show User Locations</a>
         </div>
       </section>
@@ -145,6 +146,7 @@
           </div>
           <div class="profile-location-actions">
             <button id="shareLocationBtn" type="button" class="solid">Share My Location</button>
+            <button id="emergencyBtn" type="button" class="ghost">Emergency Alert</button>
             <a id="trackerActionLink" href="tracker.html" class="ghost hidden">Show User Locations</a>
           </div>
         </div>
@@ -161,6 +163,13 @@
             <span>Accuracy</span>
             <strong id="locationAccuracy">No location synced yet</strong>
           </article>
+          <article class="workspace-meta-pill">
+            <span>Emergency Status</span>
+            <strong id="emergencyStatus">No alert sent</strong>
+          </article>
+        </div>
+        <div class="tracker-item-meta">
+          <p id="emergencyResponseText">If there is an emergency in your area, send a clear message with image proof so the admin can review it quickly.</p>
         </div>
       </section>
 
@@ -255,6 +264,28 @@
         <div class="admin-actions">
           <button id="locationConsentDecline" class="ghost" type="button">Not now</button>
           <button id="locationConsentAgree" class="solid" type="button">I agree and want to share</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="emergencyDialog" class="modal">
+      <div class="modal-header">
+        <h3>Emergency Alert</h3>
+        <button class="icon-btn" id="closeEmergencyDialog" type="button">&times;</button>
+      </div>
+      <div class="form location-consent-copy">
+        <label for="emergencyMessage">What is happening?</label>
+        <textarea
+          id="emergencyMessage"
+          rows="5"
+          placeholder="Explain the issue, what is needed, and anything the admin should know."
+        ></textarea>
+        <label for="emergencyImageInput">Image proof is required</label>
+        <input id="emergencyImageInput" type="file" accept="image/*" />
+        <div id="emergencyImagePreview" class="media-preview"></div>
+        <div class="admin-actions">
+          <button id="cancelEmergencyBtn" class="ghost" type="button">Cancel</button>
+          <button id="sendEmergencyBtn" class="solid" type="button">Send Emergency Alert</button>
         </div>
       </div>
     </dialog>
