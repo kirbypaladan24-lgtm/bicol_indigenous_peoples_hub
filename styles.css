@@ -1163,6 +1163,11 @@ button {
     rgba(255, 255, 255, 0.02);
 }
 
+.tracker-item.is-match {
+  border-color: rgba(195, 107, 42, 0.34);
+  box-shadow: 0 0 0 1px rgba(195, 107, 42, 0.18), var(--shadow);
+}
+
 .tracker-item-head {
   display: flex;
   align-items: center;
@@ -1269,8 +1274,36 @@ button {
   border-color: rgba(196, 83, 68, 0.34);
 }
 
+.tracker-email-label.is-match {
+  border-color: rgba(195, 107, 42, 0.44);
+  box-shadow: 0 12px 24px rgba(195, 107, 42, 0.18);
+}
+
 .tracker-email-label::before {
   display: none;
+}
+
+.tracker-search-highlight {
+  background: transparent;
+  border: 0;
+}
+
+.tracker-search-ring {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  border-radius: 999px;
+  border: 3px solid rgba(195, 107, 42, 0.9);
+  box-shadow:
+    0 0 0 8px rgba(195, 107, 42, 0.14),
+    0 10px 24px rgba(195, 107, 42, 0.22);
+}
+
+.tracker-search-highlight.is-warning .tracker-search-ring {
+  border-color: rgba(196, 83, 68, 0.95);
+  box-shadow:
+    0 0 0 8px rgba(196, 83, 68, 0.16),
+    0 10px 24px rgba(196, 83, 68, 0.22);
 }
 
 .profile-posts-section {
