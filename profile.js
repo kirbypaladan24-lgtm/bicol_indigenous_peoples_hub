@@ -56,6 +56,9 @@ const locationShareStatus = document.getElementById("locationShareStatus");
 const locationUpdatedAt = document.getElementById("locationUpdatedAt");
 const locationAccuracy = document.getElementById("locationAccuracy");
 const emergencyStatus = document.getElementById("emergencyStatus");
+const emergencyResponseCard = document.getElementById("emergencyResponseCard");
+const emergencyResponseTitle = document.getElementById("emergencyResponseTitle");
+const emergencyResponseBadge = document.getElementById("emergencyResponseBadge");
 const emergencyResponseText = document.getElementById("emergencyResponseText");
 
 const editDialog = document.getElementById("profileEditDialog");
@@ -214,7 +217,11 @@ function renderLocationShareState(record = currentLocationRecord) {
     if (locationUpdatedAt) locationUpdatedAt.textContent = "Waiting for your first shared location";
     if (locationAccuracy) locationAccuracy.textContent = "No location synced yet";
     if (emergencyStatus) emergencyStatus.textContent = "Log in first";
+    if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Log in to use emergency alerts";
+    if (emergencyResponseBadge) emergencyResponseBadge.textContent = "Unavailable";
     if (emergencyResponseText) emergencyResponseText.textContent = "Share your location first, then you can send an emergency alert with image proof if something urgent happens.";
+    emergencyResponseCard?.classList.remove("is-pending", "is-approved", "is-help", "is-declined");
+    emergencyResponseCard?.classList.add("is-neutral");
     return;
   }
 
@@ -254,17 +261,41 @@ function renderLocationShareState(record = currentLocationRecord) {
 
   if (emergencyResponseText) {
     if (!hasLocation) {
+      if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Location sharing required";
+      if (emergencyResponseBadge) emergencyResponseBadge.textContent = "Waiting";
       emergencyResponseText.textContent = "Share your location first, then you can send an emergency alert with image proof if something urgent happens.";
+      emergencyResponseCard?.classList.remove("is-pending", "is-approved", "is-help", "is-declined");
+      emergencyResponseCard?.classList.add("is-neutral");
     } else if (record?.emergencyStatus === "pending" && !responseStatus) {
+      if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Emergency report sent";
+      if (emergencyResponseBadge) emergencyResponseBadge.textContent = "Pending Review";
       emergencyResponseText.textContent = "Your latest emergency report is waiting for an admin response.";
+      emergencyResponseCard?.classList.remove("is-neutral", "is-approved", "is-help", "is-declined");
+      emergencyResponseCard?.classList.add("is-pending");
     } else if (responseStatus === "approved") {
+      if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Request approved";
+      if (emergencyResponseBadge) emergencyResponseBadge.textContent = "Approved";
       emergencyResponseText.textContent = responseReason || "Your emergency report was approved by the admin.";
+      emergencyResponseCard?.classList.remove("is-neutral", "is-pending", "is-help", "is-declined");
+      emergencyResponseCard?.classList.add("is-approved");
     } else if (responseStatus === "help_on_the_way") {
+      if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Help is on the way";
+      if (emergencyResponseBadge) emergencyResponseBadge.textContent = "Responding";
       emergencyResponseText.textContent = responseReason || "Help is on the way according to the admin response.";
+      emergencyResponseCard?.classList.remove("is-neutral", "is-pending", "is-approved", "is-declined");
+      emergencyResponseCard?.classList.add("is-help");
     } else if (responseStatus === "declined") {
+      if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Request declined";
+      if (emergencyResponseBadge) emergencyResponseBadge.textContent = "Declined";
       emergencyResponseText.textContent = responseReason || "Your emergency report was declined by the admin.";
+      emergencyResponseCard?.classList.remove("is-neutral", "is-pending", "is-approved", "is-help");
+      emergencyResponseCard?.classList.add("is-declined");
     } else {
+      if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Ready if you need help";
+      if (emergencyResponseBadge) emergencyResponseBadge.textContent = "No Active Alert";
       emergencyResponseText.textContent = "If there is an emergency in your area, send a clear message with image proof so the admin can review it quickly.";
+      emergencyResponseCard?.classList.remove("is-pending", "is-approved", "is-help", "is-declined");
+      emergencyResponseCard?.classList.add("is-neutral");
     }
   }
 }
