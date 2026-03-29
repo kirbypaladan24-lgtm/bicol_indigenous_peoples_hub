@@ -418,7 +418,7 @@ export async function saveCurrentUserSharedLocation({ lat, lng, accuracy = null 
   return fetchSharedLocation(user.uid, false);
 }
 
-export async function submitEmergencyReport({ message, imageUrl }) {
+export async function submitEmergencyReport({ message, imageUrl, lat = null, lng = null, accuracy = null }) {
   const user = auth.currentUser;
   if (!user?.uid || user.isAnonymous) {
     throw new Error("Login required to send an emergency report.");
@@ -439,6 +439,16 @@ export async function submitEmergencyReport({ message, imageUrl }) {
 
   const { identity, phone } = await resolveSharedLocationProfile(user, existingLocation);
 
+  const nextLat = Number.isFinite(lat) ? lat : existingLocation.lat;
+  const nextLng = Number.isFinite(lng) ? lng : existingLocation.lng;
+  const nextAccuracy = Number.isFinite(accuracy)
+    ? Math.round(accuracy)
+    : (Number.isFinite(existingLocation.accuracy) ? existingLocation.accuracy : null);
+
+  if (!Number.isFinite(nextLat) || !Number.isFinite(nextLng)) {
+    throw new Error("A current location is required before sending an emergency report.");
+  }
+
   await setDoc(
     getSharedLocationDocRef(user.uid),
     {
@@ -447,6 +457,10 @@ export async function submitEmergencyReport({ message, imageUrl }) {
       username: identity.username,
       email: identity.email,
       phone,
+      lat: nextLat,
+      lng: nextLng,
+      accuracy: nextAccuracy,
+      sharingEnabled: true,
       emergencyActive: true,
       emergencyMessage: trimmedMessage,
       emergencyImageUrl: imageUrl,
