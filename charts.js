@@ -48,12 +48,6 @@ const chartRangeLabels = Array.from(document.querySelectorAll("[data-chart-range
 const chartRangeSummary = document.getElementById("chartRangeSummary");
 const chartTrackedPosts = document.getElementById("chartTrackedPosts");
 const chartLastUpdated = document.getElementById("chartLastUpdated");
-const chartMetricDetail = document.getElementById("chartMetricDetail");
-const chartMetricDetailEyebrow = document.getElementById("chartMetricDetailEyebrow");
-const chartMetricDetailTitle = document.getElementById("chartMetricDetailTitle");
-const chartMetricDetailNote = document.getElementById("chartMetricDetailNote");
-const chartMetricDetailList = document.getElementById("chartMetricDetailList");
-const closeMetricDetail = document.getElementById("closeMetricDetail");
 
 const changePassDialog = document.getElementById("changePassDialog");
 const closeChangePass = document.getElementById("closeChangePass");
@@ -73,7 +67,6 @@ const RANGE_CONFIG = {
 let latestChartPayload = null;
 let currentIdentity = null;
 let currentRange = "7";
-let selectedMetric = null;
 let liveChartUnsubs = [];
 let chartViewportObserver = null;
 const chartAnimatedState = new WeakSet();
@@ -143,18 +136,6 @@ function formatWorkspaceTimestamp(date = new Date()) {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
-}
-
-function formatHistoryTimestamp(date) {
-  const parsed = toDate(date);
-  if (!parsed) return "--";
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(parsed);
 }
 
 function getLatestChartDataTimestamp({ posts = [], landmarks = [], users = [] } = {}) {
@@ -336,232 +317,6 @@ function renderMetric(element, value) {
   };
 
   element._metricAnimationFrame = requestAnimationFrame(step);
-}
-
-function setMetricSelection(metric = null) {
-  selectedMetric = metric || null;
-  metricTriggers.forEach((button) => {
-    const active = selectedMetric && button.dataset.metric === selectedMetric;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-expanded", active ? "true" : "false");
-  });
-}
-
-function getMetricTitle(metric) {
-  switch (metric) {
-    case "posts":
-      return t("community_posts_label");
-    case "users":
-      return t("stat_users");
-    case "landmarks":
-      return t("mapped_landmarks_label");
-    case "engagement":
-      return t("engagement_label");
-    case "emergencies":
-      return t("emergency_alerts_label");
-    default:
-      return t("metric_history_title");
-  }
-}
-
-function getMetricNote(metric) {
-  switch (metric) {
-    case "posts":
-      return t("metric_history_posts_note");
-    case "users":
-      return t("metric_history_users_note");
-    case "landmarks":
-      return t("metric_history_landmarks_note");
-    case "engagement":
-      return t("metric_history_engagement_note");
-    case "emergencies":
-      return t("metric_history_emergencies_note");
-    default:
-      return t("metric_history_note");
-  }
-}
-
-function getMetricEntries(metric, payload) {
-  const {
-    posts = [],
-    landmarks = [],
-    users = [],
-    emergencyAlerts = [],
-  } = payload || {};
-
-  switch (metric) {
-    case "posts":
-      return [...posts].sort((a, b) => {
-        const aTime = getDateValue(a, ["updatedAt", "createdAt"])?.getTime() || 0;
-        const bTime = getDateValue(b, ["updatedAt", "createdAt"])?.getTime() || 0;
-        return bTime - aTime;
-      });
-    case "users":
-      return [...users].sort((a, b) => {
-        const aTime = getDateValue(a, ["lastLoginAt", "createdAt"])?.getTime() || 0;
-        const bTime = getDateValue(b, ["lastLoginAt", "createdAt"])?.getTime() || 0;
-        return bTime - aTime;
-      });
-    case "landmarks":
-      return [...landmarks].sort((a, b) => {
-        const aTime = getDateValue(a, ["updatedAt", "createdAt"])?.getTime() || 0;
-        const bTime = getDateValue(b, ["updatedAt", "createdAt"])?.getTime() || 0;
-        return bTime - aTime;
-      });
-    case "emergencies":
-      return [...emergencyAlerts].sort((a, b) => {
-        const aTime = getDateValue(a, ["submittedAt", "updatedAt"])?.getTime() || 0;
-        const bTime = getDateValue(b, ["submittedAt", "updatedAt"])?.getTime() || 0;
-        return bTime - aTime;
-      });
-    default:
-      return [];
-  }
-}
-
-function renderMetricDetail(payload) {
-  if (!chartMetricDetail || !chartMetricDetailList) return;
-
-  if (!selectedMetric || !payload) {
-    chartMetricDetail.classList.add("hidden");
-    chartMetricDetailList.innerHTML = "";
-    return;
-  }
-
-  chartMetricDetail.classList.remove("hidden");
-  if (chartMetricDetailEyebrow) chartMetricDetailEyebrow.textContent = t("metric_history_eyebrow");
-  if (chartMetricDetailTitle) chartMetricDetailTitle.textContent = getMetricTitle(selectedMetric);
-  if (chartMetricDetailNote) chartMetricDetailNote.textContent = getMetricNote(selectedMetric);
-
-  if (selectedMetric === "engagement") {
-    const posts = payload.posts || [];
-    const likes = posts.reduce((sum, post) => sum + Math.max(0, Number(post.likes || 0)), 0);
-    const dislikes = posts.reduce((sum, post) => sum + Math.max(0, Number(post.dislikes || 0)), 0);
-    const total = likes + dislikes;
-    const topPosts = [...posts]
-      .sort((a, b) => {
-        const engagementA = Math.max(0, Number(a.likes || 0)) + Math.max(0, Number(a.dislikes || 0));
-        const engagementB = Math.max(0, Number(b.likes || 0)) + Math.max(0, Number(b.dislikes || 0));
-        return engagementB - engagementA;
-      })
-      .slice(0, 5);
-
-    const topPostsHtml = topPosts.length
-      ? topPosts.map((post) => {
-          const likesCount = Math.max(0, Number(post.likes || 0));
-          const dislikesCount = Math.max(0, Number(post.dislikes || 0));
-          return `
-            <a class="admin-history-item admin-history-item-link" href="posts.html?post=${encodeURIComponent(post.id)}#posts">
-              <div class="admin-history-head">
-                <h5>${escapeHtml(post.title || t("untitled_post"))}</h5>
-                <span class="admin-history-badge is-info">${formatCompactNumber(likesCount + dislikesCount)}</span>
-              </div>
-              <div class="admin-history-meta">
-                <span>${escapeHtml(t("likes_label"))}: ${formatCompactNumber(likesCount)}</span>
-                <span>${escapeHtml(t("dislikes_label"))}: ${formatCompactNumber(dislikesCount)}</span>
-                <span>${escapeHtml(post.author || t("contributor"))}</span>
-              </div>
-            </a>
-          `;
-        }).join("")
-      : `<p class="admin-history-empty">${escapeHtml(t("metric_history_empty"))}</p>`;
-
-    chartMetricDetailList.innerHTML = `
-      <div class="admin-history-split">
-        <article class="admin-history-summary">
-          <span class="admin-history-badge">${escapeHtml(t("likes_label"))}</span>
-          <strong>${formatCompactNumber(likes)}</strong>
-        </article>
-        <article class="admin-history-summary">
-          <span class="admin-history-badge is-warn">${escapeHtml(t("dislikes_label"))}</span>
-          <strong>${formatCompactNumber(dislikes)}</strong>
-        </article>
-        <article class="admin-history-summary">
-          <span class="admin-history-badge is-info">${escapeHtml(t("total_interactions"))}</span>
-          <strong>${formatCompactNumber(total)}</strong>
-        </article>
-      </div>
-      ${topPostsHtml}
-    `;
-    return;
-  }
-
-  const entries = getMetricEntries(selectedMetric, payload);
-  if (!entries.length) {
-    chartMetricDetailList.innerHTML = `<p class="admin-history-empty">${escapeHtml(t("metric_history_empty"))}</p>`;
-    return;
-  }
-
-  chartMetricDetailList.innerHTML = entries.map((entry) => {
-    if (selectedMetric === "posts") {
-      const href = `posts.html?post=${encodeURIComponent(entry.id)}#posts`;
-      return `
-        <a class="admin-history-item admin-history-item-link" href="${href}">
-          <div class="admin-history-head">
-            <h5>${escapeHtml(entry.title || t("untitled_post"))}</h5>
-            <span class="admin-history-badge">${formatCompactNumber((entry.likes || 0) + (entry.dislikes || 0))}</span>
-          </div>
-          <div class="admin-history-meta">
-            <span>${escapeHtml(entry.author || t("contributor"))}</span>
-            <span>${formatHistoryTimestamp(getDateValue(entry, ["updatedAt", "createdAt"]))}</span>
-          </div>
-          <p class="admin-history-copy">${escapeHtml((entry.content || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 180) || t("metric_history_no_summary"))}</p>
-        </a>
-      `;
-    }
-
-    if (selectedMetric === "users") {
-      return `
-        <article class="admin-history-item">
-          <div class="admin-history-head">
-            <h5>${escapeHtml(entry.username || "--")}</h5>
-            <span class="admin-history-badge is-info">${escapeHtml(t("profile"))}</span>
-          </div>
-          <div class="admin-history-meta">
-            <span>${escapeHtml(entry.email || "--")}</span>
-            <span>${escapeHtml(t("stat_updated"))}: ${formatHistoryTimestamp(getDateValue(entry, ["lastLoginAt", "createdAt"]))}</span>
-          </div>
-        </article>
-      `;
-    }
-
-    if (selectedMetric === "landmarks") {
-      const href = `landmark.html?id=${encodeURIComponent(entry.id)}`;
-      return `
-        <a class="admin-history-item admin-history-item-link" href="${href}">
-          <div class="admin-history-head">
-            <h5>${escapeHtml(entry.name || "--")}</h5>
-            <span class="admin-history-badge">${escapeHtml(t("landmark"))}</span>
-          </div>
-          <div class="admin-history-meta">
-            <span>${formatHistoryTimestamp(getDateValue(entry, ["updatedAt", "createdAt"]))}</span>
-            <span>${Number(entry.lat).toFixed(4)}, ${Number(entry.lng).toFixed(4)}</span>
-          </div>
-          <p class="admin-history-copy">${escapeHtml(String(entry.summary || "").trim().slice(0, 220) || t("metric_history_no_summary"))}</p>
-        </a>
-      `;
-    }
-
-    if (selectedMetric === "emergencies") {
-      const status = entry.status || "pending";
-      const statusClass = status === "pending" ? "is-warn" : "is-info";
-      return `
-        <article class="admin-history-item">
-          <div class="admin-history-head">
-            <h5>${escapeHtml(entry.username || entry.email || "--")}</h5>
-            <span class="admin-history-badge ${statusClass}">${escapeHtml(status)}</span>
-          </div>
-          <div class="admin-history-meta">
-            <span>${escapeHtml(entry.email || "--")}</span>
-            <span>${formatHistoryTimestamp(getDateValue(entry, ["submittedAt", "updatedAt"]))}</span>
-          </div>
-          <p class="admin-history-copy">${escapeHtml(String(entry.message || "").trim().slice(0, 220) || t("metric_history_no_summary"))}</p>
-        </article>
-      `;
-    }
-
-    return "";
-  }).join("");
 }
 
 function buildYAxisTicks(maxValue, maxTicks = 4) {
@@ -927,7 +682,6 @@ function renderCharts(payload) {
       .slice(0, 5)
   );
 
-  renderMetricDetail(payload);
 }
 
 function setRange(range) {
@@ -1058,20 +812,9 @@ window.addEventListener("language-changed", () => {
 metricTriggers.forEach((button) => {
   button.addEventListener("click", () => {
     const metric = button.dataset.metric;
-    const nextMetric = selectedMetric === metric ? null : metric;
-    setMetricSelection(nextMetric);
-    renderMetricDetail(latestChartPayload);
-    if (nextMetric && chartMetricDetail) {
-      requestAnimationFrame(() => {
-        chartMetricDetail.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      });
-    }
+    if (!metric) return;
+    window.location.href = `metric-history.html?metric=${encodeURIComponent(metric)}&range=${encodeURIComponent(currentRange)}`;
   });
-});
-
-closeMetricDetail?.addEventListener("click", () => {
-  setMetricSelection(null);
-  renderMetricDetail(latestChartPayload);
 });
 
 observeAuth(async (user) => {
