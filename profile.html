@@ -59,6 +59,7 @@
         <a id="profileBtn" class="ghost" href="profile.html" aria-current="page" data-i18n="profile">Profile</a>
         <a id="adminToolsSidebarLink" class="ghost hidden" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
         <a id="chartsSidebarLink" class="ghost hidden" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <a id="trackerSidebarLink" class="ghost hidden" href="tracker.html">User Locations</a>
         <button id="changePassBtn" class="ghost" type="button" data-i18n="change_password">Change Password</button>
         <a class="ghost" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
         <button id="logoutBtn" class="solid" data-i18n="logout">Logout</button>
@@ -81,6 +82,7 @@
         </button>
         <a id="mobileAdminToolsLink" class="ghost full hidden" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
         <a id="mobileChartsLink" class="ghost full hidden" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <a id="mobileTrackerLink" class="ghost full hidden" href="tracker.html">User Locations</a>
         <button id="mobileChangePassBtn" class="ghost full" type="button" data-i18n="change_password">Change Password</button>
         <a class="ghost full" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
         <button id="mobileLogoutBtn" class="solid full" data-i18n="logout">Logout</button>
@@ -127,6 +129,38 @@
 
         <div class="profile-quick-actions">
           <a href="#profilePostsSection" class="ghost small" data-i18n="your_posts_title">Your Posts</a>
+          <button id="shareLocationQuickAction" type="button" class="ghost small">Share My Location</button>
+          <a id="trackerQuickAction" href="tracker.html" class="ghost small hidden">Show User Locations</a>
+        </div>
+      </section>
+
+      <section class="admin-card location-share-card" data-reveal data-reveal-delay="120">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow">Location Sharing</p>
+            <h4>Share your latest location</h4>
+            <p class="admin-card-note">
+              If you agree, the admin tracker can see the latest location you choose to share. When you update it again from another place, your saved location will be replaced.
+            </p>
+          </div>
+          <div class="profile-location-actions">
+            <button id="shareLocationBtn" type="button" class="solid">Share My Location</button>
+            <a id="trackerActionLink" href="tracker.html" class="ghost hidden">Show User Locations</a>
+          </div>
+        </div>
+        <div class="workspace-meta location-meta-grid">
+          <article class="workspace-meta-pill">
+            <span>Sharing Status</span>
+            <strong id="locationShareStatus">Not shared yet</strong>
+          </article>
+          <article class="workspace-meta-pill">
+            <span>Last Updated</span>
+            <strong id="locationUpdatedAt">Waiting for your first shared location</strong>
+          </article>
+          <article class="workspace-meta-pill">
+            <span>Accuracy</span>
+            <strong id="locationAccuracy">No location synced yet</strong>
+          </article>
         </div>
       </section>
 
@@ -201,6 +235,27 @@
         </div>
         <div id="profileEditor" class="editor" contenteditable="true"></div>
         <button id="profileSaveBtn" class="solid full" data-i18n="save_changes">Save changes</button>
+      </div>
+    </dialog>
+
+    <dialog id="locationConsentDialog" class="modal">
+      <div class="modal-header">
+        <h3>Share your location?</h3>
+        <button class="icon-btn" id="closeLocationConsent" type="button">&times;</button>
+      </div>
+      <div class="form location-consent-copy">
+        <p>
+          If you agree, your account will appear on the admin location tracker with the latest location you choose to share.
+        </p>
+        <ul class="consent-points">
+          <li>The admin can view your latest shared location on a private tracker map.</li>
+          <li>Your saved location will update if you share again from another place.</li>
+          <li>This agreement appears only once for your account.</li>
+        </ul>
+        <div class="admin-actions">
+          <button id="locationConsentDecline" class="ghost" type="button">Not now</button>
+          <button id="locationConsentAgree" class="solid" type="button">I agree and want to share</button>
+        </div>
       </div>
     </dialog>
 
