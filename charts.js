@@ -621,7 +621,7 @@ function renderCharts(payload) {
 
   renderMetric(adminMetricPosts, filteredPosts.length);
   renderMetric(adminMetricUsers, currentRange === "all" ? userCount : filteredUsers.length);
-  renderMetric(adminMetricLandmarks, filteredLandmarks.length);
+  renderMetric(adminMetricLandmarks, landmarks.length);
   renderMetric(adminMetricEngagement, totalEngagement);
   renderMetric(adminMetricEmergencies, filteredEmergencyAlerts.length);
   if (chartRangeSummary) chartRangeSummary.textContent = getRangeLabel();
