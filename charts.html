@@ -144,27 +144,40 @@
           </div>
         </div>
         <div class="admin-metrics-grid">
-          <article class="admin-metric-tile">
+          <button type="button" class="admin-metric-tile admin-metric-trigger" data-metric="posts" aria-controls="chartMetricDetail" aria-expanded="false">
             <span class="admin-metric-label" data-i18n="community_posts_label">Community Posts</span>
             <strong id="adminMetricPosts">--</strong>
-          </article>
-          <article class="admin-metric-tile">
+          </button>
+          <button type="button" class="admin-metric-tile admin-metric-trigger" data-metric="users" aria-controls="chartMetricDetail" aria-expanded="false">
             <span class="admin-metric-label" data-i18n="stat_users">Total users</span>
             <strong id="adminMetricUsers">--</strong>
-          </article>
-          <article class="admin-metric-tile">
+          </button>
+          <button type="button" class="admin-metric-tile admin-metric-trigger" data-metric="landmarks" aria-controls="chartMetricDetail" aria-expanded="false">
             <span class="admin-metric-label" data-i18n="mapped_landmarks_label">Mapped Landmarks</span>
             <strong id="adminMetricLandmarks">--</strong>
-          </article>
-          <article class="admin-metric-tile">
+          </button>
+          <button type="button" class="admin-metric-tile admin-metric-trigger" data-metric="engagement" aria-controls="chartMetricDetail" aria-expanded="false">
             <span class="admin-metric-label" data-i18n="engagement_label">Total Engagement</span>
             <strong id="adminMetricEngagement">--</strong>
-          </article>
-          <article class="admin-metric-tile">
+          </button>
+          <button type="button" class="admin-metric-tile admin-metric-trigger" data-metric="emergencies" aria-controls="chartMetricDetail" aria-expanded="false">
             <span class="admin-metric-label" data-i18n="emergency_alerts_label">Emergency Alerts</span>
             <strong id="adminMetricEmergencies">--</strong>
-          </article>
+          </button>
         </div>
+        <article id="chartMetricDetail" class="admin-chart-panel admin-metric-detail hidden" aria-live="polite">
+          <div class="admin-side-head">
+            <div>
+              <p id="chartMetricDetailEyebrow" class="admin-card-eyebrow" data-i18n="metric_history_eyebrow">Records</p>
+              <h4 id="chartMetricDetailTitle" data-i18n="metric_history_title">Indicator details</h4>
+              <p id="chartMetricDetailNote" class="admin-card-note" data-i18n="metric_history_note">
+                Review the records behind this dashboard indicator.
+              </p>
+            </div>
+            <button id="closeMetricDetail" type="button" class="ghost" data-i18n="hide_details">Hide Details</button>
+          </div>
+          <div id="chartMetricDetailList" class="admin-history-list"></div>
+        </article>
         <div class="admin-chart-grid">
           <article class="admin-chart-panel">
             <div class="admin-side-head">
