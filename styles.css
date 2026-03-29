@@ -1030,6 +1030,105 @@ button {
   margin-top: 2px;
 }
 
+.emergency-response-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+  box-shadow: var(--shadow);
+}
+
+.emergency-response-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.emergency-response-head h5 {
+  margin: 6px 0 0;
+  font-size: 1.05rem;
+}
+
+.emergency-response-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.emergency-response-text {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.emergency-response-card.is-neutral .emergency-response-badge {
+  border-color: rgba(90, 154, 106, 0.24);
+  color: var(--accent);
+}
+
+.emergency-response-card.is-pending {
+  border-color: rgba(195, 107, 42, 0.24);
+  background:
+    linear-gradient(155deg, rgba(195, 107, 42, 0.14), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.emergency-response-card.is-pending .emergency-response-badge {
+  border-color: rgba(195, 107, 42, 0.36);
+  color: #f1bf76;
+}
+
+.emergency-response-card.is-approved {
+  border-color: rgba(90, 154, 106, 0.28);
+  background:
+    linear-gradient(155deg, rgba(90, 154, 106, 0.16), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.emergency-response-card.is-approved .emergency-response-badge {
+  border-color: rgba(90, 154, 106, 0.38);
+  color: #88d39a;
+}
+
+.emergency-response-card.is-help {
+  border-color: rgba(43, 123, 255, 0.26);
+  background:
+    linear-gradient(155deg, rgba(43, 123, 255, 0.14), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.emergency-response-card.is-help .emergency-response-badge {
+  border-color: rgba(43, 123, 255, 0.38);
+  color: #8ec2ff;
+}
+
+.emergency-response-card.is-declined {
+  border-color: rgba(196, 83, 68, 0.28);
+  background:
+    linear-gradient(155deg, rgba(196, 83, 68, 0.16), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.emergency-response-card.is-declined .emergency-response-badge {
+  border-color: rgba(196, 83, 68, 0.38);
+  color: #ffaea3;
+}
+
 .location-consent-copy {
   gap: 14px;
 }
@@ -1328,6 +1427,17 @@ button {
 [data-theme="light"] .tracker-empty {
   background: #ffffff;
   border-color: #d8dfd2;
+  color: #1b1f1a;
+}
+
+[data-theme="light"] .emergency-response-card {
+  background: #ffffff;
+  border-color: #d8dfd2;
+}
+
+[data-theme="light"] .emergency-response-badge {
+  background: rgba(27, 31, 26, 0.04);
+  border-color: rgba(27, 31, 26, 0.08);
   color: #1b1f1a;
 }
 
