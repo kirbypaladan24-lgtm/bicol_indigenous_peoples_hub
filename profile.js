@@ -146,6 +146,10 @@ function renderWorkspaceSummary({ role = t("guest_role"), ownedCount = 0, commun
   mobileTrackerLink?.classList.toggle("hidden", !admin);
   trackerQuickAction?.classList.toggle("hidden", !admin);
   trackerActionLink?.classList.toggle("hidden", !admin);
+  shareLocationQuickAction?.classList.toggle("hidden", admin);
+  emergencyQuickAction?.classList.toggle("hidden", admin);
+  shareLocationBtn?.classList.toggle("hidden", admin);
+  emergencyBtn?.classList.toggle("hidden", admin);
 }
 
 function hasSharedCoordinates(record) {
