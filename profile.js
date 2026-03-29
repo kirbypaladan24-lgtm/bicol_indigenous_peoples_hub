@@ -53,10 +53,6 @@ const shareLocationQuickAction = document.getElementById("shareLocationQuickActi
 const emergencyQuickAction = document.getElementById("emergencyQuickAction");
 const shareLocationBtn = document.getElementById("shareLocationBtn");
 const emergencyBtn = document.getElementById("emergencyBtn");
-const locationShareStatus = document.getElementById("locationShareStatus");
-const locationUpdatedAt = document.getElementById("locationUpdatedAt");
-const locationAccuracy = document.getElementById("locationAccuracy");
-const emergencyStatus = document.getElementById("emergencyStatus");
 const emergencyResponseCard = document.getElementById("emergencyResponseCard");
 const emergencyResponseTitle = document.getElementById("emergencyResponseTitle");
 const emergencyResponseBadge = document.getElementById("emergencyResponseBadge");
@@ -180,10 +176,7 @@ function formatTimestamp(timestamp) {
 
 function renderLocationShareState(record = currentLocationRecord) {
   currentLocationRecord = record || null;
-  const hasConsent = Boolean(record?.consentAccepted || record?.consentAcceptedAt);
   const hasLocation = hasSharedCoordinates(record);
-  const updatedText = formatTimestamp(record?.updatedAt);
-  const accuracyValue = Number.isFinite(record?.accuracy) ? Math.round(record.accuracy) : null;
   const responseStatus = record?.responseStatus || null;
   const responseReason = String(record?.responseReason || "").trim();
   const emergencyActive = record?.emergencyActive === true;
@@ -219,50 +212,12 @@ function renderLocationShareState(record = currentLocationRecord) {
   }
 
   if (!currentUser) {
-    if (locationShareStatus) locationShareStatus.textContent = "Log in to share your location.";
-    if (locationUpdatedAt) locationUpdatedAt.textContent = "Waiting for your first shared location";
-    if (locationAccuracy) locationAccuracy.textContent = "No location synced yet";
-    if (emergencyStatus) emergencyStatus.textContent = "Log in first";
     if (emergencyResponseTitle) emergencyResponseTitle.textContent = "Log in to use emergency alerts";
     if (emergencyResponseBadge) emergencyResponseBadge.textContent = "Unavailable";
     if (emergencyResponseText) emergencyResponseText.textContent = "Share your location first, then you can send an emergency alert with image proof if something urgent happens.";
     emergencyResponseCard?.classList.remove("is-pending", "is-approved", "is-help", "is-declined");
     emergencyResponseCard?.classList.add("is-neutral");
     return;
-  }
-
-  if (locationShareStatus) {
-    locationShareStatus.textContent = hasLocation
-      ? "Shared with the admin tracker"
-      : hasConsent
-        ? "Agreement saved. You can update your shared location anytime."
-        : "Not shared yet";
-  }
-
-  if (locationUpdatedAt) {
-    locationUpdatedAt.textContent = updatedText || "Waiting for your first shared location";
-  }
-
-  if (locationAccuracy) {
-    locationAccuracy.textContent = accuracyValue != null
-      ? `Accuracy about ${accuracyValue} meters`
-      : "No location synced yet";
-  }
-
-  if (emergencyStatus) {
-    if (!hasLocation) {
-      emergencyStatus.textContent = "Share location first";
-    } else if (record?.emergencyStatus === "pending") {
-      emergencyStatus.textContent = "Pending admin review";
-    } else if (responseStatus === "approved") {
-      emergencyStatus.textContent = "Approved";
-    } else if (responseStatus === "help_on_the_way") {
-      emergencyStatus.textContent = "Help is on the way";
-    } else if (responseStatus === "declined") {
-      emergencyStatus.textContent = "Declined";
-    } else {
-      emergencyStatus.textContent = "No alert sent";
-    }
   }
 
   if (emergencyResponseText) {
