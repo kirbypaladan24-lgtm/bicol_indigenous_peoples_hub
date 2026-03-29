@@ -507,7 +507,7 @@ function renderTopPosts(container, posts = []) {
       const dislikes = Math.max(0, Number(post.dislikes || 0));
       const engagement = likes + dislikes;
       const published = getDateValue(post, ["createdAt", "updatedAt"]);
-      const postLink = post?.id ? `index.html?post=${encodeURIComponent(post.id)}#posts` : "";
+      const postLink = post?.id ? `posts.html?post=${encodeURIComponent(post.id)}#posts` : "";
       const wrapperTag = postLink ? "a" : "article";
       const wrapperAttrs = postLink
         ? `class="admin-top-post admin-top-post-link" href="${postLink}" aria-label="${escapeHtml(post.title || t("untitled_post"))}"`
