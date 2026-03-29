@@ -3,6 +3,7 @@ import {
   observePosts,
   observeUsers,
   observeLandmarks,
+  observeSharedLocations,
   logout,
   changePassword,
   getUserProfile,
@@ -10,6 +11,7 @@ import {
   fetchPosts,
   fetchLandmarks,
   fetchUsers,
+  fetchSharedLocations,
 } from "./auth.js";
 import { initI18n, t } from "./i18n.js";
 import { showToast } from "./ui.js";
@@ -33,9 +35,11 @@ const adminMetricPosts = document.getElementById("adminMetricPosts");
 const adminMetricUsers = document.getElementById("adminMetricUsers");
 const adminMetricLandmarks = document.getElementById("adminMetricLandmarks");
 const adminMetricEngagement = document.getElementById("adminMetricEngagement");
+const adminMetricEmergencies = document.getElementById("adminMetricEmergencies");
 const adminPostsChart = document.getElementById("adminPostsChart");
 const adminUsersChart = document.getElementById("adminUsersChart");
 const adminLandmarksChart = document.getElementById("adminLandmarksChart");
+const adminEmergencyChart = document.getElementById("adminEmergencyChart");
 const adminEngagementChart = document.getElementById("adminEngagementChart");
 const adminTopPosts = document.getElementById("adminTopPosts");
 const rangeButtons = Array.from(document.querySelectorAll("[data-range]"));
@@ -461,6 +465,7 @@ function initChartViewportObserver() {
     adminPostsChart,
     adminUsersChart,
     adminLandmarksChart,
+    adminEmergencyChart,
     adminEngagementChart,
   ].filter(Boolean);
 
@@ -551,6 +556,7 @@ function updateChartPayload(partial = {}) {
     posts: latestChartPayload?.posts || [],
     landmarks: latestChartPayload?.landmarks || [],
     users: latestChartPayload?.users || [],
+    sharedLocations: latestChartPayload?.sharedLocations || [],
     userCount: latestChartPayload?.userCount || 0,
     ...partial,
   };
@@ -576,6 +582,9 @@ function startLiveChartObservers() {
     observeUsers((users) => {
       updateChartPayload({ users, userCount: users.length });
     }),
+    observeSharedLocations((sharedLocations) => {
+      updateChartPayload({ sharedLocations });
+    }),
   ];
 }
 
@@ -586,21 +595,35 @@ function renderCharts(payload) {
     posts = [],
     landmarks = [],
     users = [],
+    sharedLocations = [],
     userCount = 0,
   } = payload || {};
 
   const filteredPosts = filterItemsByRange(posts, ["createdAt", "updatedAt"], currentRange);
   const filteredLandmarks = filterItemsByRange(landmarks, ["createdAt", "updatedAt"], currentRange);
   const filteredUsers = filterItemsByRange(users, ["lastLoginAt", "createdAt"], currentRange);
+  const filteredEmergencyAlerts = filterItemsByRange(sharedLocations, ["emergencySubmittedAt"], currentRange)
+    .filter((entry) => Boolean(getDateValue(entry, ["emergencySubmittedAt"])));
   const filteredLikes = filteredPosts.reduce((sum, post) => sum + Math.max(0, Number(post.likes || 0)), 0);
   const filteredDislikes = filteredPosts.reduce((sum, post) => sum + Math.max(0, Number(post.dislikes || 0)), 0);
   const totalEngagement = filteredLikes + filteredDislikes;
-  const latestDataTimestamp = getLatestChartDataTimestamp({ posts, landmarks, users });
+  const emergencyTimestamps = sharedLocations
+    .map((item) => getDateValue(item, ["emergencySubmittedAt", "updatedAt"]))
+    .filter(Boolean);
+  const baseLatestDataTimestamp = getLatestChartDataTimestamp({ posts, landmarks, users });
+  const latestEmergencyTimestamp = emergencyTimestamps.length
+    ? new Date(Math.max(...emergencyTimestamps.map((date) => date.getTime())))
+    : null;
+  const latestDataTimestamp =
+    baseLatestDataTimestamp && latestEmergencyTimestamp
+      ? new Date(Math.max(baseLatestDataTimestamp.getTime(), latestEmergencyTimestamp.getTime()))
+      : latestEmergencyTimestamp || baseLatestDataTimestamp;
 
   renderMetric(adminMetricPosts, filteredPosts.length);
   renderMetric(adminMetricUsers, currentRange === "all" ? userCount : filteredUsers.length);
   renderMetric(adminMetricLandmarks, filteredLandmarks.length);
   renderMetric(adminMetricEngagement, totalEngagement);
+  renderMetric(adminMetricEmergencies, filteredEmergencyAlerts.length);
   if (chartRangeSummary) chartRangeSummary.textContent = getRangeLabel();
   if (chartTrackedPosts) chartTrackedPosts.textContent = formatCompactNumber(filteredPosts.length);
   if (chartLastUpdated) {
@@ -625,6 +648,11 @@ function renderCharts(payload) {
     adminLandmarksChart,
     buildSeriesForRange(filteredLandmarks, (item) => getDateValue(item, ["createdAt", "updatedAt"]), currentRange),
     { lineColor: "#c36b2a", fillColor: "rgba(195, 107, 42, 0.14)" }
+  );
+  renderLineChart(
+    adminEmergencyChart,
+    buildSeriesForRange(filteredEmergencyAlerts, (item) => getDateValue(item, ["emergencySubmittedAt"]), currentRange),
+    { lineColor: "#c94a4a", fillColor: "rgba(201, 74, 74, 0.14)" }
   );
   renderBarChart(adminEngagementChart, [
     { label: t("likes_label"), value: filteredLikes, color: "#5a9a6a" },
@@ -667,11 +695,13 @@ async function loadCharts() {
     fetchLandmarks(true),
     fetchUsers(true),
   ]);
+  const sharedLocations = await fetchSharedLocations(true);
 
   renderCharts({
     posts,
     landmarks,
     users,
+    sharedLocations,
     userCount: users.length,
   });
 
