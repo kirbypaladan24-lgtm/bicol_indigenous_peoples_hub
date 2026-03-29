@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b120d" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Posts | Bicol Indigenous Peoples Hub</title>
+  <meta
+    name="description"
+    content="Browse all community posts, stories, and shared cultural knowledge from the Bicol Indigenous Peoples Hub."
+  />
+  <link rel="icon" type="image/png" href="./favicon.png" sizes="64x64" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="has-desktop-shortcuts">
+  <a class="skip-link" href="#posts" data-i18n="skip_to_content">Skip to content</a>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <img
+          src="./brand-mark.png"
+          alt="Bicol Indigenous Peoples Hub Logo"
+          width="512"
+          height="512"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </span>
+      <div>
+        <h1 data-i18n="page_title">Bicol Indigenous Peoples Hub</h1>
+        <p data-i18n="brand_tagline">Stories, heritage, and living culture</p>
+      </div>
+    </div>
+    <div class="auth-cta">
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-thumb"></span>
+        <span class="toggle-icon sun">&#9728;</span>
+        <span class="toggle-icon moon">&#9790;</span>
+      </button>
+      <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+    </div>
+  </header>
+
+  <aside class="desktop-shortcuts" aria-label="Primary sidebar">
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html#home" data-i18n="nav_home">Home</a>
+      <a href="index.html#map" data-i18n="nav_map">Map</a>
+      <a href="posts.html" data-i18n="nav_posts">Posts</a>
+      <a href="index.html#about" data-i18n="nav_about">About</a>
+      <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+    </nav>
+    <div class="sidebar-actions">
+      <a id="profileBtn" class="ghost hidden" href="profile.html" data-i18n="profile">Profile</a>
+      <a id="adminToolsBtn" class="ghost hidden" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
+      <a id="chartsBtn" class="ghost hidden" href="charts.html" data-i18n="data_charts">Data Charts</a>
+      <button id="changePassBtn" class="ghost hidden" type="button" data-i18n="change_password">Change Password</button>
+      <a class="ghost" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+      <button id="loginBtn" class="ghost" data-i18n="login">Login</button>
+      <button id="logoutBtn" class="solid hidden" data-i18n="logout">Logout</button>
+      <div class="sidebar-controls">
+        <select
+          id="languageSelect"
+          class="language-select"
+          data-language-selector
+          data-i18n-aria-label="choose_language"
+          aria-label="Choose language"
+        ></select>
+      </div>
+    </div>
+  </aside>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <div class="mobile-links">
+      <a href="index.html#home" data-i18n="nav_home">Home</a>
+      <a href="index.html#map" data-i18n="nav_map">Map</a>
+      <a href="posts.html" data-i18n="nav_posts">Posts</a>
+      <a href="index.html#about" data-i18n="nav_about">About</a>
+      <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+    </div>
+    <div class="mobile-actions">
+      <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
+        <span class="toggle-thumb"></span>
+        <span class="toggle-icon sun">&#9728;</span>
+        <span class="toggle-icon moon">&#9790;</span>
+      </button>
+      <a id="mobileProfileBtn" class="ghost full hidden" href="profile.html" data-i18n="profile">Profile</a>
+      <a id="mobileAdminToolsBtn" class="ghost full hidden" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
+      <a id="mobileChartsBtn" class="ghost full hidden" href="charts.html" data-i18n="data_charts">Data Charts</a>
+      <button id="mobileChangePassBtn" class="ghost full hidden" type="button" data-i18n="change_password">Change Password</button>
+      <a class="ghost full" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+      <button id="mobileLoginBtn" class="ghost full" data-i18n="login">Login</button>
+      <button id="mobileLogoutBtn" class="solid full hidden" data-i18n="logout">Logout</button>
+      <select
+        id="mobileLanguageSelect"
+        class="language-select full"
+        data-language-selector
+        data-i18n-aria-label="choose_language"
+        aria-label="Choose language"
+      ></select>
+    </div>
+  </div>
+
+  <main class="hero hero-shell">
+    <div class="hero-content" data-reveal data-reveal-delay="20">
+      <p class="eyebrow" data-i18n="posts_eyebrow">Community Posts</p>
+      <h2 data-i18n="posts_title">Knowledge and lived experiences</h2>
+      <p class="lede">
+        Browse the full archive of community stories, shared knowledge, and cultural reflections from across Bicol.
+      </p>
+      <div class="hero-actions">
+        <button class="solid" id="exploreBtn" data-i18n="btn_explore_posts">Explore Posts</button>
+        <a class="ghost" href="index.html#home" data-i18n="nav_home">Home</a>
+      </div>
+    </div>
+    <div class="hero-card" data-reveal data-reveal-delay="140">
+      <div class="hero-card-head">
+        <p class="eyebrow">Archive Overview</p>
+        <h3>A dedicated space for reading and sharing posts.</h3>
+      </div>
+      <div class="stat">
+        <span id="postCount">--</span>
+        <p data-i18n="stat_posts">Community posts</p>
+      </div>
+      <div class="stat">
+        <span id="userCount">--</span>
+        <p data-i18n="stat_users">Total users</p>
+      </div>
+      <div class="stat">
+        <span id="lastUpdated">--</span>
+        <p data-i18n="stat_updated">Last update</p>
+      </div>
+      <div class="pill">Cleaner reading space • Full post archive</div>
+    </div>
+  </main>
+
+  <section id="posts" class="section" data-reveal>
+    <div class="section-head">
+      <div>
+        <p class="eyebrow" data-i18n="posts_eyebrow">Community Posts</p>
+        <h3 data-i18n="posts_title">Knowledge and lived experiences</h3>
+      </div>
+      <div class="posts-tools">
+        <div class="searchbar">
+          <span class="search-icon" aria-hidden="true">&#8981;</span>
+          <input id="postSearch" type="search" placeholder="Search posts..." aria-label="Search posts" data-i18n-placeholder="posts_search_placeholder" data-i18n-aria-label="posts_search_placeholder" />
+          <button id="clearPostSearch" class="icon-btn small" type="button" aria-label="Clear search" data-i18n-aria-label="clear_search">&#215;</button>
+        </div>
+      </div>
+      <button id="newPostBtn" class="solid small hidden" data-i18n="btn_new_post">New Post</button>
+    </div>
+    <div id="focusedPostNotice" class="focused-post-notice hidden" aria-live="polite"></div>
+    <div id="postsGrid" class="posts-feed"></div>
+    <div class="empty" id="postsEmpty" data-i18n="posts_empty">No posts yet. Sign in to add the first story.</div>
+  </section>
+
+  <section class="section contact contact-shell">
+    <div class="contact-story-card" data-reveal>
+      <p class="eyebrow" data-i18n="contact_eyebrow">Contact</p>
+      <h3 data-i18n="contact_title">Partner with communities</h3>
+      <p class="contact-email-line">Email: <a class="contact-mail" href="mailto:bicolindigenouspeopleshub@gmail.com">bicolindigenouspeopleshub@gmail.com</a></p>
+      <p data-i18n="contact_text">For collaboration, capacity building, and data stewardship inquiries.</p>
+    </div>
+    <div class="cta-card contact-cta-card" data-reveal data-reveal-delay="120">
+      <h4 data-i18n="cta_title">Want to contribute content?</h4>
+      <p data-i18n="cta_text">Sign in and share verified stories, photos, and references. Admins can review and publish.</p>
+      <button class="solid" id="ctaLoginBtn" data-i18n="cta_btn">Login to contribute</button>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <h4 data-i18n="footer_title">Bicol Indigenous Peoples Hub</h4>
+        <p data-i18n="footer_desc">Community-led stories, cultural preservation, and respectful knowledge sharing.</p>
+      </div>
+      <div>
+        <h4 data-i18n="footer_explore">Explore</h4>
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="posts.html" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="policy.html" data-i18n="footer_policy">Privacy & Content Policy</a>
+      </div>
+      <div>
+        <h4 data-i18n="footer_contact">Contact</h4>
+        <a href="mailto:bicolindigenouspeopleshub@gmail.com">bicolindigenouspeopleshub@gmail.com</a>
+        <a href="index.html#contact" data-i18n="footer_collab">Collaboration</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span data-i18n="footer_copyright">&copy; 2026 Bicol Indigenous Peoples Hub. All rights reserved.</span>
+      <span data-i18n="footer_developed_by">Developed By Kirby Paladan</span>
+      <span data-i18n="footer_built">Built with community care</span>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast hidden" aria-live="polite"></div>
+  <dialog id="mediaLightbox" class="lightbox">
+    <button id="lightboxPrev" class="icon-btn lightbox-nav" aria-label="Previous image" data-i18n-aria-label="previous_image">&#8249;</button>
+    <img id="lightboxImg" alt="Post media full size" />
+    <button id="lightboxNext" class="icon-btn lightbox-nav" aria-label="Next image" data-i18n-aria-label="next_image">&#8250;</button>
+    <button id="lightboxClose" class="icon-btn lightbox-close" aria-label="Close image" data-i18n-aria-label="close_image">&#215;</button>
+  </dialog>
+  <dialog id="userPostDialog" class="modal">
+    <div class="modal-header">
+      <h3 data-i18n="share_post">Share a post</h3>
+      <button class="icon-btn" id="closeUserPost">&times;</button>
+    </div>
+    <div class="form">
+      <label data-i18n="title">Title</label>
+      <input type="text" id="userPostTitle" placeholder="Post title" data-i18n-placeholder="post_title_placeholder" />
+      <label data-i18n="cover_images_optional">Cover Images (optional, up to 10)</label>
+      <input type="file" id="userImageInput" accept="image/*" multiple />
+      <div id="imagePreviewUser" class="media-preview"></div>
+      <div class="toolbar" id="userToolbar">
+        <button data-cmd="undo" type="button" data-i18n="toolbar_undo">Undo</button>
+        <button data-cmd="redo" type="button" data-i18n="toolbar_redo">Redo</button>
+        <button data-cmd="bold" type="button" data-i18n="toolbar_bold">Bold</button>
+        <button data-cmd="italic" type="button" data-i18n="toolbar_italic">Italic</button>
+        <button data-cmd="underline" type="button" data-i18n="toolbar_underline">Underline</button>
+        <select data-cmd="fontName">
+          <option value="" data-i18n="toolbar_font">Font</option>
+          <option value="Sora">Sora</option>
+          <option value="Manrope">Manrope</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Arial">Arial</option>
+        </select>
+        <button data-cmd="formatBlock" data-value="h2" type="button">H2</button>
+        <button data-cmd="formatBlock" data-value="h3" type="button">H3</button>
+        <button data-cmd="formatBlock" data-value="p" type="button" data-i18n="toolbar_body">Body</button>
+        <button data-cmd="insertUnorderedList" type="button" data-i18n="toolbar_bullets">Bullets</button>
+        <button data-cmd="insertOrderedList" type="button" data-i18n="toolbar_numbered">Numbered</button>
+        <button data-cmd="formatBlock" data-value="blockquote" type="button" data-i18n="toolbar_quote">Quote</button>
+        <button data-cmd="justifyLeft" type="button" data-i18n="toolbar_left">Left</button>
+        <button data-cmd="justifyCenter" type="button" data-i18n="toolbar_center">Center</button>
+        <button data-cmd="justifyRight" type="button" data-i18n="toolbar_right">Right</button>
+        <button data-cmd="createLink" type="button" data-i18n="toolbar_link">Link</button>
+        <button data-cmd="insertHorizontalRule" type="button" data-i18n="toolbar_line">Line</button>
+        <button data-cmd="removeFormat" type="button" data-i18n="toolbar_clear">Clear</button>
+      </div>
+      <div id="userEditor" class="editor" contenteditable="true"></div>
+      <button id="userSavePostBtn" class="solid full" data-i18n="publish">Publish</button>
+    </div>
+  </dialog>
+  <dialog id="policyDialog" class="modal policy-modal">
+    <div class="modal-header">
+      <h3 data-i18n="user_agreement">User Agreement</h3>
+    </div>
+    <div class="policy-body">
+      <p data-i18n="policy_intro">Please review and accept our community policies to continue:</p>
+      <ul>
+        <li data-i18n="policy_1">Respectful communication only. Harassment, hate, or abuse is not allowed.</li>
+        <li data-i18n="policy_2">Share accurate information and cite sources when possible.</li>
+        <li data-i18n="policy_3">Do not upload content you do not own or have permission to share.</li>
+        <li data-i18n="policy_4">Protect privacy. Avoid posting sensitive personal data.</li>
+        <li data-i18n="policy_5">Map locations should be shared responsibly and with cultural sensitivity.</li>
+      </ul>
+      <p class="policy-muted" data-i18n="policy_outro">By proceeding, you agree to follow these guidelines while using the Bicol Indigenous Peoples Hub.</p>
+      <div class="policy-choices">
+        <label><input type="radio" name="policyChoice" value="agree" /> <span data-i18n="policy_agree">I agree to the policy</span></label>
+        <label><input type="radio" name="policyChoice" value="disagree" /> <span data-i18n="policy_disagree">I do not agree</span></label>
+      </div>
+      <p id="policyNote" class="policy-note" data-i18n="policy_note_default">Select an option to continue.</p>
+      <button id="policyProceed" class="solid full" disabled data-i18n="proceed">Proceed</button>
+    </div>
+  </dialog>
+  <dialog id="changePassDialog" class="modal">
+    <div class="modal-header">
+      <h3 data-i18n="change_password_title">Change Password</h3>
+      <button class="icon-btn" id="closeChangePass">&times;</button>
+    </div>
+    <form id="changePassForm" class="form">
+      <label data-i18n="current_password">Current password</label>
+      <input type="password" id="currentPassword" required />
+      <label data-i18n="new_password">New password</label>
+      <input type="password" id="newPassword" required />
+      <label data-i18n="confirm_new_password">Confirm new password</label>
+      <input type="password" id="confirmPassword" required />
+      <button type="submit" class="solid full" data-i18n="update_password">Update Password</button>
+    </form>
+  </dialog>
+  <dialog id="authDialog" class="modal">
+    <div class="modal-header">
+      <h3 data-i18n="access_hub">Access the hub</h3>
+      <button class="icon-btn" id="closeAuth">&times;</button>
+    </div>
+    <form id="emailForm" class="form">
+      <label data-i18n="email">Email</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" required data-i18n-placeholder="email_placeholder" />
+      <label data-i18n="password">Password</label>
+      <div class="password-field">
+        <input type="password" id="passwordInput" placeholder="********" required data-i18n-placeholder="password_placeholder" />
+        <button type="button" class="toggle-pass" id="toggleLoginPass" aria-label="Show password" data-i18n="show">Show</button>
+      </div>
+      <button type="submit" class="solid full" data-i18n="login">Login</button>
+      <button type="button" id="createAccountBtn" class="ghost full" data-i18n="create_account">Create Account</button>
+      <p class="hint" data-i18n="login_hint">Use your email and password to access across devices.</p>
+    </form>
+  </dialog>
+
+  <script src="/api/runtime-config.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
