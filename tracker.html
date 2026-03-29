@@ -112,6 +112,10 @@
             <strong id="trackerCount">0</strong>
           </article>
           <article class="workspace-meta-pill">
+            <span>Emergency Alerts</span>
+            <strong id="trackerEmergencyCount">0</strong>
+          </article>
+          <article class="workspace-meta-pill">
             <span>Last Sync</span>
             <strong id="trackerLastUpdated">--</strong>
           </article>
@@ -150,6 +154,50 @@
             <div class="tracker-empty">No user locations have been shared yet.</div>
           </div>
         </article>
+      </section>
+
+      <section class="admin-card tracker-detail-card" data-reveal data-reveal-delay="180">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow">Emergency Details</p>
+            <h4>Selected location response</h4>
+            <p class="admin-card-note">
+              Click a warning marker or a user card to review the report and send an admin response.
+            </p>
+          </div>
+        </div>
+        <div id="trackerDetailEmpty" class="tracker-empty">
+          Choose a shared location to review its message, proof image, phone number, and response options.
+        </div>
+        <div id="trackerDetail" class="tracker-detail hidden">
+          <div class="tracker-detail-grid">
+            <div class="tracker-detail-copy">
+              <p><strong>User:</strong> <span id="detailUsername">--</span></p>
+              <p><strong>Email:</strong> <span id="detailEmail">--</span></p>
+              <p><strong>Phone:</strong> <span id="detailPhone">--</span></p>
+              <p><strong>Coordinates:</strong> <span id="detailCoords">--</span></p>
+              <p><strong>Location Updated:</strong> <span id="detailUpdated">--</span></p>
+              <p><strong>Emergency Status:</strong> <span id="detailEmergencyStatus">No alert</span></p>
+            </div>
+            <div class="tracker-detail-proof">
+              <img id="detailProofImage" class="hidden" alt="Emergency proof" />
+              <div id="detailNoProof" class="tracker-empty">No emergency proof image was uploaded for this location.</div>
+            </div>
+          </div>
+          <div class="tracker-item-meta">
+            <p><strong>Message:</strong></p>
+            <p id="detailMessage">No emergency message for this location.</p>
+          </div>
+          <div class="form tracker-response-form">
+            <label for="responseReason">Admin response note</label>
+            <textarea id="responseReason" rows="4" placeholder="Add instructions, a reason, or the next step for this report."></textarea>
+            <div class="admin-actions">
+              <button id="approveEmergencyBtn" class="ghost" type="button">Approved</button>
+              <button id="helpEmergencyBtn" class="solid" type="button">Help Is On The Way</button>
+              <button id="declineEmergencyBtn" class="ghost danger" type="button">Decline</button>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
