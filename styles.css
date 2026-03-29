@@ -3947,6 +3947,9 @@ textarea#landmarkSummary {
     gap: 12px;
     max-height: 0;
     overflow: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     opacity: 0;
     transform: translateY(-10px);
     padding: 0 16px;
@@ -3955,7 +3958,7 @@ textarea#landmarkSummary {
     display: grid;
   }
   .mobile-menu.open {
-    max-height: 720px;
+    max-height: calc(100dvh - 84px - 12px);
     opacity: 1;
     transform: translateY(0);
     padding: 0 16px 24px;
@@ -4103,6 +4106,9 @@ textarea#landmarkSummary {
   }
   .mobile-menu {
     top: 78px;
+  }
+  .mobile-menu.open {
+    max-height: calc(100dvh - 78px - 12px);
   }
   .post-row {
     padding: 16px;
