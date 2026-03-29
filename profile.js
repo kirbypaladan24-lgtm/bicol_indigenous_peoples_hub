@@ -10,6 +10,7 @@ import {
   isAdmin,
   fetchLandmarks,
   fetchSharedLocation,
+  observeSharedLocation,
   acknowledgeLocationConsent,
   saveCurrentUserSharedLocation,
   submitEmergencyReport,
@@ -95,6 +96,7 @@ let saving = false;
 let locationBusy = false;
 let currentLocationRecord = null;
 let emergencyBusy = false;
+let sharedLocationUnsub = null;
 
 function enhancePreviewImage(imgEl) {
   if (!imgEl) return;
@@ -864,6 +866,15 @@ menuToggle?.addEventListener("click", () => {
 });
 
 observeAuth(async (user) => {
+  if (typeof sharedLocationUnsub === "function") {
+    try {
+      sharedLocationUnsub();
+    } catch (error) {
+      console.warn("Failed to unsubscribe shared location listener:", error);
+    }
+  }
+  sharedLocationUnsub = null;
+
   currentUser = user || null;
   if (!currentUser) {
     profileStatus.textContent = t("profile_login_required");
@@ -905,6 +916,10 @@ observeAuth(async (user) => {
   }
 
   renderLocationShareState(currentLocationRecord);
+  sharedLocationUnsub = observeSharedLocation(currentUser.uid, (record) => {
+    currentLocationRecord = record;
+    renderLocationShareState(currentLocationRecord);
+  });
 
   await Promise.all([
     loadProfilePosts(),
@@ -918,6 +933,17 @@ window.addEventListener("posts-updated", () => {
 
 window.addEventListener("landmarks-updated", () => {
   if (currentUser) loadLandmarkSummary();
+});
+
+window.addEventListener("beforeunload", () => {
+  if (typeof sharedLocationUnsub === "function") {
+    try {
+      sharedLocationUnsub();
+    } catch (error) {
+      console.warn("Failed to clean up shared location listener:", error);
+    }
+  }
+  sharedLocationUnsub = null;
 });
 
 initI18n();
