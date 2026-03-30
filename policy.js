@@ -1,4 +1,4 @@
-import { observeAuth, logout, changePassword, isAdmin, isSuperAdmin } from "./auth.js";
+import { observeAuth, logout, changePassword, isSuperAdmin, canAccessAdminWorkspace, canAccessCharts, canAccessTracker } from "./auth.js";
 import { initI18n, t } from "./i18n.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
@@ -136,7 +136,6 @@ changePassForm?.addEventListener("submit", async (event) => {
 
 observeAuth((user) => {
   const authed = !!user;
-  const admin = isAdmin(user);
   setSuperAdminNavVisible(isSuperAdmin(user));
 
   loginBtn?.classList.toggle("hidden", authed);
@@ -147,12 +146,12 @@ observeAuth((user) => {
   mobileLogoutBtn?.classList.toggle("hidden", !authed);
   mobileProfileBtn?.classList.toggle("hidden", !authed);
   mobileChangePassBtn?.classList.toggle("hidden", !authed);
-  adminToolsBtn?.classList.toggle("hidden", !admin);
-  chartsBtn?.classList.toggle("hidden", !admin);
-  trackerBtn?.classList.toggle("hidden", !admin);
-  mobileAdminToolsBtn?.classList.toggle("hidden", !admin);
-  mobileChartsBtn?.classList.toggle("hidden", !admin);
-  mobileTrackerBtn?.classList.toggle("hidden", !admin);
+  adminToolsBtn?.classList.toggle("hidden", !canAccessAdminWorkspace(user));
+  chartsBtn?.classList.toggle("hidden", !canAccessCharts(user));
+  trackerBtn?.classList.toggle("hidden", !canAccessTracker(user));
+  mobileAdminToolsBtn?.classList.toggle("hidden", !canAccessAdminWorkspace(user));
+  mobileChartsBtn?.classList.toggle("hidden", !canAccessCharts(user));
+  mobileTrackerBtn?.classList.toggle("hidden", !canAccessTracker(user));
 });
 
 initI18n();
