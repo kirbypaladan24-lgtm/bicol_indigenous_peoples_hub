@@ -5,6 +5,12 @@ import {
   getUserProfile,
   isAdmin,
   isSuperAdmin,
+  getAdminRoleLabel,
+  canManagePosts,
+  canManageLandmarks,
+  canManageEmergencies,
+  canAccessAdminWorkspace,
+  canAccessTracker,
   fetchPosts,
   fetchLandmarks,
   fetchUsers,
@@ -36,6 +42,10 @@ const metricHistoryCount = document.getElementById("metricHistoryCount");
 const metricHistorySectionTitle = document.getElementById("metricHistorySectionTitle");
 const metricHistorySectionNote = document.getElementById("metricHistorySectionNote");
 const metricHistoryList = document.getElementById("metricHistoryList");
+const desktopAdminToolsLink = document.querySelector('.desktop-shortcuts .sidebar-actions a[href="admin.html"]');
+const desktopTrackerLink = document.querySelector('.desktop-shortcuts .sidebar-actions a[href="tracker.html"]');
+const mobileAdminToolsLink = document.querySelector('.mobile-actions a[href="admin.html"]');
+const mobileTrackerLink = document.querySelector('.mobile-actions a[href="tracker.html"]');
 
 const changePassDialog = document.getElementById("changePassDialog");
 const closeChangePass = document.getElementById("closeChangePass");
@@ -56,6 +66,14 @@ const urlParams = new URLSearchParams(window.location.search);
 const currentMetric = urlParams.get("metric") || "posts";
 const currentRange = RANGE_CONFIG[urlParams.get("range")] ? urlParams.get("range") : "all";
 let lastMetaState = { totalCount: 0, updatedAt: null };
+
+function getAllowedMetrics(user) {
+  if (isSuperAdmin(user)) return new Set(["posts", "users", "landmarks", "engagement", "emergencies"]);
+  if (canManagePosts(user)) return new Set(["posts", "engagement"]);
+  if (canManageLandmarks(user)) return new Set(["landmarks"]);
+  if (canManageEmergencies(user)) return new Set(["emergencies"]);
+  return new Set();
+}
 
 function escapeHtml(value = "") {
   return String(value)
@@ -442,10 +460,28 @@ observeAuth(async (user) => {
     return;
   }
 
+  const allowedMetrics = getAllowedMetrics(user);
+  if (!allowedMetrics.has(currentMetric)) {
+    window.location.href = "charts.html";
+    return;
+  }
+
   setSuperAdminNavVisible(isSuperAdmin(user));
+  desktopAdminToolsLink?.classList.toggle("hidden", !canAccessAdminWorkspace(user));
+  mobileAdminToolsLink?.classList.toggle("hidden", !canAccessAdminWorkspace(user));
+  desktopTrackerLink?.classList.toggle("hidden", !canAccessTracker(user));
+  mobileTrackerLink?.classList.toggle("hidden", !canAccessTracker(user));
 
   try {
-    await getUserProfile(user.uid);
+    const profile = await getUserProfile(user.uid);
+    if (metricHistoryNote) {
+      const roleLabel = getAdminRoleLabel(user);
+      metricHistoryNote.textContent = `${roleLabel} history view for ${getMetricTitle(currentMetric).toLowerCase()}.`;
+    }
+    if (metricHistorySectionNote) {
+      const roleLabel = getAdminRoleLabel(user);
+      metricHistorySectionNote.textContent = `${roleLabel} history view for ${getMetricTitle(currentMetric).toLowerCase()}.`;
+    }
     await loadMetricHistory();
   } catch (error) {
     console.error("Failed to load metric history:", error);
