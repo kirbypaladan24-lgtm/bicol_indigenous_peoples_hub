@@ -44,19 +44,35 @@
     </div>
   </header>
 
-  <aside class="desktop-shortcuts" aria-label="Primary sidebar">
-    <nav class="nav" aria-label="Primary">
-      <a href="index.html#home" data-i18n="nav_home">Home</a>
-      <a href="index.html#map" data-i18n="nav_map">Map</a>
-      <a href="posts.html" data-i18n="nav_posts">Posts</a>
-      <a href="index.html#about" data-i18n="nav_about">About</a>
-      <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
-    </nav>
-    <div class="sidebar-actions">
-      <a href="index.html#map" class="ghost small" data-i18n="back_to_map">Back to Map</a>
-      <a href="policy.html" class="ghost small" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
-    </div>
-  </aside>
+    <aside class="desktop-shortcuts" aria-label="Primary sidebar">
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="posts.html" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+      </nav>
+      <div class="sidebar-actions">
+        <a id="profileBtn" class="ghost hidden" href="profile.html" data-i18n="profile">Profile</a>
+        <a id="adminToolsBtn" class="ghost hidden" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
+        <a id="chartsBtn" class="ghost hidden" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <a id="trackerBtn" class="ghost hidden" href="tracker.html" data-i18n="user_locations">User Locations</a>
+        <button id="changePassBtn" class="ghost hidden" type="button" data-i18n="change_password">Change Password</button>
+        <a id="backToMapSidebar" href="index.html#map" class="ghost small" data-i18n="back_to_map">Back to Map</a>
+        <a href="policy.html" class="ghost small" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+        <a id="loginBtn" class="ghost" href="index.html" data-i18n="login">Login</a>
+        <button id="logoutBtn" class="solid hidden" data-i18n="logout">Logout</button>
+        <div class="sidebar-controls">
+          <select
+            id="languageSelect"
+            class="language-select"
+            data-language-selector
+            data-i18n-aria-label="choose_language"
+            aria-label="Choose language"
+          ></select>
+        </div>
+      </div>
+    </aside>
 
   <div id="mobileMenu" class="mobile-menu">
     <div class="mobile-links">
@@ -66,16 +82,30 @@
       <a href="index.html#about" data-i18n="nav_about">About</a>
       <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
     </div>
-    <div class="mobile-actions">
-      <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
-        <span class="toggle-thumb"></span>
-        <span class="toggle-icon sun">&#9728;</span>
-        <span class="toggle-icon moon">&#9790;</span>
-      </button>
-      <a class="ghost full" href="index.html#map" data-i18n="back_to_map">Back to Map</a>
-      <a class="ghost full" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+      <div class="mobile-actions">
+        <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <a id="mobileProfileBtn" class="ghost full hidden" href="profile.html" data-i18n="profile">Profile</a>
+        <a id="mobileAdminToolsBtn" class="ghost full hidden" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
+        <a id="mobileChartsBtn" class="ghost full hidden" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <a id="mobileTrackerBtn" class="ghost full hidden" href="tracker.html" data-i18n="user_locations">User Locations</a>
+        <button id="mobileChangePassBtn" class="ghost full hidden" type="button" data-i18n="change_password">Change Password</button>
+        <a class="ghost full" href="index.html#map" data-i18n="back_to_map">Back to Map</a>
+        <a class="ghost full" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+        <a id="mobileLoginBtn" class="ghost full" href="index.html" data-i18n="login">Login</a>
+        <button id="mobileLogoutBtn" class="solid full hidden" data-i18n="logout">Logout</button>
+        <select
+          id="mobileLanguageSelect"
+          class="language-select full"
+          data-language-selector
+          data-i18n-aria-label="choose_language"
+          aria-label="Choose language"
+        ></select>
+      </div>
     </div>
-  </div>
 
   <main id="landmarkMain" class="section landmark-page">
     <div class="landmark-hero-shell" data-reveal>
@@ -92,6 +122,22 @@
   </main>
 
   <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+  <dialog id="changePassDialog" class="modal">
+    <div class="modal-header">
+      <h3 data-i18n="change_password_title">Change Password</h3>
+      <button class="icon-btn" id="closeChangePass">&times;</button>
+    </div>
+    <form id="changePassForm" class="form">
+      <label data-i18n="current_password">Current password</label>
+      <input type="password" id="currentPassword" required />
+      <label data-i18n="new_password">New password</label>
+      <input type="password" id="newPassword" required />
+      <label data-i18n="confirm_new_password">Confirm new password</label>
+      <input type="password" id="confirmPassword" required />
+      <button type="submit" class="solid full" data-i18n="update_password">Update Password</button>
+    </form>
+  </dialog>
 
   <script src="/api/runtime-config.js"></script>
   <script type="module" src="./landmark.js"></script>
