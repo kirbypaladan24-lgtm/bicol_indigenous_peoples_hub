@@ -1,9 +1,10 @@
-import { observeAuth, observeSharedLocations, isAdmin, logout, respondToEmergency } from "./auth.js";
+import { observeAuth, observeSharedLocations, isAdmin, isSuperAdmin, logout, respondToEmergency } from "./auth.js";
 import { initI18n, t } from "./i18n.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initRevealAnimations } from "./motion.js";
 import { initAdminEmergencyNotifications } from "./admin-emergency-notifications.js";
+import { setSuperAdminNavVisible } from "./role-nav.js";
 
 const themeToggle = document.getElementById("themeToggle");
 const mobileThemeToggle = document.getElementById("mobileThemeToggle");
@@ -725,9 +726,10 @@ observeAuth((user) => {
     return;
   }
 
+  setSuperAdminNavVisible(isSuperAdmin(user));
   trackerUsername.textContent = user.displayName || user.email?.split("@")[0] || "--";
   trackerEmail.textContent = user.email || "--";
-  trackerRole.textContent = "Administrator";
+  trackerRole.textContent = isSuperAdmin(user) ? "Super Admin" : "Administrator";
   updateAdminLocationStatus();
   startAdminLocationTracking();
 
