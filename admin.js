@@ -4,6 +4,9 @@ import {
   fetchPosts,
   fetchPost,
   isAdmin,
+  getAdminRoleLabel,
+  canManagePosts,
+  canManageLandmarks,
   getUserProfile,
   fetchUsers,
   fetchUsersCount,
@@ -17,6 +20,8 @@ import { showToast } from "./ui.js";
 
 const adminPanel = document.getElementById("adminPanel");
 const adminStatus = document.getElementById("adminStatus");
+const profileEditTools = document.getElementById("profileEditTools");
+const landmarkWorkspace = document.getElementById("landmarkWorkspace");
 const postTitle = document.getElementById("postTitle");
 const imageInput = document.getElementById("imageInput");
 const imagePreviewAdmin = document.getElementById("imagePreviewAdmin");
@@ -322,17 +327,17 @@ function renderAdminCharts(payload) {
   renderLineChart(
     adminPostsChart,
     buildDailySeries(posts, (item) => getDateValue(item, ["createdAt", "updatedAt"])),
-    { lineColor: "#5a9a6a", fillColor: "rgba(90, 154, 106, 0.16)" }
+    { lineColor: "#6c8968", fillColor: "rgba(108, 137, 104, 0.14)" }
   );
   renderLineChart(
     adminUsersChart,
     buildDailySeries(users, (item) => getDateValue(item, ["lastLoginAt", "createdAt"])),
-    { lineColor: "#2b7bff", fillColor: "rgba(43, 123, 255, 0.14)" }
+    { lineColor: "#6e8088", fillColor: "rgba(110, 128, 136, 0.12)" }
   );
   renderLineChart(
     adminLandmarksChart,
     buildDailySeries(landmarks, (item) => getDateValue(item, ["createdAt", "updatedAt"])),
-    { lineColor: "#c36b2a", fillColor: "rgba(195, 107, 42, 0.14)" }
+    { lineColor: "#a56b43", fillColor: "rgba(165, 107, 67, 0.12)" }
   );
   renderBarChart(adminEngagementChart, [
     { label: t("likes_label"), value: totalLikes, color: "#5a9a6a" },
@@ -904,15 +909,20 @@ async function loadAdminPosts() {
 export async function initAdmin(user) {
   currentUser = user;
   const canAdmin = isAdmin(user);
-  adminStatus.textContent = canAdmin ? "Admin access granted" : "Restricted";
+  const postToolsAllowed = canManagePosts(user);
+  const landmarkToolsAllowed = canManageLandmarks(user);
+  const roleLabel = getAdminRoleLabel(user);
+  adminStatus.textContent = canAdmin ? `${roleLabel} access granted` : "Restricted";
   if (adminStatus?.previousElementSibling) {
-    adminStatus.previousElementSibling.style.background = canAdmin ? "limegreen" : "crimson";
+    adminStatus.previousElementSibling.style.background = canAdmin ? "var(--signal-success)" : "var(--signal-danger)";
   }
   if (!canAdmin) {
     adminPanel.classList.add("hidden");
     return;
   }
   adminPanel.classList.remove("hidden");
+  profileEditTools?.classList.toggle("hidden", !postToolsAllowed);
+  landmarkWorkspace?.classList.toggle("hidden", !landmarkToolsAllowed);
 
   if (!chartBindingsBound) {
     window.addEventListener("language-changed", () => {
@@ -922,20 +932,27 @@ export async function initAdmin(user) {
   }
 
   // Initialize toolbar and handlers
-  bindToolbar();
-  saveBtn.onclick = handleSave;
-  resetBtn.onclick = resetForm;
+  if (postToolsAllowed) {
+    bindToolbar();
+    saveBtn.onclick = handleSave;
+    resetBtn.onclick = resetForm;
+  } else {
+    saveBtn.onclick = null;
+    resetBtn.onclick = null;
+  }
 
   let posts = [];
-  try {
-    posts = await loadAdminPosts();
-  } catch (error) {
-    console.error("Admin posts bootstrap failed:", error);
-    showToast("Failed to load admin posts.", "error");
+  if (postToolsAllowed) {
+    try {
+      posts = await loadAdminPosts();
+    } catch (error) {
+      console.error("Admin posts bootstrap failed:", error);
+      showToast("Failed to load admin posts.", "error");
+    }
   }
 
   // landmarks panel (if present)
-  if (saveLandmarkBtn && resetLandmarkBtn && landmarksList) {
+  if (landmarkToolsAllowed && saveLandmarkBtn && resetLandmarkBtn && landmarksList) {
     saveLandmarkBtn.onclick = handleSaveLandmark;
     resetLandmarkBtn.onclick = resetLandmarkForm;
     if (!landmarkBindingsBound) {
