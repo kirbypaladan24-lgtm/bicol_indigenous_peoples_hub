@@ -9,6 +9,12 @@ import {
   getUserProfile,
   isAdmin,
   isSuperAdmin,
+  getAdminRoleLabel,
+  canManagePosts,
+  canManageLandmarks,
+  canManageEmergencies,
+  canAccessAdminWorkspace,
+  canAccessTracker,
   fetchPosts,
   fetchLandmarks,
   fetchUsers,
@@ -51,6 +57,12 @@ const chartRangeLabels = Array.from(document.querySelectorAll("[data-chart-range
 const chartRangeSummary = document.getElementById("chartRangeSummary");
 const chartTrackedPosts = document.getElementById("chartTrackedPosts");
 const chartLastUpdated = document.getElementById("chartLastUpdated");
+const chartTrackedPill = chartTrackedPosts?.closest(".workspace-meta-pill") || null;
+const chartTrackedPillLabel = chartTrackedPill?.querySelector("span") || null;
+const desktopAdminToolsLink = document.querySelector('.desktop-shortcuts .sidebar-actions a[href="admin.html"]');
+const desktopTrackerLink = document.querySelector('.desktop-shortcuts .sidebar-actions a[href="tracker.html"]');
+const mobileAdminToolsLink = document.querySelector('.mobile-actions a[href="admin.html"]');
+const mobileTrackerLink = document.querySelector('.mobile-actions a[href="tracker.html"]');
 
 const changePassDialog = document.getElementById("changePassDialog");
 const closeChangePass = document.getElementById("closeChangePass");
@@ -70,6 +82,7 @@ const RANGE_CONFIG = {
 let latestChartPayload = null;
 let currentIdentity = null;
 let currentRange = "7";
+let currentChartScope = "all";
 let liveChartUnsubs = [];
 let chartViewportObserver = null;
 const chartAnimatedState = new WeakSet();
@@ -544,6 +557,59 @@ function renderIdentity(identity) {
   if (chartRole) chartRole.textContent = identity?.roleLabel || t("administrator_role");
 }
 
+function getChartScope(user) {
+  if (isSuperAdmin(user)) return "all";
+  if (canManagePosts(user)) return "posts";
+  if (canManageLandmarks(user)) return "landmarks";
+  if (canManageEmergencies(user)) return "emergencies";
+  return "none";
+}
+
+function getChartScopeSubtitle(scope = currentChartScope) {
+  if (scope === "posts") return "Content Admin view for post activity and story performance.";
+  if (scope === "landmarks") return "Landmark Admin view for map records and landmark activity.";
+  if (scope === "emergencies") return "Emergency Admin view for alerts and response activity.";
+  return "Super Admin overview across posts, landmarks, users, and alerts.";
+}
+
+function setMetricVisibility(metric, visible) {
+  const trigger = document.querySelector(`[data-metric="${metric}"]`);
+  const valueMap = {
+    posts: adminPostsChart,
+    users: adminUsersChart,
+    landmarks: adminLandmarksChart,
+    engagement: adminEngagementChart,
+    emergencies: adminEmergencyChart,
+  };
+  trigger?.classList.toggle("hidden", !visible);
+  valueMap[metric]?.closest(".admin-chart-panel")?.classList.toggle("hidden", !visible);
+}
+
+function applyChartScope(scope) {
+  currentChartScope = scope;
+  const showAll = scope === "all";
+  const postScope = showAll || scope === "posts";
+  const landmarkScope = showAll || scope === "landmarks";
+  const emergencyScope = showAll || scope === "emergencies";
+
+  setMetricVisibility("posts", postScope);
+  setMetricVisibility("users", showAll);
+  setMetricVisibility("landmarks", landmarkScope);
+  setMetricVisibility("engagement", postScope);
+  setMetricVisibility("emergencies", emergencyScope);
+  adminTopPosts?.closest(".admin-chart-panel")?.classList.toggle("hidden", !postScope);
+
+  if (chartTrackedPill && chartTrackedPillLabel) {
+    chartTrackedPill.classList.toggle("hidden", scope === "none");
+    chartTrackedPillLabel.textContent =
+      scope === "landmarks"
+        ? t("mapped_landmarks_label")
+        : scope === "emergencies"
+          ? t("emergency_alerts_label")
+          : t("community_posts_label");
+  }
+}
+
 function stopLiveChartObservers() {
   liveChartUnsubs.forEach((unsubscribe) => {
     try {
@@ -570,26 +636,46 @@ function updateChartPayload(partial = {}) {
   }
 
   renderCharts(nextPayload);
-  if (chartsStatus) chartsStatus.textContent = t("data_charts_subtitle");
+  if (chartsStatus) chartsStatus.textContent = getChartScopeSubtitle();
 }
 
 function startLiveChartObservers() {
   stopLiveChartObservers();
+  const observers = [];
 
-  liveChartUnsubs = [
-    observePosts((posts) => {
-      updateChartPayload({ posts });
-    }),
-    observeLandmarks((landmarks) => {
-      updateChartPayload({ landmarks });
-    }),
-    observeUsers((users) => {
-      updateChartPayload({ users, userCount: users.length });
-    }),
-    observeEmergencyAlerts((emergencyAlerts) => {
-      updateChartPayload({ emergencyAlerts });
-    }),
-  ];
+  if (currentChartScope === "all" || currentChartScope === "posts") {
+    observers.push(
+      observePosts((posts) => {
+        updateChartPayload({ posts });
+      })
+    );
+  }
+
+  if (currentChartScope === "all" || currentChartScope === "landmarks") {
+    observers.push(
+      observeLandmarks((landmarks) => {
+        updateChartPayload({ landmarks });
+      })
+    );
+  }
+
+  if (currentChartScope === "all") {
+    observers.push(
+      observeUsers((users) => {
+        updateChartPayload({ users, userCount: users.length });
+      })
+    );
+  }
+
+  if (currentChartScope === "all" || currentChartScope === "emergencies") {
+    observers.push(
+      observeEmergencyAlerts((emergencyAlerts) => {
+        updateChartPayload({ emergencyAlerts });
+      })
+    );
+  }
+
+  liveChartUnsubs = observers;
 }
 
 function renderCharts(payload) {
@@ -633,7 +719,15 @@ function renderCharts(payload) {
   renderMetric(adminMetricEngagement, totalEngagementOverall);
   renderMetric(adminMetricEmergencies, emergencyAlerts.length);
   if (chartRangeSummary) chartRangeSummary.textContent = getRangeLabel();
-  if (chartTrackedPosts) chartTrackedPosts.textContent = formatCompactNumber(filteredPosts.length);
+  if (chartTrackedPosts) {
+    const trackedCount =
+      currentChartScope === "landmarks"
+        ? filteredLandmarks.length
+        : currentChartScope === "emergencies"
+          ? filteredEmergencyAlerts.length
+          : filteredPosts.length;
+    chartTrackedPosts.textContent = formatCompactNumber(trackedCount);
+  }
   if (chartLastUpdated) {
     chartLastUpdated.textContent = latestDataTimestamp ? formatWorkspaceTimestamp(latestDataTimestamp) : "--";
   }
@@ -645,17 +739,17 @@ function renderCharts(payload) {
   renderLineChart(
     adminPostsChart,
     buildSeriesForRange(filteredPosts, (item) => getDateValue(item, ["createdAt", "updatedAt"]), currentRange),
-    { lineColor: "#5a9a6a", fillColor: "rgba(90, 154, 106, 0.16)" }
+    { lineColor: "#6c8968", fillColor: "rgba(108, 137, 104, 0.14)" }
   );
   renderLineChart(
     adminUsersChart,
     buildSeriesForRange(filteredUsers, (item) => getDateValue(item, ["lastLoginAt", "createdAt"]), currentRange),
-    { lineColor: "#2b7bff", fillColor: "rgba(43, 123, 255, 0.14)" }
+    { lineColor: "#6e8088", fillColor: "rgba(110, 128, 136, 0.12)" }
   );
   renderLineChart(
     adminLandmarksChart,
     buildSeriesForRange(filteredLandmarks, (item) => getDateValue(item, ["createdAt", "updatedAt"]), currentRange),
-    { lineColor: "#c36b2a", fillColor: "rgba(195, 107, 42, 0.14)" }
+    { lineColor: "#a56b43", fillColor: "rgba(165, 107, 67, 0.12)" }
   );
   renderLineChart(
     adminEmergencyChart,
@@ -699,12 +793,20 @@ function setRange(range) {
 async function loadCharts() {
   if (chartsStatus) chartsStatus.textContent = t("loading_workspace");
 
-  const [posts, landmarks, users] = await Promise.all([
-    fetchPosts(true),
-    fetchLandmarks(true),
-    fetchUsers(true),
+  const postsPromise = currentChartScope === "all" || currentChartScope === "posts" ? fetchPosts(true) : Promise.resolve([]);
+  const landmarksPromise = currentChartScope === "all" || currentChartScope === "landmarks" ? fetchLandmarks(true) : Promise.resolve([]);
+  const usersPromise = currentChartScope === "all" ? fetchUsers(true) : Promise.resolve([]);
+  const emergencyPromise =
+    currentChartScope === "all" || currentChartScope === "emergencies"
+      ? fetchEmergencyAlerts(true)
+      : Promise.resolve([]);
+
+  const [posts, landmarks, users, emergencyAlerts] = await Promise.all([
+    postsPromise,
+    landmarksPromise,
+    usersPromise,
+    emergencyPromise,
   ]);
-  const emergencyAlerts = await fetchEmergencyAlerts(true);
 
   renderCharts({
     posts,
@@ -714,7 +816,7 @@ async function loadCharts() {
     userCount: users.length,
   });
 
-  if (chartsStatus) chartsStatus.textContent = t("data_charts_subtitle");
+  if (chartsStatus) chartsStatus.textContent = getChartScopeSubtitle();
   startLiveChartObservers();
 }
 
@@ -809,7 +911,7 @@ window.addEventListener("language-changed", () => {
   });
   if (currentIdentity) renderIdentity(currentIdentity);
   if (latestChartPayload) renderCharts(latestChartPayload);
-  if (chartsStatus && latestChartPayload) chartsStatus.textContent = t("data_charts_subtitle");
+  if (chartsStatus && latestChartPayload) chartsStatus.textContent = getChartScopeSubtitle();
 });
 
 metricTriggers.forEach((button) => {
@@ -827,7 +929,12 @@ observeAuth(async (user) => {
     return;
   }
 
+  applyChartScope(getChartScope(user));
   setSuperAdminNavVisible(isSuperAdmin(user));
+  desktopAdminToolsLink?.classList.toggle("hidden", !canAccessAdminWorkspace(user));
+  mobileAdminToolsLink?.classList.toggle("hidden", !canAccessAdminWorkspace(user));
+  desktopTrackerLink?.classList.toggle("hidden", !canAccessTracker(user));
+  mobileTrackerLink?.classList.toggle("hidden", !canAccessTracker(user));
 
   try {
     const profile = await getUserProfile(user.uid);
@@ -837,9 +944,10 @@ observeAuth(async (user) => {
         user.displayName ||
         (user.email ? user.email.split("@")[0] : t("administrator_role")),
       email: profile?.email || user.email || "--",
-      roleLabel: isSuperAdmin(user) ? "Super Admin" : t("administrator_role"),
+      roleLabel: getAdminRoleLabel(user),
     };
     renderIdentity(identity);
+    if (chartsStatus) chartsStatus.textContent = getChartScopeSubtitle();
     await loadCharts();
   } catch (error) {
     console.error("Failed to load charts page:", error);
