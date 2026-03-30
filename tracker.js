@@ -3,6 +3,7 @@ import { initI18n } from "./i18n.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initRevealAnimations } from "./motion.js";
+import { initAdminEmergencyNotifications } from "./admin-emergency-notifications.js";
 
 const themeToggle = document.getElementById("themeToggle");
 const mobileThemeToggle = document.getElementById("mobileThemeToggle");
@@ -46,6 +47,9 @@ const declineEmergencyBtn = document.getElementById("declineEmergencyBtn");
 
 const THEME_KEY = "bicol-ip-theme";
 const BICOL_CENTER = [13.420988, 123.413673];
+const trackerParams = new URLSearchParams(window.location.search);
+let preselectedUserId = trackerParams.get("user");
+let preselectedFocusMode = trackerParams.get("focus");
 
 let map = null;
 let markersLayer = null;
@@ -511,6 +515,9 @@ function renderLocations(locations) {
   if (!locations.some((entry) => entry.id === selectedLocationId)) {
     selectedLocationId = null;
   }
+  if (!selectedLocationId && preselectedUserId && locations.some((entry) => entry.id === preselectedUserId)) {
+    selectedLocationId = preselectedUserId;
+  }
 
   const bounds = [];
 
@@ -585,6 +592,11 @@ function renderLocations(locations) {
   renderDetail(selectedLocationId ? locations.find((entry) => entry.id === selectedLocationId) || null : null);
   updateAdminMarker();
   updateGuideLine();
+  if (selectedLocationId && preselectedUserId === selectedLocationId && preselectedFocusMode === "emergency") {
+    scrollToDetails();
+    preselectedUserId = null;
+    preselectedFocusMode = null;
+  }
 
   if (selectedLocationId && adminLocation) {
     return;
@@ -720,3 +732,4 @@ initI18n();
 initTheme();
 initRevealAnimations();
 registerServiceWorker();
+initAdminEmergencyNotifications();
