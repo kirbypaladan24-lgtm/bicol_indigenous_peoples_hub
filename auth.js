@@ -39,12 +39,27 @@ import {
 import { assertFirebaseConfig } from "./firebase-config.js";
 
 export const SUPER_ADMIN_UID = "6bs7TaQnJBZDGiyhR1eoDMLncsb2";
+export const ADMIN_ROLE_UIDS = {
+  content_admin: "7gquSWQ94xZZLMxLCW4Xlv2QJ613",
+  landmark_admin: "L6aGCzr08Wd4gcj6ndiAqa0Z5dx2",
+  emergency_admin: "TI0yeuCaYcggEJmjh7H4BlAmp562",
+};
 export const ADMIN_OPERATOR_UIDS = [
-  "7gquSWQ94xZZLMxLCW4Xlv2QJ613",
-  "L6aGCzr08Wd4gcj6ndiAqa0Z5dx2",
-  "TI0yeuCaYcggEJmjh7H4BlAmp562",
+  ADMIN_ROLE_UIDS.content_admin,
+  ADMIN_ROLE_UIDS.landmark_admin,
+  ADMIN_ROLE_UIDS.emergency_admin,
+];
+export const VALID_ADMIN_ROLES = [
+  "content_admin",
+  "landmark_admin",
+  "emergency_admin",
 ];
 const ADMIN_UIDS = new Set(ADMIN_OPERATOR_UIDS);
+const DEFAULT_ADMIN_ROLE_BY_UID = new Map(
+  Object.entries(ADMIN_ROLE_UIDS).map(([role, uid]) => [uid, role])
+);
+const adminAccessCache = new Map();
+let adminAccessUnsub = null;
 
 const firebaseConfig = assertFirebaseConfig();
 const app = initializeApp(firebaseConfig);
@@ -88,8 +103,117 @@ if (useEmulator) {
 
 export { db, firebaseConfig };
 
+function getAdminAccessDocRef(uid) {
+  return doc(db, "admin_access", uid);
+}
+
+function resolveAdminAccessState(uid) {
+  if (!uid) return null;
+  if (uid === SUPER_ADMIN_UID) {
+    return { uid, role: "super_admin", active: true };
+  }
+
+  const defaultRole = DEFAULT_ADMIN_ROLE_BY_UID.get(uid) || null;
+  const cached = adminAccessCache.get(uid);
+
+  if (cached) {
+    const role = VALID_ADMIN_ROLES.includes(cached.role) ? cached.role : defaultRole;
+    const active = cached.active !== false;
+    if (!role) return null;
+    return {
+      uid,
+      role,
+      active,
+      updatedAt: cached.updatedAt || null,
+      updatedBy: cached.updatedBy || null,
+    };
+  }
+
+  if (!defaultRole) return null;
+  return { uid, role: defaultRole, active: true };
+}
+
+function setAdminAccessCache(uid, data = null) {
+  if (!uid || uid === SUPER_ADMIN_UID) return;
+  if (data) {
+    adminAccessCache.set(uid, {
+      role: data.role || null,
+      active: data.active !== false,
+      updatedAt: data.updatedAt || null,
+      updatedBy: data.updatedBy || null,
+    });
+  } else {
+    adminAccessCache.delete(uid);
+  }
+}
+
+async function syncAdminAccess(uid, forceServer = true) {
+  if (!uid || uid === SUPER_ADMIN_UID) return resolveAdminAccessState(uid);
+  try {
+    const snap = forceServer
+      ? await getDocFromServer(getAdminAccessDocRef(uid))
+      : await getDoc(getAdminAccessDocRef(uid));
+    if (snap.exists()) {
+      setAdminAccessCache(uid, snap.data());
+    } else {
+      setAdminAccessCache(uid, null);
+    }
+  } catch (error) {
+    console.warn("Falling back to cached admin access state:", error);
+    try {
+      const snap = await getDoc(getAdminAccessDocRef(uid));
+      if (snap.exists()) {
+        setAdminAccessCache(uid, snap.data());
+      }
+    } catch (cachedError) {
+      console.warn("Could not read cached admin access state:", cachedError);
+    }
+  }
+  return resolveAdminAccessState(uid);
+}
+
+function startAdminAccessSync(user) {
+  try {
+    adminAccessUnsub?.();
+  } catch (error) {}
+  adminAccessUnsub = null;
+
+  if (!user?.uid || user.uid === SUPER_ADMIN_UID || !ADMIN_UIDS.has(user.uid)) return;
+
+  adminAccessUnsub = onSnapshot(
+    getAdminAccessDocRef(user.uid),
+    (snapshot) => {
+      if (snapshot.exists()) {
+        setAdminAccessCache(user.uid, snapshot.data());
+      } else {
+        setAdminAccessCache(user.uid, null);
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("admin-access-changed", {
+            detail: {
+              uid: user.uid,
+              state: resolveAdminAccessState(user.uid),
+            },
+          })
+        );
+      }
+    },
+    (error) => {
+      console.warn("observe admin access error:", error);
+    }
+  );
+}
+
 export const observeAuth = (cb) =>
-  onAuthStateChanged(auth, (user) => cb(user && !user.isAnonymous ? user : null));
+  onAuthStateChanged(auth, async (user) => {
+    const normalizedUser = user && !user.isAnonymous ? user : null;
+    if (normalizedUser?.uid) {
+      await syncAdminAccess(normalizedUser.uid, true).catch(() => {});
+    }
+    startAdminAccessSync(normalizedUser);
+    cb(normalizedUser);
+  });
 
 async function ensureUserProfile(user, profile = {}) {
   if (!user?.uid) return null;
@@ -201,9 +325,136 @@ export function isSuperAdmin(user) {
   return Boolean(user?.uid) && user.uid === SUPER_ADMIN_UID;
 }
 
+export function getAdminAccessState(userOrUid) {
+  const uid = typeof userOrUid === "string" ? userOrUid : userOrUid?.uid;
+  return resolveAdminAccessState(uid);
+}
+
+export function getAdminRole(user) {
+  const state = getAdminAccessState(user);
+  return state?.active ? state.role : null;
+}
+
+export function getAdminRoleLabel(user) {
+  switch (getAdminRole(user)) {
+    case "super_admin":
+      return "Super Admin";
+    case "content_admin":
+      return "Content Admin";
+    case "landmark_admin":
+      return "Landmark Admin";
+    case "emergency_admin":
+      return "Emergency Admin";
+    default:
+      return "Member";
+  }
+}
+
+export function isContentAdmin(user) {
+  return getAdminRole(user) === "content_admin";
+}
+
+export function isLandmarkAdmin(user) {
+  return getAdminRole(user) === "landmark_admin";
+}
+
+export function isEmergencyAdmin(user) {
+  return getAdminRole(user) === "emergency_admin";
+}
+
 export function isAdmin(user) {
   if (!user) return false;
-  return isSuperAdmin(user) || ADMIN_UIDS.has(user.uid);
+  return Boolean(getAdminRole(user));
+}
+
+export function canManagePosts(user) {
+  return isSuperAdmin(user) || isContentAdmin(user);
+}
+
+export function canManageLandmarks(user) {
+  return isSuperAdmin(user) || isLandmarkAdmin(user);
+}
+
+export function canManageEmergencies(user) {
+  return isSuperAdmin(user) || isEmergencyAdmin(user);
+}
+
+export function canAccessAdminWorkspace(user) {
+  return canManagePosts(user) || canManageLandmarks(user);
+}
+
+export function canAccessTracker(user) {
+  return canManageEmergencies(user);
+}
+
+export function canAccessCharts(user) {
+  return isAdmin(user);
+}
+
+export async function fetchAdminAccessState(uid, forceServer = true) {
+  return syncAdminAccess(uid, forceServer);
+}
+
+export async function fetchAdminDirectory(forceServer = true) {
+  const entries = await Promise.all(
+    ADMIN_OPERATOR_UIDS.map(async (uid) => {
+      const [profile, access] = await Promise.all([
+        getUserProfile(uid).catch(() => null),
+        fetchAdminAccessState(uid, forceServer).catch(() => resolveAdminAccessState(uid)),
+      ]);
+      return {
+        uid,
+        profile,
+        access: access || resolveAdminAccessState(uid),
+      };
+    })
+  );
+  return entries;
+}
+
+export async function updateAdminAccessState(uid, { role, active }) {
+  const actingUser = auth.currentUser;
+  if (!isSuperAdmin(actingUser)) {
+    throw new Error("Only the super admin can manage admin access.");
+  }
+  if (!ADMIN_UIDS.has(uid)) {
+    throw new Error("This UID is not part of the managed admin list.");
+  }
+  if (!VALID_ADMIN_ROLES.includes(role)) {
+    throw new Error("Choose a valid admin role.");
+  }
+
+  await setDoc(
+    getAdminAccessDocRef(uid),
+    {
+      uid,
+      role,
+      active: active !== false,
+      updatedAt: serverTimestamp(),
+      updatedBy: actingUser.uid,
+    },
+    { merge: true }
+  );
+
+  setAdminAccessCache(uid, {
+    role,
+    active: active !== false,
+    updatedAt: new Date(),
+    updatedBy: actingUser.uid,
+  });
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("admin-access-changed", {
+        detail: {
+          uid,
+          state: resolveAdminAccessState(uid),
+        },
+      })
+    );
+  }
+
+  return resolveAdminAccessState(uid);
 }
 
 const postsRef = collection(db, "posts");
@@ -242,8 +493,8 @@ async function getCurrentAdminIdentity(user = auth.currentUser) {
     name:
       profile?.username ||
       user.displayName ||
-      (user.email ? user.email.split("@")[0] : isSuperAdmin(user) ? "Super Admin" : "Admin"),
-    role: isSuperAdmin(user) ? "super_admin" : "admin",
+      (user.email ? user.email.split("@")[0] : getAdminRoleLabel(user)),
+    role: getAdminRole(user),
   };
 }
 
@@ -598,8 +849,8 @@ export async function submitEmergencyReport({ message, imageUrl, lat = null, lng
 
 export async function respondToEmergency(userId, { status, reason = "" }) {
   const user = auth.currentUser;
-  if (!user?.uid || user.isAnonymous || !isAdmin(user)) {
-    throw new Error("Administrator access is required to respond.");
+  if (!user?.uid || user.isAnonymous || !canManageEmergencies(user)) {
+    throw new Error("Emergency admin access is required to respond.");
   }
 
   const normalizedStatus = String(status || "").trim();
@@ -763,6 +1014,9 @@ export async function fetchPost(id, forceServer = true) {
 
 export async function savePost({ id, title, content, media = [], author, authorId = null }) {
   const actingUser = auth.currentUser;
+  if (isAdmin(actingUser) && !canManagePosts(actingUser)) {
+    throw new Error("Your admin role cannot manage posts.");
+  }
   const coverUrl = Array.isArray(media) && media.length ? media[0] : null;
   const payload = {
     title,
@@ -812,6 +1066,9 @@ export async function savePost({ id, title, content, media = [], author, authorI
 
 export async function deletePost(id) {
   const actingUser = auth.currentUser;
+  if (isAdmin(actingUser) && !canManagePosts(actingUser)) {
+    throw new Error("Your admin role cannot delete posts.");
+  }
   const existingPost = await fetchPost(id, false).catch(() => null);
   await deleteDoc(doc(db, "posts", id));
   if (isAdmin(actingUser)) {
@@ -1002,6 +1259,9 @@ export async function fetchLandmark(id, forceServer = true) {
 
 export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, color }) {
   const actingUser = auth.currentUser;
+  if (!canManageLandmarks(actingUser)) {
+    throw new Error("Your admin role cannot manage landmarks.");
+  }
   const payload = {
     name,
     lat,
@@ -1050,6 +1310,9 @@ export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, colo
 
 export async function deleteLandmark(id) {
   const actingUser = auth.currentUser;
+  if (!canManageLandmarks(actingUser)) {
+    throw new Error("Your admin role cannot delete landmarks.");
+  }
   const existingLandmark = await fetchLandmark(id, false).catch(() => null);
   await deleteDoc(doc(db, "landmarks", id));
   if (isAdmin(actingUser)) {
