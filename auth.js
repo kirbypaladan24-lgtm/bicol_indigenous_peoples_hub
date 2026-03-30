@@ -216,6 +216,28 @@ function getPrivateUserDocRef(uid) {
   return doc(db, "users_private", uid);
 }
 
+async function hydrateSharedLocation(entry) {
+  if (!entry?.uid || entry.phone) return entry;
+
+  try {
+    const privateProfile = await fetchPrivateUserProfile(entry.uid, false);
+    if (privateProfile?.phone) {
+      return {
+        ...entry,
+        phone: privateProfile.phone,
+      };
+    }
+  } catch (error) {
+    console.warn("Could not hydrate shared location phone:", error);
+  }
+
+  return entry;
+}
+
+async function hydrateSharedLocations(entries = []) {
+  return Promise.all(entries.map((entry) => hydrateSharedLocation(entry)));
+}
+
 async function bumpUserCount() {
   try {
     await setDoc(statsRef, { userCount: increment(1) }, { merge: true });
@@ -548,7 +570,7 @@ export async function respondToEmergency(userId, { status, reason = "" }) {
 export function observeSharedLocations(callback) {
   return onSnapshot(
     sharedLocationsRef,
-    (snapshot) => {
+    async (snapshot) => {
       const locations = snapshot.docs
         .map((d) => ({ id: d.id, ...d.data() }))
         .filter(
@@ -563,7 +585,7 @@ export function observeSharedLocations(callback) {
           return bTime - aTime;
         });
 
-      callback(locations);
+      callback(await hydrateSharedLocations(locations));
     },
     (error) => {
       console.warn("observeSharedLocations error:", error);
@@ -574,7 +596,7 @@ export function observeSharedLocations(callback) {
 
 export async function fetchSharedLocations(forceServer = true) {
   const snapshot = forceServer ? await getDocsFromServer(sharedLocationsRef) : await getDocs(sharedLocationsRef);
-  return snapshot.docs
+  const locations = snapshot.docs
     .map((d) => ({ id: d.id, ...d.data() }))
     .filter(
       (entry) =>
@@ -587,6 +609,8 @@ export async function fetchSharedLocations(forceServer = true) {
       const bTime = b?.updatedAt?.seconds || 0;
       return bTime - aTime;
     });
+
+  return hydrateSharedLocations(locations);
 }
 
 export function observeEmergencyAlerts(callback) {
