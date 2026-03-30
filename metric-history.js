@@ -4,6 +4,7 @@ import {
   changePassword,
   getUserProfile,
   isAdmin,
+  isSuperAdmin,
   fetchPosts,
   fetchLandmarks,
   fetchUsers,
@@ -14,6 +15,7 @@ import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initRevealAnimations } from "./motion.js";
 import { initAdminEmergencyNotifications } from "./admin-emergency-notifications.js";
+import { setSuperAdminNavVisible } from "./role-nav.js";
 
 const themeToggle = document.getElementById("themeToggle");
 const menuToggle = document.getElementById("menuToggle");
@@ -439,6 +441,8 @@ observeAuth(async (user) => {
     window.location.href = "profile.html";
     return;
   }
+
+  setSuperAdminNavVisible(isSuperAdmin(user));
 
   try {
     await getUserProfile(user.uid);
