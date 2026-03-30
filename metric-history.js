@@ -13,6 +13,7 @@ import { initI18n, t } from "./i18n.js";
 import { showToast } from "./ui.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initRevealAnimations } from "./motion.js";
+import { initAdminEmergencyNotifications } from "./admin-emergency-notifications.js";
 
 const themeToggle = document.getElementById("themeToggle");
 const menuToggle = document.getElementById("menuToggle");
@@ -453,3 +454,4 @@ initI18n();
 initTheme();
 initRevealAnimations();
 registerServiceWorker();
+initAdminEmergencyNotifications();
