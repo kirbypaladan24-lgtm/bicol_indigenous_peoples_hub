@@ -7,6 +7,7 @@ import {
   fetchPosts,
   observePosts,
   isAdmin,
+  isSuperAdmin,
   savePost,
   auth,
   getUserProfile,
@@ -26,6 +27,7 @@ import { initAnalytics, requestAnalyticsConsent } from "./analytics.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initRevealAnimations } from "./motion.js";
 import { initAdminEmergencyNotifications } from "./admin-emergency-notifications.js";
+import { setSuperAdminNavVisible } from "./role-nav.js";
 
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
@@ -1352,12 +1354,14 @@ observeAuth(async (user) => {
   mobileProfileBtn?.classList.toggle("hidden", !authed);
   mobileChangePassBtn?.classList.toggle("hidden", !authed);
   const isAdminUser = isAdmin(user);
+  const isSuperAdminUser = isSuperAdmin(user);
   adminToolsBtn?.classList.toggle("hidden", !isAdminUser);
   chartsBtn?.classList.toggle("hidden", !isAdminUser);
   trackerBtn?.classList.toggle("hidden", !isAdminUser);
   mobileAdminToolsBtn?.classList.toggle("hidden", !isAdminUser);
   mobileChartsBtn?.classList.toggle("hidden", !isAdminUser);
   mobileTrackerBtn?.classList.toggle("hidden", !isAdminUser);
+  setSuperAdminNavVisible(isSuperAdminUser);
   newPostBtn?.classList.toggle("hidden", !authed || isAdminUser);
   contributionCtaCard?.classList.toggle("hidden", authed);
   cachedAuthorName = null;
