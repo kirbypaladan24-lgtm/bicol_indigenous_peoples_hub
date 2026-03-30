@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page-title-key="page_title_tracker">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,7 +37,7 @@
         </span>
         <div>
           <h1 data-i18n="page_title">Bicol Indigenous Peoples Hub</h1>
-          <p>User Locations</p>
+          <p data-i18n="user_locations">User Locations</p>
         </div>
       </div>
       <div class="auth-cta">
@@ -61,7 +61,7 @@
       <div class="sidebar-actions">
         <a class="ghost" href="profile.html" data-i18n="profile">Profile</a>
         <a class="ghost" href="charts.html" data-i18n="data_charts">Data Charts</a>
-        <a class="ghost" href="tracker.html" aria-current="page">User Locations</a>
+        <a class="ghost" href="tracker.html" aria-current="page" data-i18n="user_locations">User Locations</a>
         <a class="ghost" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
         <button id="logoutBtn" class="solid" data-i18n="logout">Logout</button>
       </div>
@@ -83,7 +83,7 @@
         </button>
         <a class="ghost full" href="profile.html" data-i18n="profile">Profile</a>
         <a class="ghost full" href="charts.html" data-i18n="data_charts">Data Charts</a>
-        <a class="ghost full" href="tracker.html" aria-current="page">User Locations</a>
+        <a class="ghost full" href="tracker.html" aria-current="page" data-i18n="user_locations">User Locations</a>
         <a class="ghost full" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
         <button id="mobileLogoutBtn" class="solid full" data-i18n="logout">Logout</button>
       </div>
@@ -94,7 +94,7 @@
         <div class="profile-overview-card" data-reveal>
           <div class="profile-overview-copy">
             <p class="eyebrow" data-i18n="workspace">Workspace</p>
-            <h2>User location tracker</h2>
+            <h2 data-i18n="user_location_tracker">User location tracker</h2>
             <p id="trackerStatus" class="section-desc">
               Checking the latest shared user locations...
             </p>
@@ -108,20 +108,20 @@
 
         <div class="workspace-meta" data-reveal data-reveal-delay="90">
           <article class="workspace-meta-pill">
-            <span>Tracked Users</span>
+            <span data-i18n="tracked_users">Tracked Users</span>
             <strong id="trackerCount">0</strong>
           </article>
           <article class="workspace-meta-pill">
-            <span>Emergency Alerts</span>
+            <span data-i18n="emergency_alerts_label">Emergency Alerts</span>
             <strong id="trackerEmergencyCount">0</strong>
           </article>
           <article class="workspace-meta-pill">
-            <span>Last Sync</span>
+            <span data-i18n="last_sync">Last Sync</span>
             <strong id="trackerLastUpdated">--</strong>
           </article>
           <article class="workspace-meta-pill">
-            <span>Map Status</span>
-            <strong id="trackerMapStatus">Waiting for user shares</strong>
+            <span data-i18n="map_status">Map Status</span>
+            <strong id="trackerMapStatus" data-i18n="waiting_for_user_shares">Waiting for user shares</strong>
           </article>
         </div>
       </section>
@@ -130,20 +130,21 @@
         <article class="admin-card tracker-map-card">
           <div class="admin-card-head">
             <div>
-              <p class="admin-card-eyebrow">Admin View</p>
-              <h4>User Locations Map</h4>
-              <p class="admin-card-note">
+              <p class="admin-card-eyebrow" data-i18n="admin_view">Admin View</p>
+              <h4 data-i18n="user_locations_map">User Locations Map</h4>
+              <p class="admin-card-note" data-i18n="tracker_map_note">
                 Only users who agreed to location sharing and synced their latest position appear here.
               </p>
             </div>
           </div>
           <div class="tracker-search-shell">
-            <label for="trackerSearch">Search by username or email</label>
+            <label for="trackerSearch" data-i18n="tracker_search_label">Search by username or email</label>
             <div class="tracker-search-field">
-              <span class="tracker-search-icon" aria-hidden="true">Search</span>
+              <span class="tracker-search-icon" aria-hidden="true" data-i18n="search">Search</span>
               <input
                 id="trackerSearch"
                 type="search"
+                data-i18n-placeholder="tracker_search_placeholder"
                 placeholder="Type a username or email"
                 autocomplete="off"
               />
@@ -151,16 +152,16 @@
           </div>
           <div class="tracker-route-shell">
             <article class="tracker-route-pill">
-              <span>Admin Location</span>
-              <strong id="trackerAdminLocationStatus">Finding your current location...</strong>
+              <span data-i18n="admin_location">Admin Location</span>
+              <strong id="trackerAdminLocationStatus" data-i18n="finding_current_location">Finding your current location...</strong>
             </article>
             <article class="tracker-route-pill">
-              <span>Nearest Emergency</span>
-              <strong id="trackerNearestEmergency">No active emergency alerts</strong>
+              <span data-i18n="nearest_emergency">Nearest Emergency</span>
+              <strong id="trackerNearestEmergency" data-i18n="no_active_emergency_alerts">No active emergency alerts</strong>
             </article>
             <article class="tracker-route-pill">
-              <span>Guide Route</span>
-              <strong id="trackerGuideStatus">Select a shared location to draw a guide line</strong>
+              <span data-i18n="guide_route">Guide Route</span>
+              <strong id="trackerGuideStatus" data-i18n="select_shared_location_guide">Select a shared location to draw a guide line</strong>
             </article>
           </div>
           <div id="trackerMap" class="map admin-map" aria-label="User locations map"></div>
@@ -169,15 +170,15 @@
         <article class="admin-card tracker-list-card">
           <div class="admin-card-head">
             <div>
-              <p class="admin-card-eyebrow">Live List</p>
-              <h4>Shared Accounts</h4>
-              <p class="admin-card-note">
+              <p class="admin-card-eyebrow" data-i18n="live_list">Live List</p>
+              <h4 data-i18n="shared_accounts">Shared Accounts</h4>
+              <p class="admin-card-note" data-i18n="tracker_list_note">
                 This list updates whenever a user shares again from a new place.
               </p>
             </div>
           </div>
           <div id="trackerList" class="tracker-list" aria-live="polite">
-            <div class="tracker-empty">No user locations have been shared yet.</div>
+            <div class="tracker-empty" data-i18n="tracker_empty">No user locations have been shared yet.</div>
           </div>
         </article>
       </section>
@@ -185,44 +186,44 @@
       <section id="trackerDetailSection" class="admin-card tracker-detail-card" data-reveal data-reveal-delay="180">
         <div class="admin-card-head">
           <div>
-            <p class="admin-card-eyebrow">Emergency Details</p>
-            <h4>Selected location response</h4>
-            <p class="admin-card-note">
+            <p class="admin-card-eyebrow" data-i18n="emergency_details">Emergency Details</p>
+            <h4 data-i18n="selected_location_response">Selected location response</h4>
+            <p class="admin-card-note" data-i18n="tracker_detail_note">
               Click a warning marker or a user card to review the report and send an admin response.
             </p>
           </div>
-          <button id="closeTrackerDetail" class="ghost hidden" type="button">Hide Details</button>
+          <button id="closeTrackerDetail" class="ghost hidden" type="button" data-i18n="hide_details">Hide Details</button>
         </div>
-        <div id="trackerDetailEmpty" class="tracker-empty">
+        <div id="trackerDetailEmpty" class="tracker-empty" data-i18n="tracker_detail_empty">
           Choose a shared location to review its message, proof image, phone number, and response options.
         </div>
         <div id="trackerDetail" class="tracker-detail hidden">
           <div class="tracker-detail-grid">
             <div class="tracker-detail-copy">
-              <p><strong>User:</strong> <span id="detailUsername">--</span></p>
-              <p><strong>Email:</strong> <span id="detailEmail">--</span></p>
-              <p><strong>Phone:</strong> <span id="detailPhone">--</span></p>
-              <p><strong>Coordinates:</strong> <span id="detailCoords">--</span></p>
-              <p><strong>Location Updated:</strong> <span id="detailUpdated">--</span></p>
-              <p><strong>Emergency Status:</strong> <span id="detailEmergencyStatus">No alert</span></p>
-              <p><strong>Guide Distance:</strong> <span id="detailGuideDistance">Select a location to estimate distance from the admin marker.</span></p>
+              <p><strong data-i18n="user_label">User:</strong> <span id="detailUsername">--</span></p>
+              <p><strong data-i18n="email">Email</strong>: <span id="detailEmail">--</span></p>
+              <p><strong data-i18n="phone_label">Phone:</strong> <span id="detailPhone">--</span></p>
+              <p><strong data-i18n="coordinates_label">Coordinates:</strong> <span id="detailCoords">--</span></p>
+              <p><strong data-i18n="location_updated">Location Updated:</strong> <span id="detailUpdated">--</span></p>
+              <p><strong data-i18n="emergency_status_label">Emergency Status:</strong> <span id="detailEmergencyStatus" data-i18n="no_alert">No alert</span></p>
+              <p><strong data-i18n="guide_distance">Guide Distance:</strong> <span id="detailGuideDistance" data-i18n="guide_distance_select">Select a location to estimate distance from the admin marker.</span></p>
             </div>
             <div class="tracker-detail-proof">
               <img id="detailProofImage" class="hidden" alt="Emergency proof" />
-              <div id="detailNoProof" class="tracker-empty">No emergency proof image was uploaded for this location.</div>
+              <div id="detailNoProof" class="tracker-empty" data-i18n="tracker_no_proof">No emergency proof image was uploaded for this location.</div>
             </div>
           </div>
           <div class="tracker-item-meta">
-            <p><strong>Message:</strong></p>
-            <p id="detailMessage">No emergency message for this location.</p>
+            <p><strong data-i18n="message_label">Message:</strong></p>
+            <p id="detailMessage" data-i18n="no_emergency_message">No emergency message for this location.</p>
           </div>
           <div id="trackerResponseForm" class="form tracker-response-form hidden">
-            <label for="responseReason">Admin response note</label>
-            <textarea id="responseReason" rows="4" placeholder="Add instructions, a reason, or the next step for this report."></textarea>
+            <label for="responseReason" data-i18n="admin_response_note">Admin response note</label>
+            <textarea id="responseReason" rows="4" data-i18n-placeholder="tracker_response_placeholder" placeholder="Add instructions, a reason, or the next step for this report."></textarea>
             <div class="admin-actions">
-              <button id="approveEmergencyBtn" class="ghost" type="button">Approved</button>
-              <button id="helpEmergencyBtn" class="solid" type="button">Help Is On The Way</button>
-              <button id="declineEmergencyBtn" class="ghost danger" type="button">Decline</button>
+              <button id="approveEmergencyBtn" class="ghost" type="button" data-i18n="approved">Approved</button>
+              <button id="helpEmergencyBtn" class="solid" type="button" data-i18n="help_on_the_way">Help Is On The Way</button>
+              <button id="declineEmergencyBtn" class="ghost danger" type="button" data-i18n="decline">Decline</button>
             </div>
           </div>
         </div>
