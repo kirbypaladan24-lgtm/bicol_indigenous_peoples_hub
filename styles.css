@@ -3574,6 +3574,111 @@ textarea#landmarkSummary {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.superadmin-operator-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.superadmin-operator-panel {
+  display: grid;
+  gap: 1.1rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid rgba(94, 189, 121, 0.14);
+}
+
+.superadmin-operator-panel:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.superadmin-operator-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.superadmin-operator-head h4 {
+  margin: 0.15rem 0 0;
+}
+
+.superadmin-operator-meta {
+  min-width: 160px;
+  text-align: right;
+}
+
+.superadmin-operator-meta span {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.superadmin-operator-meta strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.98rem;
+  color: var(--text);
+}
+
+.superadmin-mini-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.superadmin-mini-metric {
+  padding: 0.95rem 0;
+  border-top: 1px solid rgba(94, 189, 121, 0.12);
+}
+
+.superadmin-mini-metric span {
+  display: block;
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.superadmin-mini-metric strong {
+  display: block;
+  margin-top: 0.38rem;
+  font-size: 1.45rem;
+  color: var(--text);
+}
+
+.superadmin-operator-visuals {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1.2rem;
+}
+
+.superadmin-visual {
+  min-width: 0;
+}
+
+.superadmin-recent-block {
+  display: grid;
+  gap: 0.8rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(94, 189, 121, 0.12);
+}
+
+.superadmin-history-list {
+  gap: 0.75rem;
+}
+
+.page-superadmin .admin-metric-tile {
+  cursor: default;
+}
+
+[data-theme="light"] .superadmin-operator-panel,
+[data-theme="light"] .superadmin-mini-metric,
+[data-theme="light"] .superadmin-recent-block {
+  border-color: rgba(50, 90, 68, 0.12);
+}
+
 .admin-history-head {
   display: flex;
   justify-content: space-between;
@@ -4295,6 +4400,10 @@ textarea#landmarkSummary {
   .admin-chart-grid {
     grid-template-columns: 1fr;
   }
+  .superadmin-mini-metrics,
+  .superadmin-operator-visuals {
+    grid-template-columns: 1fr;
+  }
   .profile-overview-card,
   .profile-summary-grid,
   .workspace-meta,
@@ -4308,6 +4417,13 @@ textarea#landmarkSummary {
   .admin-card-head,
   .admin-side-head {
     flex-direction: column;
+  }
+  .superadmin-operator-head {
+    flex-direction: column;
+  }
+  .superadmin-operator-meta {
+    min-width: 0;
+    text-align: left;
   }
   .profile-location-actions {
     width: 100%;
