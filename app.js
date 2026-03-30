@@ -25,6 +25,7 @@ import { initUtils } from "./utils.js";
 import { initAnalytics, requestAnalyticsConsent } from "./analytics.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initRevealAnimations } from "./motion.js";
+import { initAdminEmergencyNotifications } from "./admin-emergency-notifications.js";
 
 // UI Elements
 const loginBtn = document.getElementById("loginBtn");
@@ -1381,6 +1382,7 @@ window.addEventListener("landmarks-updated", () => {
 initSecurity();
 initUtils();
 registerServiceWorker();
+initAdminEmergencyNotifications();
 
 // Initialize analytics
 if (!localStorage.getItem('analytics-consent')) {
