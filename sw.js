@@ -1,7 +1,7 @@
 // sw.js - Service Worker for Bicol IP Hub
 // Provides offline caching for assets, posts, and map tiles
 
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 const STATIC_CACHE = `bicol-ip-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bicol-ip-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bicol-ip-images-${CACHE_VERSION}`;
@@ -95,10 +95,15 @@ function getCacheStrategy(url) {
       url.includes('arcgisonline.com')) {
     return 'map-tile';
   }
+
+  // Let the browser handle direct ImgBB-hosted images. This avoids first-load
+  // failures on weak connections for freshly uploaded post media.
+  if (url.includes('i.ibb.co')) {
+    return 'network-only';
+  }
   
   // Images from ImgBB or other CDNs
-  if (url.includes('i.ibb.co') || 
-      url.includes('img.youtube.com') ||
+  if (url.includes('img.youtube.com') ||
       url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
     return 'image';
   }
@@ -195,7 +200,7 @@ self.addEventListener('fetch', (event) => {
             }
             return networkResponse;
           } catch (error) {
-            return cached;
+            return cached || Response.error();
           }
         })
       );
