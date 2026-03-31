@@ -93,6 +93,30 @@ async function attemptUpload(requestFn, retries = MAX_UPLOAD_RETRIES) {
   throw lastError || new Error("Upload failed");
 }
 
+function normalizeImgbbUrl(rawUrl) {
+  if (!rawUrl) return null;
+  try {
+    const parsed = new URL(String(rawUrl).trim());
+    if (parsed.protocol !== "https:") {
+      parsed.protocol = "https:";
+    }
+    return parsed.toString();
+  } catch {
+    return String(rawUrl || "").trim() || null;
+  }
+}
+
+function extractImgbbUrl(payload) {
+  return normalizeImgbbUrl(
+    payload?.data?.url ||
+      payload?.data?.image?.url ||
+      payload?.data?.medium?.url ||
+      payload?.data?.thumb?.url ||
+      payload?.data?.display_url ||
+      null
+  );
+}
+
 async function uploadOne(blobOrFile, filename = "upload.jpg") {
   const image = await blobToBase64(blobOrFile);
   const publicKey =
@@ -155,7 +179,7 @@ async function uploadDirectToImgBB(image, filename, apiKey) {
     throw new Error(payload?.error?.message || payload?.data?.error?.message || "Direct ImgBB upload failed");
   }
 
-  const url = payload?.data?.display_url || payload?.data?.url || null;
+  const url = extractImgbbUrl(payload);
   if (!url) {
     throw new Error("Direct ImgBB upload returned no image URL");
   }
