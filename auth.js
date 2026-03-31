@@ -72,6 +72,19 @@ const isLocalhost =
 const urlParams = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
 const emulatorExplicitlyEnabled = urlParams.get("emulator") === "true";
 const useEmulator = isLocalhost && emulatorExplicitlyEnabled;
+const DEBUG_LOGS = isLocalhost || urlParams.get("debug") === "true";
+
+function debugLog(...args) {
+  if (DEBUG_LOGS) {
+    console.log(...args);
+  }
+}
+
+function debugWarn(...args) {
+  if (DEBUG_LOGS) {
+    console.warn(...args);
+  }
+}
 
 function createFirestore() {
   try {
@@ -81,7 +94,7 @@ function createFirestore() {
       }),
     });
   } catch (error) {
-    console.warn("Falling back to default Firestore initialization:", error);
+    debugWarn("Falling back to default Firestore initialization:", error);
     return getFirestore(app);
   }
 }
@@ -89,15 +102,15 @@ function createFirestore() {
 let db;
 
 if (useEmulator) {
-  console.warn("FIRESTORE EMULATOR MODE ACTIVE");
-  console.warn("Data will NOT sync to production.");
-  console.warn("Host:", location.hostname);
+  debugWarn("FIRESTORE EMULATOR MODE ACTIVE");
+  debugWarn("Data will NOT sync to production.");
+  debugWarn("Host:", location.hostname);
   db = getFirestore(app);
   connectFirestoreEmulator(db, "localhost", 8080);
 } else {
-  console.log("Firestore Production Mode");
-  console.log("Project:", firebaseConfig.projectId);
-  console.log("Host:", typeof location !== "undefined" ? location.hostname : "server");
+  debugLog("Firestore Production Mode");
+  debugLog("Project:", firebaseConfig.projectId);
+  debugLog("Host:", typeof location !== "undefined" ? location.hostname : "server");
   db = createFirestore();
 }
 
@@ -307,7 +320,7 @@ export async function createAccountWithProfile({ email, password, username, phon
       throw new Error("User document not found after creation - Firestore sync failed");
     }
 
-    console.log("User created and verified in Firestore:", user.uid);
+    debugLog("User created and verified in Firestore:", user.uid);
     await bumpUserCount();
     return user;
   } catch (error) {
@@ -554,7 +567,7 @@ async function hydrateSharedLocations(entries = []) {
 async function bumpUserCount() {
   try {
     await setDoc(statsRef, { userCount: increment(1) }, { merge: true });
-    console.log("User count incremented");
+    debugLog("User count incremented");
   } catch (e) {
     console.warn("Failed to bump user count:", e);
   }
@@ -1040,7 +1053,7 @@ export async function savePost({ id, title, content, media = [], author, authorI
           summary: `Updated post: ${title}`,
         }).catch((error) => console.warn("Failed to log post update:", error));
       }
-      console.log("Post updated:", id);
+      debugLog("Post updated:", id);
       return id;
     }
     const docRef = await addDoc(postsRef, {
@@ -1056,7 +1069,7 @@ export async function savePost({ id, title, content, media = [], author, authorI
         summary: `Created post: ${title}`,
       }).catch((error) => console.warn("Failed to log post creation:", error));
     }
-    console.log("Post created:", docRef.id);
+    debugLog("Post created:", docRef.id);
     return docRef.id;
   } catch (error) {
     console.error("Failed to save post:", error);
@@ -1085,7 +1098,7 @@ export async function deletePost(id) {
 export async function updatePostReactions(id, { likeDelta = 0, dislikeDelta = 0 }) {
   if (!id) return;
 
-  console.log("Updating reactions for post:", id, { likeDelta, dislikeDelta });
+  debugLog("Updating reactions for post:", id, { likeDelta, dislikeDelta });
 
   const payload = {};
   if (likeDelta) payload.likes = increment(likeDelta);
@@ -1094,7 +1107,7 @@ export async function updatePostReactions(id, { likeDelta = 0, dislikeDelta = 0 
 
   try {
     await updateDoc(doc(db, "posts", id), payload);
-    console.log("Reactions updated for post:", id);
+    debugLog("Reactions updated for post:", id);
   } catch (error) {
     console.error("Failed to update reactions:", error);
     throw error;
@@ -1284,7 +1297,7 @@ export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, colo
           summary: `Updated landmark: ${name}`,
         }).catch((error) => console.warn("Failed to log landmark update:", error));
       }
-      console.log("Landmark updated:", id);
+      debugLog("Landmark updated:", id);
       return id;
     }
     const docRef = await addDoc(landmarksRef, {
@@ -1300,7 +1313,7 @@ export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, colo
         summary: `Created landmark: ${name}`,
       }).catch((error) => console.warn("Failed to log landmark creation:", error));
     }
-    console.log("Landmark created:", docRef.id);
+    debugLog("Landmark created:", docRef.id);
     return docRef.id;
   } catch (error) {
     console.error("Failed to save landmark:", error);
@@ -1355,5 +1368,5 @@ export async function verifyFirestoreConnection() {
 
 if (typeof window !== "undefined") {
   window.verifyFirestore = verifyFirestoreConnection;
-  console.log("Firestore initialized. Run verifyFirestore() in console to test connection.");
+  debugLog("Firestore initialized. Run verifyFirestore() in console to test connection.");
 }
