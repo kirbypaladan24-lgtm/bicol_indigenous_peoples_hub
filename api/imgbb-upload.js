@@ -87,11 +87,11 @@ function normalizeImgbbUrl(rawUrl) {
 
 function extractImgbbUrl(payload) {
   return normalizeImgbbUrl(
-    payload?.data?.url ||
-      payload?.data?.image?.url ||
+    payload?.data?.display_url ||
       payload?.data?.medium?.url ||
+      payload?.data?.url ||
+      payload?.data?.image?.url ||
       payload?.data?.thumb?.url ||
-      payload?.data?.display_url ||
       null
   );
 }
