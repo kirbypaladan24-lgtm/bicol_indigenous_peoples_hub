@@ -1,11 +1,19 @@
 // sw.js - Service Worker for Bicol IP Hub
 // Provides offline caching for assets, posts, and map tiles
 
-const CACHE_VERSION = 'v9';
+const CACHE_VERSION = 'v10';
 const STATIC_CACHE = `bicol-ip-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bicol-ip-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `bicol-ip-images-${CACHE_VERSION}`;
 const MAP_TILE_CACHE = `bicol-ip-map-${CACHE_VERSION}`;
+const SW_DEBUG =
+  self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
+
+function debugLog(...args) {
+  if (SW_DEBUG) {
+    console.log(...args);
+  }
+}
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -44,37 +52,28 @@ const STATIC_ASSETS = [
   './landmark.js',
   './signup.js',
   './pwa.js',
-  'https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
 ];
 
 // Install: Cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing...');
-  event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => self.skipWaiting())
-      .catch((err) => console.error('[SW] Install failed:', err))
-  );
+  debugLog('[SW] Installing...');
+  event.waitUntil((async () => {
+    const cache = await caches.open(STATIC_CACHE);
+    await cache.addAll(STATIC_ASSETS);
+    await self.skipWaiting();
+  })());
 });
 
 // Activate: Clean old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating...');
+  debugLog('[SW] Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => name.startsWith('bicol-ip-') && !name.includes(CACHE_VERSION))
           .map((name) => {
-            console.log('[SW] Deleting old cache:', name);
+            debugLog('[SW] Deleting old cache:', name);
             return caches.delete(name);
           })
       );
@@ -184,35 +183,20 @@ self.addEventListener('fetch', (event) => {
       break;
       
     case 'map-tile':
-      // Cache map tiles with expiration
+      // Cache map tiles without blocking map rendering on install or fetch.
       event.respondWith(
-        caches.open(MAP_TILE_CACHE).then((cache) => {
-          return cache.match(request).then((cached) => {
-            if (cached) {
-              // Check if tile is older than 7 days
-              const dateHeader = cached.headers.get('sw-cached-date');
-              if (dateHeader) {
-                const age = Date.now() - parseInt(dateHeader, 10);
-                if (age < 7 * 24 * 60 * 60 * 1000) {
-                  return cached;
-                }
-              }
-            }
-            
-            return fetch(request).then((response) => {
+        caches.open(MAP_TILE_CACHE).then(async (cache) => {
+          const cached = await cache.match(request);
+          const fetchPromise = fetch(request)
+            .then((response) => {
               if (response.ok) {
-                const headers = new Headers(response.headers);
-                headers.set('sw-cached-date', Date.now().toString());
-                const responseToCache = new Response(response.body, {
-                  status: response.status,
-                  statusText: response.statusText,
-                  headers
-                });
-                cache.put(request, responseToCache);
+                cache.put(request, response.clone());
               }
               return response;
-            }).catch(() => cached);
-          });
+            })
+            .catch(() => cached);
+
+          return cached || fetchPromise;
         })
       );
       break;
@@ -289,7 +273,7 @@ self.addEventListener('notificationclick', (event) => {
 // Helper: Sync pending posts (placeholder for future implementation)
 async function syncPendingPosts() {
   // This would sync posts created while offline
-  console.log('[SW] Syncing pending posts...');
+  debugLog('[SW] Syncing pending posts...');
 }
 
 // Message handler from main thread
