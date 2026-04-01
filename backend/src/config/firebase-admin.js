@@ -5,7 +5,12 @@ import { serviceUnavailable, unauthorized } from "../utils/api-error.js";
 let firebaseAuth = null;
 
 if (env.firebaseProjectId && env.firebaseClientEmail && env.firebasePrivateKey) {
-  const privateKey = env.firebasePrivateKey.replace(/\\n/g, "\n");
+  const privateKey = env.firebasePrivateKey
+    .trim()
+    .replace(/^"(.*)"$/s, "$1")
+    .replace(/^'(.*)'$/s, "$1")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n");
 
   if (!admin.apps.length) {
     admin.initializeApp({
