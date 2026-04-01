@@ -5,24 +5,32 @@ import { serviceUnavailable, unauthorized } from "../utils/api-error.js";
 let firebaseAuth = null;
 
 if (env.firebaseProjectId && env.firebaseClientEmail && env.firebasePrivateKey) {
-  const privateKey = env.firebasePrivateKey
-    .trim()
-    .replace(/^"(.*)"$/s, "$1")
-    .replace(/^'(.*)'$/s, "$1")
-    .replace(/\\n/g, "\n")
-    .replace(/\r\n/g, "\n");
+  try {
+    const privateKey = env.firebasePrivateKey
+      .trim()
+      .replace(/^"(.*)"$/s, "$1")
+      .replace(/^'(.*)'$/s, "$1")
+      .replace(/\\n/g, "\n")
+      .replace(/\r\n/g, "\n");
 
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: env.firebaseProjectId,
-        clientEmail: env.firebaseClientEmail,
-        privateKey,
-      }),
-    });
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: env.firebaseProjectId,
+          clientEmail: env.firebaseClientEmail,
+          privateKey,
+        }),
+      });
+    }
+
+    firebaseAuth = admin.auth();
+  } catch (error) {
+    firebaseAuth = null;
+    console.error(
+      "[Firebase Admin] Failed to initialize Firebase Admin credentials. Protected routes will stay unavailable until the environment variables are corrected.",
+      error
+    );
   }
-
-  firebaseAuth = admin.auth();
 }
 
 export function isFirebaseAuthConfigured() {
