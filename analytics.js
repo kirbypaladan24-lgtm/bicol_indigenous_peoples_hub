@@ -9,7 +9,10 @@ const ANALYTICS_CONFIG = {
   // Self-hosted Plausible or similar endpoint
   // Replace with your actual analytics endpoint
   endpoint: 'https://plausible.io/api/event',
-  domain: 'bicol-indigenous-peoples-hub.vercel.app', // Your domain
+  domain:
+    typeof window !== 'undefined' && window.location?.hostname
+      ? window.location.hostname
+      : 'bicol-indigenous-peoples-hub.vercel.app',
   
   // Feature flags
   enabled: true,
@@ -150,10 +153,10 @@ async function flushEvents() {
     await fetch(ANALYTICS_CONFIG.endpoint, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Forwarded-For': '127.0.0.1' // Anonymize IP
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload),
+      credentials: 'omit',
       keepalive: true
     });
   } catch (err) {
