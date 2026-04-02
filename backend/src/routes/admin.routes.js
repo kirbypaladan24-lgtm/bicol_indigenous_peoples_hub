@@ -7,7 +7,7 @@ import { asyncHandler } from "../utils/async-handler.js";
 import { parsePagination } from "../utils/pagination.js";
 import { logAdminActivity } from "../utils/audit-log.js";
 import { forbidden, notFound } from "../utils/api-error.js";
-import { ROLE } from "../utils/roles.js";
+import { MANAGED_ADMIN_ROLES, PRIMARY_SUPER_ADMIN_UID, ROLE } from "../utils/roles.js";
 import {
   ensureObject,
   parseBoolean,
@@ -77,21 +77,9 @@ router.put(
   adminWriteLimiter,
   asyncHandler(async (req, res) => {
     const body = ensureObject(req.body);
-    const role = parseEnum(body.role, "role", [
-      "content_admin",
-      "landmark_admin",
-      "emergency_admin",
-      "super_admin",
-    ], { required: true });
+    const role = parseEnum(body.role, "role", MANAGED_ADMIN_ROLES, { required: true });
     const active = parseBoolean(body.active, "active", true);
     const notes = parseOptionalString(body.notes, "notes", { maxLength: 5000 });
-
-    if (
-      String(req.params.userId) === String(req.auth.dbUser.id) &&
-      (!active || role !== ROLE.SUPER_ADMIN)
-    ) {
-      throw forbidden("The current super admin account cannot demote or disable itself.");
-    }
 
     const updated = await withTransaction(async (client) => {
       const targetUserResult = await client.query(
@@ -110,13 +98,21 @@ router.put(
 
       const targetUser = targetUserResult.rows[0];
 
+      if (targetUser.firebase_uid === PRIMARY_SUPER_ADMIN_UID) {
+        throw forbidden("The primary super admin account is fixed and cannot be changed here.");
+      }
+
+      if (String(targetUser.id) === String(req.auth.dbUser.id)) {
+        throw forbidden("The current super admin account cannot change its own delegated admin access.");
+      }
+
       await client.query(
         `
         UPDATE users
         SET role = $2
         WHERE id = $1
         `,
-        [req.params.userId, role]
+        [req.params.userId, active ? role : ROLE.USER]
       );
 
       const result = await client.query(
