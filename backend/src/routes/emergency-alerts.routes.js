@@ -8,6 +8,7 @@ import { parsePagination } from "../utils/pagination.js";
 import { logAdminActivity } from "../utils/audit-log.js";
 import { badRequest, forbidden, notFound } from "../utils/api-error.js";
 import { ROLE } from "../utils/roles.js";
+import { buildUserIdentitySnapshot, loadUserByIdOrThrow } from "../utils/user-records.js";
 import {
   ensureObject,
   parseEnum,
@@ -124,30 +125,36 @@ router.post(
       throw badRequest("message is required.");
     }
 
-    const result = await query(
-      `
-      INSERT INTO emergency_alerts (
-        user_id, username_snapshot, email_snapshot, phone_snapshot,
-        latitude, longitude, accuracy_meters,
-        message, image_url, status
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending')
-      RETURNING *
-      `,
-      [
-        userId,
-        pickDisplayName(req.auth.dbUser),
-        req.auth.dbUser.email,
-        parseOptionalString(body.phone_snapshot, "phone_snapshot", { maxLength: 32 }),
-        latitude,
-        longitude,
-        accuracyMeters,
-        message,
-        imageUrl,
-      ]
-    );
+    const result = await withTransaction(async (client) => {
+      const targetUser = await loadUserByIdOrThrow(client, userId, "Target user not found.");
+      const snapshot = buildUserIdentitySnapshot(targetUser);
+      const inserted = await client.query(
+        `
+        INSERT INTO emergency_alerts (
+          user_id, username_snapshot, email_snapshot, phone_snapshot,
+          latitude, longitude, accuracy_meters,
+          message, image_url, status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending')
+        RETURNING *
+        `,
+        [
+          userId,
+          snapshot.usernameSnapshot,
+          snapshot.emailSnapshot,
+          parseOptionalString(body.phone_snapshot, "phone_snapshot", { maxLength: 32 }),
+          latitude,
+          longitude,
+          accuracyMeters,
+          message,
+          imageUrl,
+        ]
+      );
 
-    res.status(201).json(result.rows[0]);
+      return inserted.rows[0];
+    });
+
+    res.status(201).json(result);
   })
 );
 
