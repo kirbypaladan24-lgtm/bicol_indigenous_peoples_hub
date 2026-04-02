@@ -27,9 +27,17 @@ export default function handler(_req, res) {
   const publicUploadConfig = {
     imgbbKey: process.env.VITE_IMGBB_KEY || process.env.IMGBB_KEY || "",
   };
+  const publicBackendConfig = {
+    baseUrl:
+      process.env.VITE_BACKEND_BASE_URL ||
+      process.env.PUBLIC_BACKEND_BASE_URL ||
+      process.env.BACKEND_BASE_URL ||
+      "",
+  };
   const payload = `
 window.__FIREBASE_CONFIG__ = ${JSON.stringify(firebaseConfig)};
 window.__PUBLIC_UPLOAD_CONFIG__ = ${JSON.stringify(publicUploadConfig)};
+window.__PUBLIC_BACKEND_CONFIG__ = ${JSON.stringify(publicBackendConfig)};
 `.trim();
 
   res.setHeader("Content-Type", "application/javascript; charset=utf-8");
