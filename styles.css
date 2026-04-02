@@ -2156,6 +2156,9 @@ button {
   display: inline-flex;
   gap: 6px;
   align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  line-height: 1;
 }
 
 .react-btn svg {
@@ -2173,6 +2176,8 @@ button {
   position: relative;
   margin-top: 0;
   margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 
 .share-btn {
@@ -2182,6 +2187,11 @@ button {
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  line-height: 1;
 }
 
 .share-menu {
