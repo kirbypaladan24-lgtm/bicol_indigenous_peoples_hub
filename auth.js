@@ -307,9 +307,13 @@ async function enqueueSyncJob({
     return jobId;
   }
 
-  pushSyncJobToBackend(jobData, { jobRef }).catch((error) => {
-    debugWarn("Immediate PostgreSQL sync push failed. Firestore queue will retry later:", error);
-  });
+  const immediateResult = await pushSyncJobToBackend(jobData, { jobRef });
+  if (!immediateResult.ok && !immediateResult.skipped) {
+    debugWarn(
+      "Immediate PostgreSQL sync push failed. Firestore queue will retry later:",
+      immediateResult.error || immediateResult.reason
+    );
+  }
 
   return jobId;
 }
