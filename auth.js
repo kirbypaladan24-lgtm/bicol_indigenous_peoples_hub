@@ -37,6 +37,7 @@ import {
   connectFirestoreEmulator,
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import { assertFirebaseConfig } from "./firebase-config.js";
+import { isBackendSyncConfigured, sendBackendSyncJob } from "./postgres-sync.js";
 
 export const SUPER_ADMIN_UID = "6bs7TaQnJBZDGiyhR1eoDMLncsb2";
 export const ADMIN_ROLE_UIDS = {
@@ -115,6 +116,284 @@ if (useEmulator) {
 }
 
 export { db, firebaseConfig };
+
+const syncQueueRef = collection(db, "pg_sync_queue");
+let syncIntervalId = null;
+let syncProcessingPromise = null;
+let syncOnlineBindingReady = false;
+const OWN_SYNC_ENTITY_TYPES = [
+  "user_profile",
+  "post",
+  "post_delete",
+  "landmark",
+  "landmark_delete",
+  "shared_location",
+  "emergency_alert",
+  "admin_activity",
+  "admin_access",
+];
+
+function serializeSyncValue(value) {
+  if (value === undefined) return null;
+  if (value === null) return null;
+  if (Array.isArray(value)) {
+    return value.map((item) => serializeSyncValue(item));
+  }
+  if (typeof value?.toDate === "function") {
+    return value.toDate().toISOString();
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, nestedValue]) => nestedValue !== undefined)
+        .map(([key, nestedValue]) => [key, serializeSyncValue(nestedValue)])
+    );
+  }
+  return value;
+}
+
+function buildSyncJobId(entityType, operation, firestoreId) {
+  return `${entityType}_${operation}_${firestoreId}`.replace(/[^\w-]/g, "_");
+}
+
+function getSyncJobDocRef(jobId) {
+  return doc(db, "pg_sync_queue", jobId);
+}
+
+function getSyncRescueEntityTypes(user = auth.currentUser) {
+  const entityTypes = new Set();
+
+  if (!user?.uid) return [];
+  if (canManagePosts(user)) {
+    entityTypes.add("post");
+    entityTypes.add("post_delete");
+  }
+  if (canManageLandmarks(user)) {
+    entityTypes.add("landmark");
+    entityTypes.add("landmark_delete");
+  }
+  if (canManageEmergencies(user)) {
+    entityTypes.add("shared_location");
+    entityTypes.add("emergency_alert");
+  }
+  if (isSuperAdmin(user)) {
+    entityTypes.add("admin_activity");
+    entityTypes.add("admin_access");
+  }
+
+  return Array.from(entityTypes);
+}
+
+function canProcessSyncJob(job, user = auth.currentUser) {
+  if (!job || !user?.uid) return false;
+  if (job.actorUid === user.uid || job.ownerUid === user.uid) return true;
+
+  switch (job.entityType) {
+    case "post":
+    case "post_delete":
+      return canManagePosts(user);
+    case "landmark":
+    case "landmark_delete":
+      return canManageLandmarks(user);
+    case "shared_location":
+    case "emergency_alert":
+      return canManageEmergencies(user);
+    case "admin_activity":
+    case "admin_access":
+      return isSuperAdmin(user);
+    default:
+      return false;
+  }
+}
+
+async function enqueueSyncJob({
+  entityType,
+  operation = "upsert",
+  firestoreId,
+  ownerUid = null,
+  payload = {},
+} = {}) {
+  const actorUid = auth.currentUser?.uid || null;
+  if (!actorUid || !entityType || !firestoreId) return null;
+
+  const jobId = buildSyncJobId(entityType, operation, firestoreId);
+  await setDoc(
+    getSyncJobDocRef(jobId),
+    {
+      jobId,
+      entityType,
+      operation,
+      firestoreId: String(firestoreId),
+      ownerUid: ownerUid ? String(ownerUid) : null,
+      actorUid,
+      payload: serializeSyncValue(payload),
+      attempts: 0,
+      lastError: null,
+      lastAttemptAt: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  processPendingSyncQueue().catch((error) => {
+    debugWarn("Queued PostgreSQL sync job but immediate processing failed:", error);
+  });
+
+  return jobId;
+}
+
+async function updateSyncJobFailure(jobRef, error) {
+  try {
+    await setDoc(
+      jobRef,
+      {
+        attempts: increment(1),
+        lastError: String(error?.message || error || "Backend sync failed."),
+        lastAttemptAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } catch (writeError) {
+    debugWarn("Could not update sync job failure state:", writeError);
+  }
+}
+
+async function loadPendingSyncJobs(user = auth.currentUser) {
+  if (!user?.uid || user.isAnonymous) return [];
+
+  const jobs = new Map();
+  const ownQueries = OWN_SYNC_ENTITY_TYPES.map((entityType) =>
+    getDocs(query(syncQueueRef, where("entityType", "==", entityType), where("actorUid", "==", user.uid)))
+  );
+  const rescueQueries = getSyncRescueEntityTypes(user).map((entityType) =>
+    getDocs(query(syncQueueRef, where("entityType", "==", entityType)))
+  );
+
+  const snapshots = await Promise.all([...ownQueries, ...rescueQueries]);
+
+  snapshots.forEach((snapshot) => {
+    snapshot.docs.forEach((docSnap) => {
+      const data = { id: docSnap.id, ...docSnap.data() };
+      if (canProcessSyncJob(data, user)) {
+        jobs.set(docSnap.id, { ref: docSnap.ref, ...data });
+      }
+    });
+  });
+
+  return Array.from(jobs.values()).sort((a, b) => {
+    const aTime = a?.updatedAt?.seconds || a?.createdAt?.seconds || 0;
+    const bTime = b?.updatedAt?.seconds || b?.createdAt?.seconds || 0;
+    return aTime - bTime;
+  });
+}
+
+export async function processPendingSyncQueue() {
+  if (syncProcessingPromise) return syncProcessingPromise;
+
+  const user = auth.currentUser;
+  if (!user?.uid || user.isAnonymous) return [];
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return [];
+  if (!isBackendSyncConfigured()) return [];
+
+  syncProcessingPromise = (async () => {
+    const pendingJobs = await loadPendingSyncJobs(user);
+    if (!pendingJobs.length) return [];
+
+    let idToken = await user.getIdToken();
+    let refreshedToken = false;
+    const completedJobIds = [];
+
+    for (const job of pendingJobs) {
+      try {
+        await sendBackendSyncJob(
+          {
+            entityType: job.entityType,
+            operation: job.operation,
+            firestoreId: job.firestoreId,
+            ownerUid: job.ownerUid || null,
+            payload: job.payload || {},
+          },
+          idToken
+        );
+        await deleteDoc(job.ref);
+        completedJobIds.push(job.id);
+      } catch (error) {
+        if (error?.status === 401 && !refreshedToken) {
+          try {
+            idToken = await user.getIdToken(true);
+            refreshedToken = true;
+            await sendBackendSyncJob(
+              {
+                entityType: job.entityType,
+                operation: job.operation,
+                firestoreId: job.firestoreId,
+                ownerUid: job.ownerUid || null,
+                payload: job.payload || {},
+              },
+              idToken
+            );
+            await deleteDoc(job.ref);
+            completedJobIds.push(job.id);
+            continue;
+          } catch (retryError) {
+            await updateSyncJobFailure(job.ref, retryError);
+            break;
+          }
+        }
+
+        await updateSyncJobFailure(job.ref, error);
+        if (error?.status === 401 || error?.status === 403 || error?.status >= 500) {
+          break;
+        }
+      }
+    }
+
+    return completedJobIds;
+  })();
+
+  try {
+    return await syncProcessingPromise;
+  } finally {
+    syncProcessingPromise = null;
+  }
+}
+
+function stopSyncScheduler() {
+  if (syncIntervalId) {
+    clearInterval(syncIntervalId);
+    syncIntervalId = null;
+  }
+}
+
+function startSyncScheduler(user) {
+  stopSyncScheduler();
+  if (!user?.uid || user.isAnonymous) return;
+  if (!isBackendSyncConfigured()) return;
+
+  if (!syncOnlineBindingReady && typeof window !== "undefined") {
+    syncOnlineBindingReady = true;
+    window.addEventListener("online", () => {
+      processPendingSyncQueue().catch((error) => {
+        debugWarn("Backend sync retry failed after reconnect:", error);
+      });
+    });
+  }
+
+  processPendingSyncQueue().catch((error) => {
+    debugWarn("Initial backend sync processing failed:", error);
+  });
+
+  syncIntervalId = window.setInterval(() => {
+    processPendingSyncQueue().catch((error) => {
+      debugWarn("Scheduled backend sync processing failed:", error);
+    });
+  }, 120000);
+}
 
 function getAdminAccessDocRef(uid) {
   return doc(db, "admin_access", uid);
@@ -225,6 +504,7 @@ export const observeAuth = (cb) =>
       await syncAdminAccess(normalizedUser.uid, true).catch(() => {});
     }
     startAdminAccessSync(normalizedUser);
+    startSyncScheduler(normalizedUser);
     cb(normalizedUser);
   });
 
@@ -253,6 +533,9 @@ async function ensureUserProfile(user, profile = {}) {
   }
 
   await setDoc(userRef, payload, { merge: true });
+  await queueUserProfileSync(user.uid, { includePrivate: false }).catch((error) => {
+    debugWarn("Failed to queue user profile sync:", error);
+  });
 
   return user;
 }
@@ -264,6 +547,7 @@ export async function loginWithEmail(email, password) {
 }
 
 export async function logout() {
+  stopSyncScheduler();
   await signOut(auth);
 }
 
@@ -314,6 +598,9 @@ export async function createAccountWithProfile({ email, password, username, phon
   try {
     await setDoc(userRef, userData, { merge: true });
     await setDoc(privateUserRef, privateUserData, { merge: true });
+    await queueUserProfileSync(user.uid, { includePrivate: true }).catch((syncError) => {
+      debugWarn("Failed to queue account profile sync:", syncError);
+    });
 
     const verifySnap = await getDocFromServer(userRef);
     if (!verifySnap.exists()) {
@@ -467,6 +754,10 @@ export async function updateAdminAccessState(uid, { role, active }) {
     );
   }
 
+  await queueAdminAccessSync(uid, { role, active: active !== false }).catch((error) => {
+    debugWarn("Failed to queue admin access sync:", error);
+  });
+
   return resolveAdminAccessState(uid);
 }
 
@@ -488,6 +779,146 @@ function getSharedLocationDocRef(uid) {
 
 function getPrivateUserDocRef(uid) {
   return doc(db, "users_private", uid);
+}
+
+async function queueUserProfileSync(uid = auth.currentUser?.uid, { includePrivate = true } = {}) {
+  if (!uid) return null;
+
+  const [publicProfile, privateProfile] = await Promise.all([
+    getUserProfile(uid).catch(() => null),
+    includePrivate ? fetchPrivateUserProfile(uid, false).catch(() => null) : Promise.resolve(null),
+  ]);
+
+  if (!publicProfile) return null;
+
+  return enqueueSyncJob({
+    entityType: "user_profile",
+    firestoreId: uid,
+    ownerUid: uid,
+    payload: {
+      publicProfile,
+      privateProfile: includePrivate ? privateProfile : null,
+    },
+  });
+}
+
+async function queuePostSync(postId, ownerUid = null) {
+  if (!postId) return null;
+  const post = await fetchPost(postId, false).catch(() => null);
+  if (!post) return null;
+
+  const authorProfile = post.authorId ? await getUserProfile(post.authorId).catch(() => null) : null;
+  return enqueueSyncJob({
+    entityType: "post",
+    firestoreId: postId,
+    ownerUid: ownerUid || post.authorId || null,
+    payload: {
+      ...post,
+      authorProfile,
+    },
+  });
+}
+
+async function queuePostDeleteSync(postId, existingPost = null) {
+  if (!postId) return null;
+
+  return enqueueSyncJob({
+    entityType: "post_delete",
+    operation: "delete",
+    firestoreId: postId,
+    ownerUid: existingPost?.authorId || null,
+    payload: {
+      id: postId,
+      title: existingPost?.title || null,
+      authorId: existingPost?.authorId || null,
+    },
+  });
+}
+
+async function queueLandmarkSync(landmarkId) {
+  if (!landmarkId) return null;
+  const landmark = await fetchLandmark(landmarkId, false).catch(() => null);
+  if (!landmark) return null;
+
+  return enqueueSyncJob({
+    entityType: "landmark",
+    firestoreId: landmarkId,
+    ownerUid: auth.currentUser?.uid || null,
+    payload: landmark,
+  });
+}
+
+async function queueLandmarkDeleteSync(landmarkId, existingLandmark = null) {
+  if (!landmarkId) return null;
+  return enqueueSyncJob({
+    entityType: "landmark_delete",
+    operation: "delete",
+    firestoreId: landmarkId,
+    ownerUid: auth.currentUser?.uid || null,
+    payload: {
+      id: landmarkId,
+      name: existingLandmark?.name || null,
+    },
+  });
+}
+
+async function queueSharedLocationSync(uid = auth.currentUser?.uid) {
+  if (!uid) return null;
+  const location = await fetchSharedLocation(uid, false).catch(() => null);
+  if (!location) return null;
+
+  return enqueueSyncJob({
+    entityType: "shared_location",
+    firestoreId: uid,
+    ownerUid: uid,
+    payload: location,
+  });
+}
+
+async function queueEmergencyAlertSync(alertId, ownerUid = auth.currentUser?.uid) {
+  if (!alertId) return null;
+  const alertSnap = await getDoc(doc(db, "emergency_alerts", alertId));
+  if (!alertSnap.exists()) return null;
+
+  return enqueueSyncJob({
+    entityType: "emergency_alert",
+    firestoreId: alertId,
+    ownerUid: ownerUid || null,
+    payload: { id: alertSnap.id, ...alertSnap.data() },
+  });
+}
+
+async function queueAdminActivitySync(logId) {
+  if (!logId) return null;
+  const logSnap = await getDoc(doc(db, "admin_activity_logs", logId));
+  if (!logSnap.exists()) return null;
+
+  return enqueueSyncJob({
+    entityType: "admin_activity",
+    firestoreId: logId,
+    ownerUid: logSnap.data()?.actorUid || auth.currentUser?.uid || null,
+    payload: { id: logSnap.id, ...logSnap.data() },
+  });
+}
+
+async function queueAdminAccessSync(uid, { role, active } = {}) {
+  const [profile, access] = await Promise.all([
+    getUserProfile(uid).catch(() => null),
+    getDoc(getAdminAccessDocRef(uid)).catch(() => null),
+  ]);
+
+  return enqueueSyncJob({
+    entityType: "admin_access",
+    firestoreId: uid,
+    ownerUid: uid,
+    payload: {
+      uid,
+      role: access?.exists?.() ? access.data()?.role || role || null : role || null,
+      active: access?.exists?.() ? access.data()?.active !== false : active !== false,
+      updatedBy: auth.currentUser?.uid || null,
+      profile,
+    },
+  });
 }
 
 async function getCurrentAdminIdentity(user = auth.currentUser) {
@@ -528,7 +959,7 @@ export async function logAdminActivity({
   const trimmedTargetType = String(targetType || "").trim();
   if (!trimmedActionType || !trimmedTargetType) return null;
 
-  return addDoc(adminActivityLogsRef, {
+  const logRef = await addDoc(adminActivityLogsRef, {
     actorUid: identity.uid,
     actorEmail: identity.email || null,
     actorName: identity.name,
@@ -540,6 +971,12 @@ export async function logAdminActivity({
     summary: String(summary || "").slice(0, 2000),
     createdAt: serverTimestamp(),
   });
+
+  await queueAdminActivitySync(logRef.id).catch((error) => {
+    debugWarn("Failed to queue admin activity sync:", error);
+  });
+
+  return logRef;
 }
 
 async function hydrateSharedLocation(entry) {
@@ -746,6 +1183,10 @@ export async function acknowledgeLocationConsent() {
     { merge: true }
   );
 
+  await queueSharedLocationSync(user.uid).catch((error) => {
+    debugWarn("Failed to queue shared location consent sync:", error);
+  });
+
   return fetchSharedLocation(user.uid, false);
 }
 
@@ -781,6 +1222,10 @@ export async function saveCurrentUserSharedLocation({ lat, lng, accuracy = null 
     },
     { merge: true }
   );
+
+  await queueSharedLocationSync(user.uid).catch((error) => {
+    debugWarn("Failed to queue shared location sync:", error);
+  });
 
   return fetchSharedLocation(user.uid, false);
 }
@@ -841,7 +1286,7 @@ export async function submitEmergencyReport({ message, imageUrl, lat = null, lng
     { merge: true }
   );
 
-  await addDoc(emergencyAlertsRef, {
+  const emergencyRef = await addDoc(emergencyAlertsRef, {
     userId: user.uid,
     uid: user.uid,
     username: identity.username,
@@ -856,6 +1301,11 @@ export async function submitEmergencyReport({ message, imageUrl, lat = null, lng
     submittedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  await Promise.allSettled([
+    queueSharedLocationSync(user.uid),
+    queueEmergencyAlertSync(emergencyRef.id, user.uid),
+  ]);
 
   return fetchSharedLocation(user.uid, false);
 }
@@ -892,6 +1342,31 @@ export async function respondToEmergency(userId, { status, reason = "" }) {
     { merge: true }
   );
 
+  try {
+    const alertsQuery = query(
+      emergencyAlertsRef,
+      where("userId", "==", userId),
+      where("status", "==", "pending"),
+      orderBy("submittedAt", "desc")
+    );
+    const alertsSnap = await getDocs(alertsQuery);
+    if (!alertsSnap.empty) {
+      const latestAlert = alertsSnap.docs[0];
+      await updateDoc(latestAlert.ref, {
+        status: normalizedStatus,
+        responseReason: trimmedReason || null,
+        respondedBy: user.uid,
+        respondedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      await queueEmergencyAlertSync(latestAlert.id, userId).catch((error) => {
+        debugWarn("Failed to queue emergency alert response sync:", error);
+      });
+    }
+  } catch (error) {
+    console.warn("Failed to update emergency history response state:", error);
+  }
+
   await logAdminActivity({
     actionType: "emergency_responded",
     targetType: "emergency",
@@ -903,6 +1378,10 @@ export async function respondToEmergency(userId, { status, reason = "" }) {
         : `Emergency response: ${normalizedStatus}`,
   }).catch((error) => {
     console.warn("Failed to log emergency response:", error);
+  });
+
+  await queueSharedLocationSync(userId).catch((error) => {
+    debugWarn("Failed to queue responded shared location sync:", error);
   });
 
   return fetchSharedLocation(userId, false);
@@ -1044,6 +1523,9 @@ export async function savePost({ id, title, content, media = [], author, authorI
   try {
     if (id) {
       await updateDoc(doc(db, "posts", id), payload);
+      await queuePostSync(id, authorId || actingUser?.uid || null).catch((syncError) => {
+        debugWarn("Failed to queue post update sync:", syncError);
+      });
       if (isAdmin(actingUser)) {
         await logAdminActivity({
           actionType: "post_updated",
@@ -1059,6 +1541,9 @@ export async function savePost({ id, title, content, media = [], author, authorI
     const docRef = await addDoc(postsRef, {
       ...payload,
       createdAt: serverTimestamp(),
+    });
+    await queuePostSync(docRef.id, authorId || actingUser?.uid || null).catch((syncError) => {
+      debugWarn("Failed to queue post create sync:", syncError);
     });
     if (isAdmin(actingUser)) {
       await logAdminActivity({
@@ -1083,6 +1568,9 @@ export async function deletePost(id) {
     throw new Error("Your admin role cannot delete posts.");
   }
   const existingPost = await fetchPost(id, false).catch(() => null);
+  await queuePostDeleteSync(id, existingPost).catch((error) => {
+    debugWarn("Failed to queue post delete sync:", error);
+  });
   await deleteDoc(doc(db, "posts", id));
   if (isAdmin(actingUser)) {
     await logAdminActivity({
@@ -1107,6 +1595,9 @@ export async function updatePostReactions(id, { likeDelta = 0, dislikeDelta = 0 
 
   try {
     await updateDoc(doc(db, "posts", id), payload);
+    await queuePostSync(id).catch((syncError) => {
+      debugWarn("Failed to queue post reaction sync:", syncError);
+    });
     debugLog("Reactions updated for post:", id);
   } catch (error) {
     console.error("Failed to update reactions:", error);
@@ -1172,7 +1663,7 @@ export async function setPostReaction(postId, nextReaction) {
 
   const reactionRef = getReactionDocRef(user.uid, postId);
   const postRef = doc(db, "posts", postId);
-  return runTransaction(db, async (transaction) => {
+  const result = await runTransaction(db, async (transaction) => {
     const [postSnap, reactionSnap] = await Promise.all([
       transaction.get(postRef),
       transaction.get(reactionRef),
@@ -1232,6 +1723,12 @@ export async function setPostReaction(postId, nextReaction) {
       dislikeDelta,
     };
   });
+
+  await queuePostSync(postId, user.uid).catch((syncError) => {
+    debugWarn("Failed to queue post reaction transaction sync:", syncError);
+  });
+
+  return result;
 }
 
 export async function getUserProfile(uid) {
@@ -1288,6 +1785,9 @@ export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, colo
   try {
     if (id) {
       await updateDoc(doc(db, "landmarks", id), payload);
+      await queueLandmarkSync(id).catch((syncError) => {
+        debugWarn("Failed to queue landmark update sync:", syncError);
+      });
       if (isAdmin(actingUser)) {
         await logAdminActivity({
           actionType: "landmark_updated",
@@ -1303,6 +1803,9 @@ export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, colo
     const docRef = await addDoc(landmarksRef, {
       ...payload,
       createdAt: serverTimestamp(),
+    });
+    await queueLandmarkSync(docRef.id).catch((syncError) => {
+      debugWarn("Failed to queue landmark create sync:", syncError);
     });
     if (isAdmin(actingUser)) {
       await logAdminActivity({
@@ -1327,6 +1830,9 @@ export async function deleteLandmark(id) {
     throw new Error("Your admin role cannot delete landmarks.");
   }
   const existingLandmark = await fetchLandmark(id, false).catch(() => null);
+  await queueLandmarkDeleteSync(id, existingLandmark).catch((error) => {
+    debugWarn("Failed to queue landmark delete sync:", error);
+  });
   await deleteDoc(doc(db, "landmarks", id));
   if (isAdmin(actingUser)) {
     await logAdminActivity({
