@@ -270,6 +270,7 @@ async function enqueueSyncJob({
   firestoreId,
   ownerUid = null,
   payload = {},
+  waitForImmediatePush = true,
 } = {}) {
   const actorUid = auth.currentUser?.uid || null;
   if (!actorUid || !entityType || !firestoreId) return null;
@@ -305,6 +306,23 @@ async function enqueueSyncJob({
     if (!fallbackResult.ok) {
       console.warn("Direct backend sync fallback failed.", fallbackResult.error || fallbackResult.reason);
     }
+    return jobId;
+  }
+
+  if (!waitForImmediatePush) {
+    Promise.resolve()
+      .then(() => pushSyncJobToBackend(jobData, { jobRef }))
+      .then((immediateResult) => {
+        if (!immediateResult.ok && !immediateResult.skipped) {
+          debugWarn(
+            "Background PostgreSQL sync push failed. Firestore queue will retry later:",
+            immediateResult.error || immediateResult.reason
+          );
+        }
+      })
+      .catch((error) => {
+        debugWarn("Background PostgreSQL sync scheduling failed:", error);
+      });
     return jobId;
   }
 
@@ -849,7 +867,7 @@ async function queueUserProfileSync(uid = auth.currentUser?.uid, { includePrivat
   });
 }
 
-async function queuePostSync(postId, ownerUid = null) {
+async function queuePostSync(postId, ownerUid = null, { waitForImmediatePush = true } = {}) {
   if (!postId) return null;
   const post = await fetchPost(postId, true).catch(() => fetchPost(postId, false).catch(() => null));
   if (!post) return null;
@@ -863,10 +881,15 @@ async function queuePostSync(postId, ownerUid = null) {
       ...post,
       authorProfile,
     },
+    waitForImmediatePush,
   });
 }
 
-async function queuePostDeleteSync(postId, existingPost = null) {
+async function queuePostDeleteSync(
+  postId,
+  existingPost = null,
+  { waitForImmediatePush = true } = {}
+) {
   if (!postId) return null;
 
   return enqueueSyncJob({
@@ -879,10 +902,11 @@ async function queuePostDeleteSync(postId, existingPost = null) {
       title: existingPost?.title || null,
       authorId: existingPost?.authorId || null,
     },
+    waitForImmediatePush,
   });
 }
 
-async function queueLandmarkSync(landmarkId) {
+async function queueLandmarkSync(landmarkId, { waitForImmediatePush = true } = {}) {
   if (!landmarkId) return null;
   const landmark = await fetchLandmark(landmarkId, false).catch(() => null);
   if (!landmark) return null;
@@ -892,10 +916,15 @@ async function queueLandmarkSync(landmarkId) {
     firestoreId: landmarkId,
     ownerUid: auth.currentUser?.uid || null,
     payload: landmark,
+    waitForImmediatePush,
   });
 }
 
-async function queueLandmarkDeleteSync(landmarkId, existingLandmark = null) {
+async function queueLandmarkDeleteSync(
+  landmarkId,
+  existingLandmark = null,
+  { waitForImmediatePush = true } = {}
+) {
   if (!landmarkId) return null;
   return enqueueSyncJob({
     entityType: "landmark_delete",
@@ -906,10 +935,11 @@ async function queueLandmarkDeleteSync(landmarkId, existingLandmark = null) {
       id: landmarkId,
       name: existingLandmark?.name || null,
     },
+    waitForImmediatePush,
   });
 }
 
-async function queueSharedLocationSync(uid = auth.currentUser?.uid) {
+async function queueSharedLocationSync(uid = auth.currentUser?.uid, { waitForImmediatePush = true } = {}) {
   if (!uid) return null;
   const location = await fetchSharedLocation(uid, false).catch(() => null);
   if (!location) return null;
@@ -919,10 +949,15 @@ async function queueSharedLocationSync(uid = auth.currentUser?.uid) {
     firestoreId: uid,
     ownerUid: uid,
     payload: location,
+    waitForImmediatePush,
   });
 }
 
-async function queueEmergencyAlertSync(alertId, ownerUid = auth.currentUser?.uid) {
+async function queueEmergencyAlertSync(
+  alertId,
+  ownerUid = auth.currentUser?.uid,
+  { waitForImmediatePush = true } = {}
+) {
   if (!alertId) return null;
   const alertSnap = await getDoc(doc(db, "emergency_alerts", alertId));
   if (!alertSnap.exists()) return null;
@@ -932,6 +967,7 @@ async function queueEmergencyAlertSync(alertId, ownerUid = auth.currentUser?.uid
     firestoreId: alertId,
     ownerUid: ownerUid || null,
     payload: { id: alertSnap.id, ...alertSnap.data() },
+    waitForImmediatePush,
   });
 }
 
@@ -1231,7 +1267,7 @@ export async function acknowledgeLocationConsent() {
     { merge: true }
   );
 
-  await queueSharedLocationSync(user.uid).catch((error) => {
+  queueSharedLocationSync(user.uid, { waitForImmediatePush: false }).catch((error) => {
     debugWarn("Failed to queue shared location consent sync:", error);
   });
 
@@ -1271,7 +1307,7 @@ export async function saveCurrentUserSharedLocation({ lat, lng, accuracy = null 
     { merge: true }
   );
 
-  await queueSharedLocationSync(user.uid).catch((error) => {
+  queueSharedLocationSync(user.uid, { waitForImmediatePush: false }).catch((error) => {
     debugWarn("Failed to queue shared location sync:", error);
   });
 
@@ -1350,10 +1386,12 @@ export async function submitEmergencyReport({ message, imageUrl, lat = null, lng
     updatedAt: serverTimestamp(),
   });
 
-  await Promise.allSettled([
-    queueSharedLocationSync(user.uid),
-    queueEmergencyAlertSync(emergencyRef.id, user.uid),
-  ]);
+  Promise.allSettled([
+    queueSharedLocationSync(user.uid, { waitForImmediatePush: false }),
+    queueEmergencyAlertSync(emergencyRef.id, user.uid, { waitForImmediatePush: false }),
+  ]).catch((error) => {
+    debugWarn("Failed to queue emergency-related PostgreSQL sync:", error);
+  });
 
   return fetchSharedLocation(user.uid, false);
 }
@@ -1571,7 +1609,7 @@ export async function savePost({ id, title, content, media = [], author, authorI
   try {
     if (id) {
       await updateDoc(doc(db, "posts", id), payload);
-      await queuePostSync(id, authorId || actingUser?.uid || null).catch((syncError) => {
+      queuePostSync(id, authorId || actingUser?.uid || null, { waitForImmediatePush: false }).catch((syncError) => {
         debugWarn("Failed to queue post update sync:", syncError);
       });
       if (isAdmin(actingUser)) {
@@ -1590,7 +1628,7 @@ export async function savePost({ id, title, content, media = [], author, authorI
       ...payload,
       createdAt: serverTimestamp(),
     });
-    await queuePostSync(docRef.id, authorId || actingUser?.uid || null).catch((syncError) => {
+    queuePostSync(docRef.id, authorId || actingUser?.uid || null, { waitForImmediatePush: false }).catch((syncError) => {
       debugWarn("Failed to queue post create sync:", syncError);
     });
     if (isAdmin(actingUser)) {
@@ -1616,7 +1654,7 @@ export async function deletePost(id) {
     throw new Error("Your admin role cannot delete posts.");
   }
   const existingPost = await fetchPost(id, false).catch(() => null);
-  await queuePostDeleteSync(id, existingPost).catch((error) => {
+  queuePostDeleteSync(id, existingPost, { waitForImmediatePush: false }).catch((error) => {
     debugWarn("Failed to queue post delete sync:", error);
   });
   await deleteDoc(doc(db, "posts", id));
@@ -1643,7 +1681,7 @@ export async function updatePostReactions(id, { likeDelta = 0, dislikeDelta = 0 
 
   try {
     await updateDoc(doc(db, "posts", id), payload);
-    await queuePostSync(id).catch((syncError) => {
+    queuePostSync(id, null, { waitForImmediatePush: false }).catch((syncError) => {
       debugWarn("Failed to queue post reaction sync:", syncError);
     });
     debugLog("Reactions updated for post:", id);
@@ -1772,7 +1810,7 @@ export async function setPostReaction(postId, nextReaction) {
     };
   });
 
-  await queuePostSync(postId, user.uid).catch((syncError) => {
+  queuePostSync(postId, user.uid, { waitForImmediatePush: false }).catch((syncError) => {
     debugWarn("Failed to queue post reaction transaction sync:", syncError);
   });
 
@@ -1833,7 +1871,7 @@ export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, colo
   try {
     if (id) {
       await updateDoc(doc(db, "landmarks", id), payload);
-      await queueLandmarkSync(id).catch((syncError) => {
+      queueLandmarkSync(id, { waitForImmediatePush: false }).catch((syncError) => {
         debugWarn("Failed to queue landmark update sync:", syncError);
       });
       if (isAdmin(actingUser)) {
@@ -1852,7 +1890,7 @@ export async function saveLandmark({ id, name, lat, lng, summary, coverUrl, colo
       ...payload,
       createdAt: serverTimestamp(),
     });
-    await queueLandmarkSync(docRef.id).catch((syncError) => {
+    queueLandmarkSync(docRef.id, { waitForImmediatePush: false }).catch((syncError) => {
       debugWarn("Failed to queue landmark create sync:", syncError);
     });
     if (isAdmin(actingUser)) {
@@ -1878,7 +1916,7 @@ export async function deleteLandmark(id) {
     throw new Error("Your admin role cannot delete landmarks.");
   }
   const existingLandmark = await fetchLandmark(id, false).catch(() => null);
-  await queueLandmarkDeleteSync(id, existingLandmark).catch((error) => {
+  queueLandmarkDeleteSync(id, existingLandmark, { waitForImmediatePush: false }).catch((error) => {
     debugWarn("Failed to queue landmark delete sync:", error);
   });
   await deleteDoc(doc(db, "landmarks", id));
