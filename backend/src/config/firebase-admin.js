@@ -3,6 +3,7 @@ import { env } from "./env.js";
 import { serviceUnavailable, unauthorized } from "../utils/api-error.js";
 
 let firebaseAuth = null;
+let firebaseFirestore = null;
 
 if (env.firebaseProjectId && env.firebaseClientEmail && env.firebasePrivateKey) {
   try {
@@ -24,8 +25,10 @@ if (env.firebaseProjectId && env.firebaseClientEmail && env.firebasePrivateKey) 
     }
 
     firebaseAuth = admin.auth();
+    firebaseFirestore = admin.firestore();
   } catch (error) {
     firebaseAuth = null;
+    firebaseFirestore = null;
     console.error(
       "[Firebase Admin] Failed to initialize Firebase Admin credentials. Protected routes will stay unavailable until the environment variables are corrected.",
       error
@@ -35,6 +38,20 @@ if (env.firebaseProjectId && env.firebaseClientEmail && env.firebasePrivateKey) 
 
 export function isFirebaseAuthConfigured() {
   return Boolean(firebaseAuth);
+}
+
+export function isFirebaseFirestoreConfigured() {
+  return Boolean(firebaseFirestore);
+}
+
+export function getFirebaseFirestore() {
+  if (!firebaseFirestore) {
+    throw serviceUnavailable(
+      "Firebase Firestore is not configured for this backend yet."
+    );
+  }
+
+  return firebaseFirestore;
 }
 
 export async function verifyFirebaseToken(idToken) {
