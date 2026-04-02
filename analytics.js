@@ -9,7 +9,7 @@ const ANALYTICS_CONFIG = {
   // Self-hosted Plausible or similar endpoint
   // Replace with your actual analytics endpoint
   endpoint: 'https://plausible.io/api/event',
-  domain: 'bicol-ip-hub.web.app', // Your domain
+  domain: 'bicol-indigenous-peoples-hub.vercel.app', // Your domain
   
   // Feature flags
   enabled: true,
