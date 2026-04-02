@@ -163,6 +163,59 @@ function getSyncJobDocRef(jobId) {
   return doc(db, "pg_sync_queue", jobId);
 }
 
+function buildBackendSyncPayload(job = {}) {
+  return {
+    entityType: job.entityType,
+    operation: job.operation || "upsert",
+    firestoreId: String(job.firestoreId || ""),
+    ownerUid: job.ownerUid ? String(job.ownerUid) : null,
+    payload: job.payload || {},
+  };
+}
+
+async function pushSyncJobToBackend(job, { user = auth.currentUser, jobRef = null } = {}) {
+  if (!user?.uid || user.isAnonymous) {
+    return { ok: false, skipped: true, reason: "missing-user" };
+  }
+
+  if (!isBackendSyncConfigured()) {
+    return { ok: false, skipped: true, reason: "missing-backend" };
+  }
+
+  const sendJob = async (forceRefresh = false) => {
+    const idToken = await user.getIdToken(forceRefresh);
+    return sendBackendSyncJob(buildBackendSyncPayload(job), idToken);
+  };
+
+  try {
+    await sendJob(false);
+    if (jobRef) {
+      await deleteDoc(jobRef);
+    }
+    return { ok: true };
+  } catch (error) {
+    if (error?.status === 401) {
+      try {
+        await sendJob(true);
+        if (jobRef) {
+          await deleteDoc(jobRef);
+        }
+        return { ok: true, refreshed: true };
+      } catch (retryError) {
+        if (jobRef) {
+          await updateSyncJobFailure(jobRef, retryError);
+        }
+        return { ok: false, error: retryError };
+      }
+    }
+
+    if (jobRef) {
+      await updateSyncJobFailure(jobRef, error);
+    }
+    return { ok: false, error };
+  }
+}
+
 function getSyncRescueEntityTypes(user = auth.currentUser) {
   const entityTypes = new Set();
 
@@ -220,27 +273,42 @@ async function enqueueSyncJob({
   if (!actorUid || !entityType || !firestoreId) return null;
 
   const jobId = buildSyncJobId(entityType, operation, firestoreId);
-  await setDoc(
-    getSyncJobDocRef(jobId),
-    {
-      jobId,
-      entityType,
-      operation,
-      firestoreId: String(firestoreId),
-      ownerUid: ownerUid ? String(ownerUid) : null,
-      actorUid,
-      payload: serializeSyncValue(payload),
-      attempts: 0,
-      lastError: null,
-      lastAttemptAt: null,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  const jobRef = getSyncJobDocRef(jobId);
+  const jobData = {
+    id: jobId,
+    jobId,
+    entityType,
+    operation,
+    firestoreId: String(firestoreId),
+    ownerUid: ownerUid ? String(ownerUid) : null,
+    actorUid,
+    payload: serializeSyncValue(payload),
+    attempts: 0,
+    lastError: null,
+    lastAttemptAt: null,
+  };
 
-  processPendingSyncQueue().catch((error) => {
-    debugWarn("Queued PostgreSQL sync job but immediate processing failed:", error);
+  try {
+    await setDoc(
+      jobRef,
+      {
+        ...jobData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.warn("Failed to store PostgreSQL sync job in Firestore. Trying direct backend sync.", error);
+    const fallbackResult = await pushSyncJobToBackend(jobData);
+    if (!fallbackResult.ok) {
+      console.warn("Direct backend sync fallback failed.", fallbackResult.error || fallbackResult.reason);
+    }
+    return jobId;
+  }
+
+  pushSyncJobToBackend(jobData, { jobRef }).catch((error) => {
+    debugWarn("Immediate PostgreSQL sync push failed. Firestore queue will retry later:", error);
   });
 
   return jobId;
@@ -303,50 +371,14 @@ export async function processPendingSyncQueue() {
   syncProcessingPromise = (async () => {
     const pendingJobs = await loadPendingSyncJobs(user);
     if (!pendingJobs.length) return [];
-
-    let idToken = await user.getIdToken();
-    let refreshedToken = false;
     const completedJobIds = [];
 
     for (const job of pendingJobs) {
-      try {
-        await sendBackendSyncJob(
-          {
-            entityType: job.entityType,
-            operation: job.operation,
-            firestoreId: job.firestoreId,
-            ownerUid: job.ownerUid || null,
-            payload: job.payload || {},
-          },
-          idToken
-        );
-        await deleteDoc(job.ref);
+      const result = await pushSyncJobToBackend(job, { user, jobRef: job.ref });
+      if (result.ok) {
         completedJobIds.push(job.id);
-      } catch (error) {
-        if (error?.status === 401 && !refreshedToken) {
-          try {
-            idToken = await user.getIdToken(true);
-            refreshedToken = true;
-            await sendBackendSyncJob(
-              {
-                entityType: job.entityType,
-                operation: job.operation,
-                firestoreId: job.firestoreId,
-                ownerUid: job.ownerUid || null,
-                payload: job.payload || {},
-              },
-              idToken
-            );
-            await deleteDoc(job.ref);
-            completedJobIds.push(job.id);
-            continue;
-          } catch (retryError) {
-            await updateSyncJobFailure(job.ref, retryError);
-            break;
-          }
-        }
-
-        await updateSyncJobFailure(job.ref, error);
+      } else {
+        const error = result.error;
         if (error?.status === 401 || error?.status === 403 || error?.status >= 500) {
           break;
         }
