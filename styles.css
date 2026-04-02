@@ -2356,7 +2356,7 @@ button {
   .posts-feed {
     width: 100%;
     padding: 0;
-    gap: 0;
+    gap: 14px;
   }
 
   .post-row {
@@ -2374,8 +2374,7 @@ button {
   }
 
   .post-row:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .post-row:hover {
@@ -5230,6 +5229,10 @@ textarea#landmarkSummary {
   .post-row {
     background: transparent;
     box-shadow: none;
+  }
+
+  [data-theme="light"] .post-row {
+    border-bottom-color: rgba(27, 31, 26, 0.1);
   }
 }
 
