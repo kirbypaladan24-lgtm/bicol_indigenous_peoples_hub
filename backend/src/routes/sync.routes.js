@@ -492,11 +492,16 @@ async function syncPostJob(client, job, auth) {
     };
   }
 
-  const payload =
-    (await loadCanonicalFirestorePost(job.firestoreId)) ||
-    ensureObject(job.payload, "sync payload");
+  const canonicalPayload = await loadCanonicalFirestorePost(job.firestoreId);
+  const payload = canonicalPayload || ensureObject(job.payload, "sync payload");
+  const usingCanonicalFirestorePayload = Boolean(canonicalPayload);
   const authorUid = payload.authorId || job.ownerUid || auth.firebaseUid;
-  if (!canManagePosts(auth.role) && job.ownerUid && job.ownerUid !== auth.firebaseUid) {
+  if (
+    !usingCanonicalFirestorePayload &&
+    !canManagePosts(auth.role) &&
+    job.ownerUid &&
+    job.ownerUid !== auth.firebaseUid
+  ) {
     throw forbidden("You can only sync your own posts.");
   }
 
@@ -513,7 +518,7 @@ async function syncPostJob(client, job, auth) {
     ? await ensureUserByFirebaseUid(client, authorUid, authorProfile, null, DEFAULT_ROLE_BY_UID.get(authorUid))
     : null;
 
-  if (!canManagePosts(auth.role)) {
+  if (!usingCanonicalFirestorePayload && !canManagePosts(auth.role)) {
     const ownershipCheck = await client.query(
       `
       SELECT author_user_id
