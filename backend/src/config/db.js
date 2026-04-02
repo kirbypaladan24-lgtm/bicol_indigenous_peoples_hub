@@ -6,6 +6,7 @@ const { Pool } = pg;
 export const pool = new Pool({
   connectionString: env.databaseUrl,
   ssl: env.pgssl || isProduction ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 5000,
 });
 
 pool.on("error", (error) => {
@@ -31,7 +32,15 @@ export async function withTransaction(handler) {
   }
 }
 
-export async function testDatabaseConnection() {
-  const result = await query("SELECT NOW() AS now, current_database() AS database_name");
+export async function testDatabaseConnection(timeoutMs = 3000) {
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error("Database connection check timed out.")), timeoutMs);
+  });
+
+  const result = await Promise.race([
+    query("SELECT NOW() AS now, current_database() AS database_name"),
+    timeoutPromise,
+  ]);
+
   return result.rows[0];
 }
