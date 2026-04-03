@@ -7,6 +7,8 @@ import {
   getAdminRoleLabel,
   canManagePosts,
   canManageLandmarks,
+  canViewPostAdminTools,
+  canViewLandmarkAdminTools,
   getUserProfile,
   fetchUsers,
   fetchUsersCount,
@@ -1043,8 +1045,8 @@ async function loadAdminPosts() {
 export async function initAdmin(user) {
   currentUser = user;
   const canAdmin = isAdmin(user);
-  const postToolsAllowed = canManagePosts(user);
-  const landmarkToolsAllowed = canManageLandmarks(user);
+  const postToolsAllowed = canViewPostAdminTools(user);
+  const landmarkToolsAllowed = canViewLandmarkAdminTools(user);
   const roleLabel = getAdminRoleLabel(user);
   adminStatus.textContent = canAdmin ? `${roleLabel} access granted` : "Restricted";
   if (adminStatus?.previousElementSibling) {
