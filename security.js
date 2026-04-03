@@ -71,7 +71,13 @@ const errorLogEndpoint =
   typeof window !== "undefined" && typeof window.__ERROR_LOG_ENDPOINT__ === "string"
     ? window.__ERROR_LOG_ENDPOINT__
     : null;
+const LOCALHOST_FALLBACK_BACKEND_URL = "https://bicol-indigenous-peoples-hub-1.onrender.com";
 let devToolsWarningShown = false;
+
+function isLocalDevelopmentHost() {
+  return typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+}
 
 function getOriginFromUrl(value) {
   if (!value || typeof value !== "string") return null;
@@ -88,7 +94,9 @@ function buildRuntimeCspPolicy() {
   );
 
   const runtimeOrigins = new Set();
-  const backendBaseUrl = window.__PUBLIC_BACKEND_CONFIG__?.baseUrl || "";
+  const backendBaseUrl =
+    window.__PUBLIC_BACKEND_CONFIG__?.baseUrl ||
+    (isLocalDevelopmentHost() ? LOCALHOST_FALLBACK_BACKEND_URL : "");
   const backendOrigin = getOriginFromUrl(backendBaseUrl);
   const errorOrigin = getOriginFromUrl(errorLogEndpoint);
 
