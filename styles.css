@@ -4311,14 +4311,19 @@ textarea#landmarkSummary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+  align-items: start;
 }
 
 .tracked-post-column {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 0.85rem;
   min-width: 0;
+  height: 30rem;
   padding-top: 0.2rem;
   border-top: 1px solid rgba(94, 189, 121, 0.12);
+  align-content: start;
+  overflow: hidden;
 }
 
 .tracked-post-column-head {
@@ -4342,6 +4347,13 @@ textarea#landmarkSummary {
 
 .tracked-post-column-list {
   gap: 0.7rem;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  align-content: start;
+  grid-auto-rows: min-content;
+  padding-right: 0.35rem;
+  scrollbar-gutter: stable;
 }
 
 [data-theme="light"] .tracked-post-column {
@@ -4350,6 +4362,16 @@ textarea#landmarkSummary {
 
 [data-theme="light"] .tracked-admin-card {
   border-color: rgba(50, 90, 68, 0.12);
+}
+
+.tracked-admin-log-list {
+  min-height: 0;
+  max-height: 24rem;
+  overflow-y: auto;
+  align-content: start;
+  grid-auto-rows: min-content;
+  padding-right: 0.35rem;
+  scrollbar-gutter: stable;
 }
 
 .admin-history-head {
@@ -5397,6 +5419,14 @@ textarea#landmarkSummary {
 
   .tracked-post-columns {
     grid-template-columns: 1fr;
+  }
+
+  .tracked-post-column {
+    height: 22rem;
+  }
+
+  .tracked-admin-log-list {
+    max-height: 18rem;
   }
 
   .tracked-activity-section-meta,
