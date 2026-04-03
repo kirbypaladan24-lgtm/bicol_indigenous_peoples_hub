@@ -4473,17 +4473,44 @@ textarea#landmarkSummary {
 }
 
 .admin-list-search {
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 320px;
+  max-width: 100%;
+  height: 48px;
+  padding: 0 10px;
   margin: 0 0 14px;
+  justify-self: start;
+  align-self: start;
+  flex: 0 0 auto;
+  border: 1px solid rgba(90, 154, 106, 0.28);
+  background: rgba(20, 30, 24, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
 }
 
 .admin-list-search input {
+  flex: 1;
   min-width: 0;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  outline: none;
 }
 
 .admin-list-search .icon-btn.small:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+[data-theme="light"] .admin-list-search {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #c9d2c2;
+}
+
+[data-theme="light"] .admin-list-search input {
+  color: #1b1f1a;
 }
 
 .admin-list-count {
