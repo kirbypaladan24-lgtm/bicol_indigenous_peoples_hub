@@ -562,10 +562,7 @@ function renderIdentity(identity) {
 }
 
 function getChartScope(user) {
-  if (isSuperAdmin(user)) return "all";
-  if (canManagePosts(user)) return "posts";
-  if (canManageLandmarks(user)) return "landmarks";
-  if (canManageEmergencies(user)) return "emergencies";
+  if (isAdmin(user)) return "all";
   return "none";
 }
 
