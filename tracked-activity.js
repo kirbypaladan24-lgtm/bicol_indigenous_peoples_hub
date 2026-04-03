@@ -93,6 +93,23 @@ const POST_ACTIVITY_COLUMNS = [
     emptyMessage: "No deleted posts in this range.",
   },
 ];
+const LANDMARK_ACTIVITY_COLUMNS = [
+  {
+    actionType: "landmark_created",
+    title: "Created landmarks",
+    emptyMessage: "No created landmarks in this range.",
+  },
+  {
+    actionType: "landmark_updated",
+    title: "Edited landmarks",
+    emptyMessage: "No edited landmarks in this range.",
+  },
+  {
+    actionType: "landmark_deleted",
+    title: "Deleted landmarks",
+    emptyMessage: "No deleted landmarks in this range.",
+  },
+];
 
 let currentRange = "30";
 let latestLogs = [];
@@ -301,6 +318,12 @@ function renderSection(sectionKey, logs = []) {
   }
 
   const grouped = groupLogsByActor(logs);
+  const splitColumns =
+    sectionKey === "posts"
+      ? POST_ACTIVITY_COLUMNS
+      : sectionKey === "landmarks"
+        ? LANDMARK_ACTIVITY_COLUMNS
+        : null;
   section.container.innerHTML = grouped
     .map((group) => `
       <article class="tracked-admin-card">
@@ -317,10 +340,10 @@ function renderSection(sectionKey, logs = []) {
           </div>
         </div>
         ${
-          sectionKey === "posts"
+          splitColumns
             ? `
               <div class="tracked-post-columns">
-                ${POST_ACTIVITY_COLUMNS.map((column) => {
+                ${splitColumns.map((column) => {
                   const columnLogs = group.logs.filter((entry) => entry?.actionType === column.actionType);
                   return `
                     <section class="tracked-post-column">
