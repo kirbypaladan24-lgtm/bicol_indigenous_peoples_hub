@@ -1786,6 +1786,7 @@ export async function setPostReaction(postId, nextReaction) {
     transaction.update(postRef, {
       likes: nextLikes,
       dislikes: nextDislikes,
+      updatedAt: serverTimestamp(),
     });
 
     if (nextReaction === "like" || nextReaction === "dislike") {
