@@ -34,6 +34,10 @@ let currentIdentity = null;
 function applyTheme(theme) {
   const value = theme === "light" ? "light" : "dark";
   document.documentElement.dataset.theme = value;
+  document.documentElement.style.colorScheme = value;
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content", value === "light" ? "#f6f6f1" : "#0b120d");
   localStorage.setItem(THEME_KEY, value);
 }
 
