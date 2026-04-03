@@ -6,9 +6,9 @@ import {
   isAdmin,
   isSuperAdmin,
   getAdminRoleLabel,
-  canManagePosts,
-  canManageLandmarks,
-  canManageEmergencies,
+  canViewPostAdminTools,
+  canViewLandmarkAdminTools,
+  canViewEmergencyAdminTools,
   canAccessAdminWorkspace,
   canAccessTracker,
   fetchPosts,
@@ -69,9 +69,9 @@ let lastMetaState = { totalCount: 0, updatedAt: null };
 
 function getAllowedMetrics(user) {
   if (isSuperAdmin(user)) return new Set(["posts", "users", "landmarks", "engagement", "emergencies"]);
-  if (canManagePosts(user)) return new Set(["posts", "engagement"]);
-  if (canManageLandmarks(user)) return new Set(["landmarks"]);
-  if (canManageEmergencies(user)) return new Set(["emergencies"]);
+  if (canViewPostAdminTools(user)) return new Set(["posts", "engagement"]);
+  if (canViewLandmarkAdminTools(user)) return new Set(["landmarks"]);
+  if (canViewEmergencyAdminTools(user)) return new Set(["emergencies"]);
   return new Set();
 }
 
