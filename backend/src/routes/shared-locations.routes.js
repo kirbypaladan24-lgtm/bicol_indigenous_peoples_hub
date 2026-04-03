@@ -6,7 +6,7 @@ import { createRateLimiter } from "../middleware/rate-limit.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { logAdminActivity } from "../utils/audit-log.js";
 import { badRequest, forbidden, notFound } from "../utils/api-error.js";
-import { ROLE } from "../utils/roles.js";
+import { canManageEmergencies, ROLE } from "../utils/roles.js";
 import { buildUserIdentitySnapshot, loadUserByIdOrThrow } from "../utils/user-records.js";
 import {
   ensureObject,
@@ -34,7 +34,7 @@ function resolveTargetUserId(req) {
 router.get(
   "/",
   requireAuth,
-  requireRoles(ROLE.EMERGENCY_ADMIN, ROLE.SUPER_ADMIN),
+  requireRoles(ROLE.CONTENT_ADMIN, ROLE.LANDMARK_ADMIN, ROLE.EMERGENCY_ADMIN, ROLE.SUPER_ADMIN),
   asyncHandler(async (req, res) => {
     const result = await query(
       `
@@ -54,8 +54,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const targetUserId = String(resolveTargetUserId(req));
     const isSelf = targetUserId === String(req.auth.dbUser.id);
-    const isEmergencyManager =
-      req.auth.role === ROLE.EMERGENCY_ADMIN || req.auth.role === ROLE.SUPER_ADMIN;
+    const isEmergencyManager = canManageEmergencies(req.auth.role);
 
     if (!isSelf && !isEmergencyManager) {
       throw forbidden("You are not allowed to view this shared location.");
@@ -85,8 +84,7 @@ router.post(
   writeLimiter,
   asyncHandler(async (req, res) => {
     const body = ensureObject(req.body);
-    const isEmergencyManager =
-      req.auth.role === ROLE.EMERGENCY_ADMIN || req.auth.role === ROLE.SUPER_ADMIN;
+    const isEmergencyManager = canManageEmergencies(req.auth.role);
     const targetUserId =
       isEmergencyManager && body.user_id ? parseInteger(body.user_id, "user_id", { min: 1 }) : req.auth.dbUser.id;
 
@@ -184,7 +182,7 @@ router.post(
 router.patch(
   "/:userId/response",
   requireAuth,
-  requireRoles(ROLE.EMERGENCY_ADMIN, ROLE.SUPER_ADMIN),
+  requireRoles(ROLE.CONTENT_ADMIN, ROLE.LANDMARK_ADMIN, ROLE.EMERGENCY_ADMIN, ROLE.SUPER_ADMIN),
   writeLimiter,
   asyncHandler(async (req, res) => {
     const body = ensureObject(req.body);
