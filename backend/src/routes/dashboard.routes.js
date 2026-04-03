@@ -38,7 +38,12 @@ router.get(
 router.get(
   "/active-emergencies",
   requireAuth,
-  requireRoles(ROLE.EMERGENCY_ADMIN, ROLE.SUPER_ADMIN),
+  requireRoles(
+    ROLE.CONTENT_ADMIN,
+    ROLE.LANDMARK_ADMIN,
+    ROLE.EMERGENCY_ADMIN,
+    ROLE.SUPER_ADMIN
+  ),
   asyncHandler(async (req, res) => {
     const result = await query(`
       SELECT *
