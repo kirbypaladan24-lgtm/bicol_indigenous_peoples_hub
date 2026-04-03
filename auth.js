@@ -733,23 +733,23 @@ export function isAdmin(user) {
 }
 
 export function canManagePosts(user) {
-  return isSuperAdmin(user) || isContentAdmin(user);
+  return isAdmin(user);
 }
 
 export function canManageLandmarks(user) {
-  return isSuperAdmin(user) || isLandmarkAdmin(user);
+  return isAdmin(user);
 }
 
 export function canManageEmergencies(user) {
-  return isSuperAdmin(user) || isEmergencyAdmin(user);
+  return isAdmin(user);
 }
 
 export function canAccessAdminWorkspace(user) {
-  return canManagePosts(user) || canManageLandmarks(user);
+  return isAdmin(user);
 }
 
 export function canAccessTracker(user) {
-  return canManageEmergencies(user);
+  return isAdmin(user);
 }
 
 export function canAccessCharts(user) {
