@@ -3,8 +3,15 @@ function readInjectedBackendConfig() {
   return window.__PUBLIC_BACKEND_CONFIG__ || null;
 }
 
+const LOCALHOST_FALLBACK_BACKEND_URL = "https://bicol-indigenous-peoples-hub-1.onrender.com";
+
+function isLocalDevelopmentHost() {
+  if (typeof window === "undefined") return false;
+  return location.hostname === "localhost" || location.hostname === "127.0.0.1";
+}
+
 function readLocalDevBackendConfig() {
-  if (typeof window === "undefined" || location.hostname !== "localhost") {
+  if (!isLocalDevelopmentHost()) {
     return null;
   }
 
@@ -43,6 +50,10 @@ export function getBackendBaseUrl() {
 
   const localDev = normalizeBaseUrl(readLocalDevBackendConfig()?.baseUrl);
   if (localDev) return localDev;
+
+  if (isLocalDevelopmentHost()) {
+    return LOCALHOST_FALLBACK_BACKEND_URL;
+  }
 
   return "";
 }
