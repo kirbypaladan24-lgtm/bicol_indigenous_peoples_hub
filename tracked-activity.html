@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b120d" />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      (() => {
+        const THEME_KEY = "bicol-ip-theme";
+        let theme = "dark";
+        try {
+          const stored = localStorage.getItem(THEME_KEY);
+          if (stored === "light" || stored === "dark") {
+            theme = stored;
+          } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+            theme = "light";
+          }
+        } catch (_error) {}
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) {
+          themeMeta.setAttribute("content", theme === "light" ? "#f6f6f1" : "#0b120d");
+        }
+      })();
+    </script>
+    <meta
+      name="description"
+      content="Review tracked admin activity by section and operator in the Bicol Indigenous Peoples Hub."
+    />
+    <title>Tracked Activity | Bicol Indigenous Peoples Hub</title>
+    <link rel="icon" type="image/png" href="./favicon.png" sizes="64x64" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="has-desktop-shortcuts page-control page-tracked-activity">
+    <a class="skip-link" href="#trackedActivityMain">Skip to content</a>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <img
+            src="./brand-mark.png"
+            alt="Bicol Indigenous Peoples Hub Logo"
+            width="512"
+            height="512"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </span>
+        <div>
+          <h1 data-i18n="page_title">Bicol Indigenous Peoples Hub</h1>
+          <p>Tracked Activity</p>
+        </div>
+      </div>
+      <div class="auth-cta">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <button id="menuToggle" class="ghost icon-only" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+      </div>
+    </header>
+
+    <aside class="desktop-shortcuts" aria-label="Primary sidebar">
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="posts.html" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+      </nav>
+      <div class="sidebar-actions">
+        <a class="ghost" href="profile.html" data-i18n="profile">Profile</a>
+        <a class="ghost" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
+        <a class="ghost" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <a class="ghost" href="tracker.html" data-i18n="user_locations">User Locations</a>
+        <a id="superAdminBtn" class="ghost" href="superadmin.html">Super Admin</a>
+        <a class="ghost" href="tracked-activity.html" aria-current="page">Tracked Activity</a>
+        <button id="changePassBtn" class="ghost" type="button" data-i18n="change_password">Change Password</button>
+        <a class="ghost" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+        <button id="logoutBtn" class="solid" data-i18n="logout">Logout</button>
+      </div>
+    </aside>
+
+    <div id="mobileMenu" class="mobile-menu">
+      <div class="mobile-links">
+        <a href="index.html#home" data-i18n="nav_home">Home</a>
+        <a href="index.html#map" data-i18n="nav_map">Map</a>
+        <a href="posts.html" data-i18n="nav_posts">Posts</a>
+        <a href="index.html#about" data-i18n="nav_about">About</a>
+        <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+      </div>
+      <div class="mobile-actions">
+        <button id="mobileThemeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun">&#9728;</span>
+          <span class="toggle-icon moon">&#9790;</span>
+        </button>
+        <a class="ghost full" href="profile.html" data-i18n="profile">Profile</a>
+        <a class="ghost full" href="admin.html" data-i18n="admin_tools">Admin Tools</a>
+        <a class="ghost full" href="charts.html" data-i18n="data_charts">Data Charts</a>
+        <a class="ghost full" href="tracker.html" data-i18n="user_locations">User Locations</a>
+        <a id="mobileSuperAdminBtn" class="ghost full" href="superadmin.html">Super Admin</a>
+        <a class="ghost full" href="tracked-activity.html" aria-current="page">Tracked Activity</a>
+        <button id="mobileChangePassBtn" class="ghost full" type="button" data-i18n="change_password">Change Password</button>
+        <a class="ghost full" href="policy.html" data-i18n="footer_policy">Privacy &amp; Content Policy</a>
+        <button id="mobileLogoutBtn" class="solid full" data-i18n="logout">Logout</button>
+      </div>
+    </div>
+
+    <main id="trackedActivityMain" class="section profile-dashboard">
+      <section class="profile-overview-shell">
+        <div class="profile-overview-card" data-reveal>
+          <div class="profile-overview-copy">
+            <p class="eyebrow">Audit Review</p>
+            <h2>Tracked Activity</h2>
+            <p id="trackedActivityStatus" class="section-desc">
+              Review every tracked admin operation in dedicated sections for posts, landmarks, and emergency response work.
+            </p>
+          </div>
+          <div class="profile-identity">
+            <p><strong data-i18n="username_label">Username:</strong> <span id="trackedActivityUsername">--</span></p>
+            <p><strong data-i18n="email">Email</strong>: <span id="trackedActivityEmail">--</span></p>
+            <p><strong data-i18n="access_label">Access:</strong> <span id="trackedActivityRole">Super Admin</span></p>
+          </div>
+        </div>
+        <div class="workspace-meta workspace-meta--compact" data-reveal data-reveal-delay="90">
+          <article class="workspace-meta-pill">
+            <span>Total tracked actions</span>
+            <strong id="trackedActivityTotal">0</strong>
+          </article>
+          <article class="workspace-meta-pill">
+            <span>Admins in range</span>
+            <strong id="trackedActivityAdmins">0</strong>
+          </article>
+          <article class="workspace-meta-pill">
+            <span data-i18n="stat_updated">Last update</span>
+            <strong id="trackedActivityUpdated">--</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="admin-card admin-insights-card admin-insights-card--streamlined" data-reveal data-reveal-delay="150">
+        <div class="admin-card-head tracked-activity-controls">
+          <div class="admin-filter-group" role="navigation" aria-label="Jump to tracked activity section">
+            <span class="admin-filter-label">Jump to section</span>
+            <div class="admin-filter-chips">
+              <a href="#trackedPostsSection" class="admin-filter-chip tracked-activity-link-chip">Post activity</a>
+              <a href="#trackedLandmarksSection" class="admin-filter-chip tracked-activity-link-chip">Landmark activity</a>
+              <a href="#trackedEmergenciesSection" class="admin-filter-chip tracked-activity-link-chip">Emergency activity</a>
+            </div>
+          </div>
+          <div class="admin-filter-group" role="group" aria-label="Date range">
+            <span class="admin-filter-label">Date range</span>
+            <div class="admin-filter-chips">
+              <button type="button" class="admin-filter-chip active" data-range="7">7 days</button>
+              <button type="button" class="admin-filter-chip" data-range="30">30 days</button>
+              <button type="button" class="admin-filter-chip" data-range="90">90 days</button>
+              <button type="button" class="admin-filter-chip" data-range="all">All time</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="trackedPostsSection" class="admin-card admin-insights-card tracked-activity-section" data-reveal data-reveal-delay="200">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow">Section 1</p>
+            <h4>Post activity</h4>
+            <p class="admin-card-note">Create, edit, and delete operations for community posts, grouped by admin.</p>
+          </div>
+          <div class="tracked-activity-section-meta">
+            <span>Entries</span>
+            <strong id="trackedPostsCount">0</strong>
+          </div>
+        </div>
+        <div id="trackedPostsContent" class="tracked-section-grid"></div>
+      </section>
+
+      <section id="trackedLandmarksSection" class="admin-card admin-insights-card tracked-activity-section" data-reveal data-reveal-delay="240">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow">Section 2</p>
+            <h4>Landmark activity</h4>
+            <p class="admin-card-note">Review added, edited, and removed landmark records without mixing them into other admin work.</p>
+          </div>
+          <div class="tracked-activity-section-meta">
+            <span>Entries</span>
+            <strong id="trackedLandmarksCount">0</strong>
+          </div>
+        </div>
+        <div id="trackedLandmarksContent" class="tracked-section-grid"></div>
+      </section>
+
+      <section id="trackedEmergenciesSection" class="admin-card admin-insights-card tracked-activity-section" data-reveal data-reveal-delay="280">
+        <div class="admin-card-head">
+          <div>
+            <p class="admin-card-eyebrow">Section 3</p>
+            <h4>Emergency activity</h4>
+            <p class="admin-card-note">Monitor emergency-related responses and location handling in a dedicated section.</p>
+          </div>
+          <div class="tracked-activity-section-meta">
+            <span>Entries</span>
+            <strong id="trackedEmergenciesCount">0</strong>
+          </div>
+        </div>
+        <div id="trackedEmergenciesContent" class="tracked-section-grid"></div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+    <dialog id="changePassDialog" class="modal">
+      <div class="modal-header">
+        <h3 data-i18n="change_password_title">Change Password</h3>
+        <button class="icon-btn" id="closeChangePass">&times;</button>
+      </div>
+      <form id="changePassForm" class="form">
+        <label data-i18n="current_password">Current password</label>
+        <input type="password" id="currentPassword" required />
+        <label data-i18n="new_password">New password</label>
+        <input type="password" id="newPassword" required />
+        <label data-i18n="confirm_new_password">Confirm new password</label>
+        <input type="password" id="confirmPassword" required />
+        <button type="submit" class="solid full" data-i18n="update_password">Update Password</button>
+      </form>
+    </dialog>
+
+    <script src="/api/runtime-config.js"></script>
+    <script type="module" src="./tracked-activity.js"></script>
+  </body>
+</html>
