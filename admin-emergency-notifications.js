@@ -1,4 +1,4 @@
-import { observeAuth, canManageEmergencies, observeEmergencyAlerts } from "./auth.js";
+import { observeAuth, canAccessTracker, observeEmergencyAlerts } from "./auth.js";
 
 const STORAGE_KEY = "bicol-ip-last-seen-emergency-alert";
 
@@ -77,7 +77,7 @@ export function initAdminEmergencyNotifications() {
     cleanupAlerts?.();
     cleanupAlerts = null;
 
-    if (!user || !canManageEmergencies(user)) {
+    if (!user || !canAccessTracker(user)) {
       return;
     }
 
