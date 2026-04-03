@@ -732,16 +732,21 @@ export function isAdmin(user) {
   return Boolean(getAdminRole(user));
 }
 
+export function isOperationalAdminUser(user) {
+  const uid = user?.uid || null;
+  return Boolean(uid) && (uid === SUPER_ADMIN_UID || ADMIN_UIDS.has(uid) || isAdmin(user));
+}
+
 export function canManagePosts(user) {
-  return isAdmin(user);
+  return isOperationalAdminUser(user);
 }
 
 export function canManageLandmarks(user) {
-  return isAdmin(user);
+  return isOperationalAdminUser(user);
 }
 
 export function canManageEmergencies(user) {
-  return isAdmin(user);
+  return isOperationalAdminUser(user);
 }
 
 export function canViewPostAdminTools(user) {
