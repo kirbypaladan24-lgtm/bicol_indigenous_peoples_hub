@@ -5562,3 +5562,19 @@ textarea#landmarkSummary {
 ) {
   border-radius: 0 !important;
 }
+
+.hero-shell,
+.hero-content,
+.hero-card,
+.policy-hero-block,
+.landmark-hero-shell {
+  border-radius: 0 !important;
+  overflow: hidden;
+}
+
+.hero-shell::before,
+.hero-shell::after,
+.policy-hero-block::after,
+.landmark-hero-shell::after {
+  border-radius: 0 !important;
+}
