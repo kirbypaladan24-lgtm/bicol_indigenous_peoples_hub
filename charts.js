@@ -170,7 +170,7 @@ function getLatestChartDataTimestamp({ posts = [], landmarks = [], users = [] } 
 }
 
 function getRangeDays(range = currentRange) {
-  return RANGE_CONFIG[range]?.days ?? RANGE_CONFIG["7"].days;
+  return RANGE_CONFIG[range]?.days ?? null;
 }
 
 function getRangeLabel(range = currentRange) {
@@ -694,17 +694,22 @@ function renderCharts(payload) {
   } = payload || {};
 
   const filteredPosts = filterItemsByRange(posts, ["createdAt", "updatedAt"], currentRange);
+  const filteredEngagementPosts = filterItemsByRange(posts, ["updatedAt", "createdAt"], currentRange);
   const filteredLandmarks = filterItemsByRange(landmarks, ["createdAt", "updatedAt"], currentRange);
   const filteredUsers = filterItemsByRange(users, ["lastLoginAt", "createdAt"], currentRange);
   const filteredEmergencyAlerts = filterItemsByRange(emergencyAlerts, ["submittedAt", "updatedAt"], currentRange)
     .filter((entry) => Boolean(getDateValue(entry, ["submittedAt", "updatedAt"])));
-  const filteredLikes = filteredPosts.reduce((sum, post) => sum + Math.max(0, Number(post.likes || 0)), 0);
-  const filteredDislikes = filteredPosts.reduce((sum, post) => sum + Math.max(0, Number(post.dislikes || 0)), 0);
+  const filteredLikes = filteredEngagementPosts.reduce((sum, post) => sum + Math.max(0, Number(post.likes || 0)), 0);
+  const filteredDislikes = filteredEngagementPosts.reduce((sum, post) => sum + Math.max(0, Number(post.dislikes || 0)), 0);
   const totalEngagement = filteredLikes + filteredDislikes;
-  const emergencyTimestamps = emergencyAlerts
+  const emergencyTimestamps = filteredEmergencyAlerts
     .map((item) => getDateValue(item, ["submittedAt", "updatedAt"]))
     .filter(Boolean);
-  const baseLatestDataTimestamp = getLatestChartDataTimestamp({ posts, landmarks, users });
+  const baseLatestDataTimestamp = getLatestChartDataTimestamp({
+    posts: filteredPosts,
+    landmarks: filteredLandmarks,
+    users: filteredUsers,
+  });
   const latestEmergencyTimestamp = emergencyTimestamps.length
     ? new Date(Math.max(...emergencyTimestamps.map((date) => date.getTime())))
     : null;
@@ -713,15 +718,11 @@ function renderCharts(payload) {
       ? new Date(Math.max(baseLatestDataTimestamp.getTime(), latestEmergencyTimestamp.getTime()))
       : latestEmergencyTimestamp || baseLatestDataTimestamp;
 
-  const totalLikes = posts.reduce((sum, post) => sum + Math.max(0, Number(post.likes || 0)), 0);
-  const totalDislikes = posts.reduce((sum, post) => sum + Math.max(0, Number(post.dislikes || 0)), 0);
-  const totalEngagementOverall = totalLikes + totalDislikes;
-
-  renderMetric(adminMetricPosts, posts.length);
-  renderMetric(adminMetricUsers, userCount);
-  renderMetric(adminMetricLandmarks, landmarks.length);
-  renderMetric(adminMetricEngagement, totalEngagementOverall);
-  renderMetric(adminMetricEmergencies, emergencyAlerts.length);
+  renderMetric(adminMetricPosts, filteredPosts.length);
+  renderMetric(adminMetricUsers, filteredUsers.length);
+  renderMetric(adminMetricLandmarks, filteredLandmarks.length);
+  renderMetric(adminMetricEngagement, totalEngagement);
+  renderMetric(adminMetricEmergencies, filteredEmergencyAlerts.length);
   if (chartRangeSummary) chartRangeSummary.textContent = getRangeLabel();
   if (chartTrackedPosts) {
     const trackedCount =
@@ -768,7 +769,7 @@ function renderCharts(payload) {
 
   renderTopPosts(
     adminTopPosts,
-    [...filteredPosts]
+    [...filteredEngagementPosts]
       .sort((a, b) => {
         const engagementA = Math.max(0, Number(a.likes || 0)) + Math.max(0, Number(a.dislikes || 0));
         const engagementB = Math.max(0, Number(b.likes || 0)) + Math.max(0, Number(b.dislikes || 0));
