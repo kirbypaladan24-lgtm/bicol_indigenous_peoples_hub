@@ -4211,6 +4211,106 @@ textarea#landmarkSummary {
   border-color: rgba(50, 90, 68, 0.12);
 }
 
+.tracked-activity-entry {
+  text-decoration: none;
+}
+
+.page-tracked-activity .admin-insights-card {
+  padding: 26px 30px 28px;
+  border-radius: 0;
+}
+
+.tracked-activity-controls {
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.tracked-activity-link-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.tracked-activity-section {
+  scroll-margin-top: 112px;
+}
+
+.tracked-activity-section-meta {
+  min-width: 120px;
+  text-align: right;
+}
+
+.tracked-activity-section-meta span {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tracked-activity-section-meta strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.45rem;
+  color: var(--text);
+}
+
+.tracked-section-grid {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.tracked-admin-card {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(94, 189, 121, 0.14);
+}
+
+.tracked-admin-card:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.tracked-admin-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.tracked-admin-head h4 {
+  margin: 0.15rem 0 0;
+}
+
+.tracked-admin-meta {
+  min-width: 170px;
+  text-align: right;
+  display: grid;
+  gap: 0.32rem;
+}
+
+.tracked-admin-meta span {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tracked-admin-meta strong {
+  font-size: 1.35rem;
+  color: var(--text);
+}
+
+.tracked-admin-log-list {
+  gap: 0.75rem;
+}
+
+[data-theme="light"] .tracked-admin-card {
+  border-color: rgba(50, 90, 68, 0.12);
+}
+
 .admin-history-head {
   display: flex;
   justify-content: space-between;
@@ -5246,6 +5346,18 @@ textarea#landmarkSummary {
   /* make the inline carousel height slightly smaller on narrow screens */
   .insta-slide {
     height: clamp(140px, 42vw, 260px);
+  }
+
+  .tracked-activity-controls,
+  .tracked-admin-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tracked-activity-section-meta,
+  .tracked-admin-meta {
+    min-width: 0;
+    text-align: left;
   }
 }
 
