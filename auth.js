@@ -744,12 +744,24 @@ export function canManageEmergencies(user) {
   return isAdmin(user);
 }
 
+export function canViewPostAdminTools(user) {
+  return isSuperAdmin(user) || isContentAdmin(user);
+}
+
+export function canViewLandmarkAdminTools(user) {
+  return isSuperAdmin(user) || isLandmarkAdmin(user);
+}
+
+export function canViewEmergencyAdminTools(user) {
+  return isSuperAdmin(user) || isEmergencyAdmin(user);
+}
+
 export function canAccessAdminWorkspace(user) {
-  return isAdmin(user);
+  return canViewPostAdminTools(user) || canViewLandmarkAdminTools(user);
 }
 
 export function canAccessTracker(user) {
-  return isAdmin(user);
+  return canViewEmergencyAdminTools(user);
 }
 
 export function canAccessCharts(user) {
